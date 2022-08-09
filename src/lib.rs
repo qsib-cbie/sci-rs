@@ -106,21 +106,21 @@ mod tests {
     #[test]
     fn can_autocorrelate() {
         // sin wave w/ multiple periods
-        let periods = 10.;
-        let points = 1000.;
-        let radians_per_pt = (periods * 2. * PI) / points;
-        let sin_wave = (0..1000)
-            .map(|i| 1. + (i as f64 * radians_per_pt).sin())
+        let periods = 1.;
+        let points = 10;
+        let radians_per_pt = (periods * 2. * PI) / points as f64;
+        let sin_wave = (0..points)
+            .map(|i| (i as f64 * radians_per_pt).sin())
             .collect_vec();
-        // println!("{:?}", sin_wave);
+        // println!("sin_wave = {:?}", sin_wave);
 
-        let _correlations: Vec<f64> = (0..1000)
+        let _correlations: Vec<f64> = (0..points)
             .map(|i| autocorr(sin_wave.iter(), i))
             .collect_vec();
-        let correlations: Vec<f32> = (0..1000)
+        let correlations: Vec<f32> = (0..points)
             .map(|i| autocorr(sin_wave.iter().map(|f| *f as f32), i))
             .collect_vec();
-        // println!("{:?}", correlations);
+        println!("correlations = {:?}", correlations);
 
         let mut fig = Figure::new();
         fig.axes2d().lines(
@@ -132,7 +132,7 @@ mod tests {
             correlations,
             &[Caption("Sin Wave Autocorrelation")],
         );
-        fig.set_pre_commands("set term dumb 120 40");
+        fig.set_pre_commands("set term dumb 100 30");
         fig.show().unwrap();
     }
 
