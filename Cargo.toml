@@ -1,0 +1,14 @@
+[package]
+name = "emb-dsp"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+num-traits = "0.2.15"
+
+[dev-dependencies]
+approx = "0.5.1"
+gnuplot = "0.0.37"
+itertools = "0.10.3"
