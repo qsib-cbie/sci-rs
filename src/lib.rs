@@ -131,6 +131,71 @@ where
 }
 
 ///
+/// Compute the variance of the signal, `y`
+///
+/// Return the variance and the number of points averaged
+///
+/// ```
+/// use approx::relative_eq;
+/// use emb_dsp::variance;
+///
+/// let y: [f64; 5] = [1.,2.,3.,4.,5.];
+/// relative_eq!(2.5f64, variance(y.iter()).0);
+///
+/// let y: &[f32] = &[];
+/// assert_eq!((0f32, 0), variance(y.iter()));
+///
+/// ```
+///
+pub fn variance<YI, F>(y: YI) -> (F, usize)
+where
+    F: Float + Default + Sum,
+    YI: Iterator + Clone,
+    YI::Item: Borrow<F>,
+{
+    let (avg, n) = mean(y.clone());
+    let sum: F = y
+        .map(|f| {
+            let delta = *f.borrow() - avg;
+            delta * delta
+        })
+        .sum::<F>();
+    if n > 0 {
+        (sum / F::from(n).unwrap(), n)
+    } else {
+        Default::default()
+    }
+}
+
+///
+/// Compute the standard deviation of the signal, `y`
+///
+/// Return the standard deviation and the number of points averaged
+///
+/// ```
+/// use approx::relative_eq;
+/// use emb_dsp::stdev;
+///
+/// let y: [f64; 5] = [1.,2.,3.,4.,5.];
+/// relative_eq!(2.5f64.sqrt(), stdev(y.iter()).0);
+///
+/// let y: &[f32] = &[];
+/// assert_eq!((0f32, 0), stdev(y.iter()));
+///
+/// ```
+pub fn stdev<YI, F>(y: YI) -> (F, usize)
+where
+    F: Float + Default + Sum,
+    YI: Iterator + Clone,
+    YI::Item: Borrow<F>,
+{
+    match variance(y) {
+        (_, 0) => Default::default(),
+        (v, n) => (v.sqrt(), n),
+    }
+}
+
+///
 /// Autocorrelate the signal `y` with lag `k`,
 /// using 1/N formulation
 ///
@@ -153,21 +218,14 @@ where
 {
     let (avg, n) = mean(y.clone());
     let n = F::from(n).unwrap();
-    let variance: F = y
-        .clone()
-        .map(|f| {
-            let delta = *f.borrow() - avg;
-            delta * delta
-        })
-        .sum::<F>()
-        / n;
+    let (var, _) = variance(y.clone());
     let autocovariance: F = y
         .clone()
         .zip(y.skip(k))
         .map(|(fi, fik)| (*fi.borrow() - avg) * (*fik.borrow() - avg))
         .sum::<F>()
         / n;
-    autocovariance / variance
+    autocovariance / var
 }
 
 ///
