@@ -1,17 +1,133 @@
-#![no_std]
-#[cfg(test)]
+#![cfg_attr(not(feature = "use_std"), no_std)]
+#[cfg(any(not(feature = "use_std"), test))]
 #[macro_use]
 extern crate std;
 
-use core::{borrow::Borrow, iter::Sum};
-
+use core::{borrow::Borrow, iter::Sum, ops::Add};
 use num_traits::Float;
+
+#[cfg(feature = "use_std")]
+use itertools::Itertools;
 
 pub fn default<F>() -> F
 where
     F: Float + Default,
 {
     Default::default()
+}
+
+// Quick select finds the `i`th smallest element with 2N comparisons
+fn quickselect<B, F>(y: &Vec<B>, k: usize) -> F
+where
+    B: Borrow<F>,
+    F: Float,
+{
+    let n = y.len();
+    if n == 1 {
+        return *y[0].borrow();
+    }
+
+    let pivot = y.get(n / 2).unwrap().borrow();
+    let lower = y
+        .iter()
+        .filter(|yi| *(*yi).borrow() < *pivot)
+        .map(|yi| *yi.borrow())
+        .collect_vec();
+    let lowers = lower.len();
+    let upper = y
+        .iter()
+        .filter(|yi| *(*yi).borrow() > *pivot)
+        .map(|yi| *yi.borrow())
+        .collect_vec();
+    let uppers = upper.len();
+    let pivots = n - lowers - uppers;
+
+    if k < lowers {
+        quickselect(&lower, k)
+    } else if k < lowers + pivots {
+        *pivot
+    } else {
+        quickselect(&upper, k - lowers - pivots)
+    }
+}
+
+///
+/// Compute the median of the signal, `y`
+///
+/// Return the median and the number of points averaged
+///
+/// ```
+/// use approx::relative_eq;
+/// use emb_dsp::median;
+///
+/// let y: [f64; 5] = [1.,2.,3.,4.,5.];
+/// relative_eq!(3f64, median(y.iter()).0);
+///
+/// let y: [f32; 5] = [3.,1.,4.,2.,5.];
+/// relative_eq!(3f32, median(y.iter()).0);
+///
+/// let y: [f64; 6] = [3.,1.,4.,2.,3.,5.];
+/// relative_eq!(3f64, median(y.iter()).0);
+///
+/// let y: &[f32] = &[];
+/// assert_eq!((0f32, 0), median(y.iter()));
+///
+/// ```
+///
+pub fn median<YI, F>(y: YI) -> (F, usize)
+where
+    F: Float + Default,
+    YI: Iterator,
+    YI::Item: Borrow<F>,
+{
+    // Materialize the values in the iterator in order to run O(n) quick select
+    let y = y.collect_vec();
+    let n = y.len();
+
+    if n == 0 {
+        Default::default()
+    } else if n % 2 == 1 {
+        (quickselect(&y, n / 2 - 1), n)
+    } else {
+        (
+            (quickselect(&y, n / 2 - 1) + quickselect(&y, n / 2)) / F::from(2.).unwrap(),
+            n,
+        )
+    }
+}
+
+///
+/// Compute the mean of the signal, `y`
+///
+/// Return the mean and the number of points averaged
+///
+/// ```
+/// use approx::relative_eq;
+/// use emb_dsp::mean;
+///
+/// // Flat signal perfectly correlates with itself
+/// let y: [f64; 5] = [1.,2.,3.,4.,5.];
+/// relative_eq!(3f64, mean(y.iter()).0);
+///
+/// let y: &[f32] = &[];
+/// assert_eq!((0f32, 0), mean(y.iter()));
+///
+/// ```
+///
+pub fn mean<YI, F>(y: YI) -> (F, usize)
+where
+    F: Float + Default + Add,
+    YI: Iterator,
+    YI::Item: Borrow<F>,
+{
+    let (sum, count) = y.fold(Default::default(), |acc: (F, usize), yi| {
+        (acc.0 + *yi.borrow(), acc.1 + 1)
+    });
+    if count > 0 {
+        (sum / F::from(count).unwrap(), count)
+    } else {
+        Default::default()
+    }
 }
 
 ///
@@ -31,18 +147,16 @@ where
 ///
 pub fn autocorr<YI, F>(y: YI, k: usize) -> F
 where
-    F: Float + Sum,
+    F: Float + Add + Sum + Default,
     YI: Iterator + Clone,
     YI::Item: Borrow<F>,
 {
-    let y = y.map(|f| f.borrow().clone());
-    let n = F::from(y.clone().count()).unwrap();
-    let sum: F = y.clone().sum();
-    let mean = sum / n;
+    let (avg, n) = mean(y.clone());
+    let n = F::from(n).unwrap();
     let variance: F = y
         .clone()
         .map(|f| {
-            let delta = f - mean;
+            let delta = *f.borrow() - avg;
             delta * delta
         })
         .sum::<F>()
@@ -50,7 +164,7 @@ where
     let autocovariance: F = y
         .clone()
         .zip(y.skip(k))
-        .map(|(fi, fik)| (fi - mean) * (fik - mean))
+        .map(|(fi, fik)| (*fi.borrow() - avg) * (*fik.borrow() - avg))
         .sum::<F>()
         / n;
     autocovariance / variance
