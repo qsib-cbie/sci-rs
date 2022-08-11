@@ -3,6 +3,8 @@
 #[macro_use]
 extern crate std;
 
+pub mod filt;
+
 use core::{borrow::Borrow, iter::Sum, ops::Add};
 use num_traits::Float;
 
