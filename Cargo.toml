@@ -15,6 +15,12 @@ itertools = { version = "0.10.3", optional = true }
 
 [dev-dependencies]
 approx = "0.5.1"
+bencher = "0.1.5"
 dasp = { version = "0.11.0", features = ["signal"] }
 gnuplot = "0.0.37"
 itertools = "0.10.3"
+
+
+[[bench]]
+name = "sosfilt"
+harness = false

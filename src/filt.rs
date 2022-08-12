@@ -232,12 +232,12 @@ print(buttersos)
 
         // A signal with a frequency that we can recover
         let sample_hz = 1666.;
-        let seconds = 1;
+        let seconds = 10;
         let mut signal = signal::rate(sample_hz).const_hz(25.).sine();
         let sin_wave: Vec<f64> = (0..seconds * sample_hz as usize)
             .map(|_| signal.next())
             .collect_vec();
-        // println!("{:?}", &sin_wave);
+        println!("{:?}", &sin_wave);
 
         let bp_wave = sosfilt(sin_wave.iter(), &sos).collect_vec();
         // println!("{:?}", bp_wave);
