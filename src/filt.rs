@@ -93,12 +93,11 @@ pub struct SosFilt<I, F: Float, const N: usize> {
     g: F,
 }
 
-use std::fmt::Debug;
 impl<I, B, F, const N: usize> Iterator for SosFilt<I, F, N>
 where
     I: Iterator<Item = B>,
     B: Borrow<F>,
-    F: Float + Debug,
+    F: Float,
 {
     type Item = F;
 
