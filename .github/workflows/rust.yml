@@ -16,6 +16,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+    - name: Install gnuplot
+      run: sudo apt install gnuplot
     - name: Build
       run: cargo build --verbose
     - name: Run tests
