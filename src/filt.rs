@@ -10,7 +10,7 @@ use num_traits::Float;
 /// of a digital filter transfer function
 ///
 /// Example as Biquad Digital filter from
-/// https://en.wikipedia.org/wiki/Digital_biquad_filter
+/// <https://en.wikipedia.org/wiki/Digital_biquad_filter>
 ///
 /// H(z) =
 ///        (b0 + b1 * z_1 + b2 * z_2) /
@@ -122,6 +122,11 @@ where
 
 ///
 /// Second Order Sections filter an iterator
+///
+/// <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.sosfilt.html>
+///
+/// `sos` holds the `zf` return value from scipy, so reusing a `sos` reference
+/// from a previous iteration achieves the same result as passing `zi` in the scipy interface
 ///
 pub fn sosfilt<YI, F, const N: usize>(y: YI, sos: &[Sos<F>; N]) -> SosFilt<YI, F, N>
 where
