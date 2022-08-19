@@ -1,0 +1,34 @@
+[package]
+name = "sci-rs"
+version = "0.1.2"
+edition = "2021"
+authors = ["Jacob Trueb <jtrueb@northwestern.edu>"]
+description = "scipy Rust implementations"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/qsib-cbie/sci-rs.git"
+homepage = "https://qsib-cbie.github.io/sci-rs"
+readme = "../README.md"
+keywords = ["scipy", "dsp", "python", "filter"]
+
+[package.metadata.docs.rs]
+all-features = true
+
+[features]
+default = ['use_std']
+use_std = ['itertools']
+
+[dependencies]
+num-traits = "0.2.15"
+itertools = { version = "0.10.3", optional = true }
+
+[dev-dependencies]
+approx = "0.5.1"
+bencher = "0.1.5"
+dasp = { version = "0.11.0", features = ["signal"] }
+gnuplot = "0.0.37"
+itertools = "0.10.3"
+
+
+[[bench]]
+name = "sosfilt"
+harness = false
