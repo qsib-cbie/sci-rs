@@ -21,5 +21,5 @@
 #[macro_use]
 extern crate std;
 
-pub mod filt;
+pub mod signal;
 pub mod stats;
