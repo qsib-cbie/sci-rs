@@ -1,7 +1,9 @@
 [package]
-name = "emb-dsp"
-version = "0.1.0"
+name = "sci-rs"
+version = "0.1.2"
 edition = "2021"
+authors = ["Jacob Trueb <jtrueb@northwestern.edu>"]
+description = "scipy Rust implementations"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

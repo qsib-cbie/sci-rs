@@ -1,9 +1,9 @@
 //! Embeddable Digital Signal Processing
 //!
-//! `emb_dsp` is a collection of pure Rust implementations of
+//! `sci_rs` is a collection of pure Rust implementations of
 //! useful statistical and filtering constructs.
 //!
-//! The goal for `emb_dsp` is to provide f32 and f64 generic routines
+//! The goal for `sci_rs` is to provide f32 and f64 generic routines
 //! for processing real data with the same code used in research
 //! and deployment. We want predictable behavior on various compute tiers.
 //!

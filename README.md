@@ -1,8 +1,25 @@
-# Embedded Rust Digital Signal Processing
+# sci-rs
 
-This library contains top level functions for processing signal. Functions are intended to handle f32 or f64 by value or reference. 
+A Rust implementation for scipy functionality. A pure Rust implementation for reliable cross-platform and cross-tier behavior.
 
-Memory usage is a priority. Without enabling compilation of std, the library is `no_std` by default and will not do any heap allocations.
+See the sibling repo, https://github.com/qsib-cbie/sciprs, for pythonic interaction with this library. Otherwise, checkout the docs to use this library directly from Rust.
+
+Memory usage is a priority. While `use_std` is a default feature, the library will prefer implementations that do not require runtime allocations, unless noted otherwise.
+
+## Example
+
+We sci-rs will prefer idiomatic Rust with parity to the scipy interface when possible
+
+```rust
+// Here is some floating point data
+let sin_wave: Vec<f64> = todo!();
+
+// Here is a digital filter designed in scipy
+let filter: [f64; 24] = [todo!()];
+
+// We get the same data as scipy sosfilt with this filter
+let filtered_wave = sosfilt(sin_wave.iter(), &sos).collect_vec();
+```
 
 ## System Build Dependencies
 
@@ -10,9 +27,10 @@ In general, `cargo build` and `cargo test` like usual.
 
 Tests may be used to explore, so `gnuplot` is a required dev dependency. You can find more info at http://www.gnuplot.info
 
-
-On Mac OS:
-* `brew install gnuplot`
+* macOS
+    * `brew install gnuplot`
+* linux
+    * `apt install gnuplot`
 
 ## Useful Test Interactions
 

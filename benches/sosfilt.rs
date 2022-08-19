@@ -3,7 +3,7 @@ extern crate bencher;
 
 use bencher::Bencher;
 use dasp::{signal, Signal};
-use emb_dsp::filt::{sosfilt, Sos};
+use sci_rs::filt::{sosfilt, Sos};
 use itertools::Itertools;
 
 ///

@@ -46,7 +46,7 @@ where
 ///
 /// ```
 /// use approx::relative_eq;
-/// use emb_dsp::stats::median;
+/// use sci_rs::stats::median;
 ///
 /// let y: [f64; 5] = [1.,2.,3.,4.,5.];
 /// relative_eq!(3f64, median(y.iter()).0);
@@ -91,7 +91,7 @@ where
 ///
 /// ```
 /// use approx::relative_eq;
-/// use emb_dsp::stats::mean;
+/// use sci_rs::stats::mean;
 ///
 /// // Flat signal perfectly correlates with itself
 /// let y: [f64; 5] = [1.,2.,3.,4.,5.];
@@ -125,7 +125,7 @@ where
 ///
 /// ```
 /// use approx::relative_eq;
-/// use emb_dsp::stats::variance;
+/// use sci_rs::stats::variance;
 ///
 /// let y: [f64; 5] = [1.,2.,3.,4.,5.];
 /// relative_eq!(2.5f64, variance(y.iter()).0);
@@ -162,7 +162,7 @@ where
 ///
 /// ```
 /// use approx::relative_eq;
-/// use emb_dsp::stats::stdev;
+/// use sci_rs::stats::stdev;
 ///
 /// let y: [f64; 5] = [1.,2.,3.,4.,5.];
 /// relative_eq!(2.5f64.sqrt(), stdev(y.iter()).0);
@@ -191,7 +191,7 @@ where
 ///
 /// ```
 /// use approx::relative_eq;
-/// use emb_dsp::stats::autocorr;
+/// use sci_rs::stats::autocorr;
 ///
 /// // Flat signal perfectly correlates with itself
 /// let y: [f64; 4] = [1.,1.,1.,1.];
@@ -223,7 +223,7 @@ where
 ///
 /// ```
 /// use approx::relative_eq;
-/// use emb_dsp::stats::lag_diff;
+/// use sci_rs::stats::lag_diff;
 ///
 /// // Flat signal perfectly correlates with itself
 /// let y: [f64; 4] = [1.,2.,4.,7.];
