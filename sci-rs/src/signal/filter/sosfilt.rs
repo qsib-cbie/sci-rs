@@ -55,7 +55,7 @@ where
 /// `sos` holds the `zf` return value from scipy, so reusing a `sos` reference
 /// from a previous iteration achieves the same result as passing `zi` in the scipy interface
 ///
-pub fn sosfilt<YI, F, const N: usize>(y: YI, sos: &[Sos<F>; N]) -> SosFilt<YI, F, N>
+pub fn sosfilt_st<YI, F, const N: usize>(y: YI, sos: &[Sos<F>; N]) -> SosFilt<YI, F, N>
 where
     F: Float,
     YI: Iterator,
@@ -116,7 +116,7 @@ mod tests {
             .collect_vec();
         println!("{:?}", &sin_wave);
 
-        let bp_wave = sosfilt(sin_wave.iter(), &sos).collect_vec();
+        let bp_wave = sosfilt_st(sin_wave.iter(), &sos).collect_vec();
         // println!("{:?}", bp_wave);
 
         let mut fig = Figure::new();

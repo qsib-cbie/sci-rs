@@ -20,6 +20,8 @@ use_std = ['itertools']
 [dependencies]
 num-traits = "0.2.15"
 itertools = { version = "0.10.3", optional = true }
+heapless = "0.7.16"
+nalgebra = "0.31.1"
 
 [dev-dependencies]
 approx = "0.5.1"
