@@ -2,3 +2,6 @@
 members = [
 "sci-rs",
 ]
+
+[profile.bench]
+debug = true

@@ -1,26 +1,24 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use dasp::{signal, Signal};
 use itertools::Itertools;
-use sci_rs::signal::filter::design::Sos;
-use sci_rs::signal::filter::{sosfilt_dyn, sosfilt_st};
+use sci_rs::signal::filter::{design::Sos, sosfiltfilt_dyn};
 
-// TLDR: 8.5x faster
-// sosfilt_st is as fast as sosfilt_dyn
+/// TLDR: 4.6x faster
 
 ///
 /// 4th order Butterworth Bandpass Sosfilt 10 seconds of 1666Hz sine wave
 ///
-/// Python scipy.signal.sosfilt:
+/// Python scipy.signal.sosfiltfilt:
 /// ```
-/// avg over 1000 runs 66,776,329 ns/iter
+/// avg over 1000 runs 89,924,038 ns/iter
 /// ```
 ///
 /// Rust implementation
 /// ```
-/// sosfilt_100x_dyn        time:   [7.7290 ms 7.7425 ms 7.7572 ms]                             
+/// sosfiltfilt_100x        time:   [19.412 ms 19.490 ms 19.573 ms]
 /// ```
 ///
-fn butter_sosfilt_100x_dyn(c: &mut Criterion) {
+fn butter_sosfiltfilt_100x(c: &mut Criterion) {
     // 4th order butterworth bandpass 10 to 50 at 1666Hz
     let filter: [f64; 24] = [
         2.6775767382597835e-05,
@@ -59,28 +57,14 @@ fn butter_sosfilt_100x_dyn(c: &mut Criterion) {
         .collect_vec();
     let sin_wave = (0..100).map(|_| sin_wave.clone()).flatten().collect_vec();
 
-    c.bench_function("sosfilt_100x_dyn", |b| {
+    c.bench_function("sosfiltfilt_100x", |b| {
         b.iter(|| {
-            black_box(sosfilt_dyn(sin_wave.iter(), &sos));
+            black_box(sosfiltfilt_dyn(sin_wave.iter(), &sos));
         });
     });
 }
 
-///
-/// 4th order Butterworth Bandpass Sosfilt 10 seconds of 1666Hz sine wave
-///
-/// Python scipy.signal.sosfilt:
-/// ```
-/// avg over 1000 runs 66,776,329 ns/iter
-/// ```
-///
-/// Rust implementation
-/// ```
-/// sosfilt_100x_st         time:   [7.6785 ms 7.6957 ms 7.7148 ms]
-/// ```
-///
-
-fn butter_sosfilt_100x_st(c: &mut Criterion) {
+fn butter_sosfiltfilt_10x(c: &mut Criterion) {
     // 4th order butterworth bandpass 10 to 50 at 1666Hz
     let filter: [f64; 24] = [
         2.6775767382597835e-05,
@@ -117,17 +101,16 @@ fn butter_sosfilt_100x_st(c: &mut Criterion) {
     let sin_wave: Vec<f64> = (0..seconds * sample_hz as usize)
         .map(|_| signal.next())
         .collect_vec();
-    let sin_wave = (0..100).map(|_| sin_wave.clone()).flatten().collect_vec();
+    let sin_wave = (0..10).map(|_| sin_wave.clone()).flatten().collect_vec();
 
-    c.bench_function("sosfilt_100x_st", |b| {
+    c.bench_function("sosfiltfilt_10x", |b| {
         b.iter(|| {
-            // let _profiler = dhat::Profiler::new_heap();
-            black_box(sosfilt_st(sin_wave.iter(), &sos).collect_vec());
+            black_box(sosfiltfilt_dyn(sin_wave.iter(), &sos));
         });
     });
 }
 
-fn butter_sosfilt_f64(c: &mut Criterion) {
+fn butter_sosfiltfilt_f64(c: &mut Criterion) {
     // 4th order butterworth bandpass 10 to 50 at 1666Hz
     let filter: [f64; 24] = [
         2.6775767382597835e-05,
@@ -165,14 +148,14 @@ fn butter_sosfilt_f64(c: &mut Criterion) {
         .map(|_| signal.next())
         .collect_vec();
 
-    c.bench_function("sosfilt_f64", |b| {
+    c.bench_function("sosfiltfilt_f64", |b| {
         b.iter(|| {
-            black_box(sosfilt_st(sin_wave.iter(), &sos).collect_vec());
+            black_box(sosfiltfilt_dyn(sin_wave.iter(), &sos));
         });
     });
 }
 
-fn butter_sosfilt_f32(c: &mut Criterion) {
+fn butter_sosfiltfilt_f32(c: &mut Criterion) {
     // 4th order butterworth bandpass 10 to 50 at 1666Hz
     let filter: [f32; 24] = [
         2.6775767382597835e-05,
@@ -210,18 +193,18 @@ fn butter_sosfilt_f32(c: &mut Criterion) {
         .map(|_| signal.next() as f32)
         .collect_vec();
 
-    c.bench_function("sosfilt_f32", |b| {
+    c.bench_function("sosfiltfilt_f32", |b| {
         b.iter(|| {
-            black_box(sosfilt_st(sin_wave.iter(), &sos).collect_vec());
+            black_box(sosfiltfilt_dyn(sin_wave.iter(), &sos));
         });
     });
 }
 
 criterion_group!(
     benches,
-    butter_sosfilt_100x_st,
-    butter_sosfilt_100x_dyn,
-    butter_sosfilt_f64,
-    butter_sosfilt_f32
+    butter_sosfiltfilt_10x,
+    butter_sosfiltfilt_100x,
+    butter_sosfiltfilt_f64,
+    butter_sosfiltfilt_f32
 );
 criterion_main!(benches);

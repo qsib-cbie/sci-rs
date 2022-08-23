@@ -1,4 +1,8 @@
-use core::borrow::Borrow;
+use core::{
+    borrow::Borrow,
+    mem::{transmute, MaybeUninit},
+};
+use itertools::Itertools;
 use num_traits::Float;
 
 use super::design::Sos;
@@ -14,10 +18,6 @@ pub struct SosFilt<I, F: Float, const N: usize> {
     /// H(z) = product(H(z) for each Sos)
     ///
     sos: [Sos<F>; N],
-
-    /// Normalization factor on the output H(z)
-    ///
-    g: F,
 }
 
 impl<I, B, F, const N: usize> Iterator for SosFilt<I, F, N>
@@ -37,7 +37,7 @@ where
                 sos.zi0 = sos.b[1] * x_cur - sos.a[1] * x_new + sos.zi1;
                 sos.zi1 = sos.b[2] * x_cur - sos.a[2] * x_new;
                 x_new
-            }) * self.g
+            })
         })
     }
 
@@ -55,6 +55,7 @@ where
 /// `sos` holds the `zf` return value from scipy, so reusing a `sos` reference
 /// from a previous iteration achieves the same result as passing `zi` in the scipy interface
 ///
+#[inline]
 pub fn sosfilt_st<YI, F, const N: usize>(y: YI, sos: &[Sos<F>; N]) -> SosFilt<YI, F, N>
 where
     F: Float,
@@ -64,12 +65,39 @@ where
     SosFilt {
         iter: y,
         sos: sos.clone(),
-        g: F::from(1.0).unwrap(),
+    }
+}
+
+#[inline]
+pub fn sosfilt_dyn<YI, F, const N: usize>(y: YI, sos: &[Sos<F>; N]) -> Vec<F>
+where
+    F: Float,
+    YI: Iterator,
+    YI::Item: Borrow<F>,
+{
+    let y = y.collect_vec();
+    let mut sos = sos.clone();
+    let mut z: Vec<MaybeUninit<F>> = Vec::with_capacity(y.len());
+    unsafe {
+        z.set_len(y.len());
+        for i in 0..y.len() {
+            let zi = sos
+                .iter_mut()
+                .fold(*y.get_unchecked(i).borrow(), |x_cur, sos| {
+                    let x_new = sos.b[0] * x_cur + sos.zi0;
+                    sos.zi0 = sos.b[1] * x_cur - sos.a[1] * x_new + sos.zi1;
+                    sos.zi1 = sos.b[2] * x_cur - sos.a[2] * x_new;
+                    x_new
+                });
+            z.get_unchecked_mut(i).write(zi);
+        }
+        transmute::<Vec<MaybeUninit<F>>, Vec<F>>(z)
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use approx::assert_relative_eq;
     use dasp::{signal, Signal};
     use gnuplot::Figure;
     use itertools::Itertools;
@@ -117,6 +145,10 @@ mod tests {
         println!("{:?}", &sin_wave);
 
         let bp_wave = sosfilt_st(sin_wave.iter(), &sos).collect_vec();
+        let bp_dyn_wave = sosfilt_dyn(sin_wave.iter(), &sos);
+        for (a, b) in bp_wave.iter().zip(bp_dyn_wave.iter()) {
+            assert_relative_eq!(*a, *b);
+        }
         // println!("{:?}", bp_wave);
 
         let mut fig = Figure::new();
