@@ -26,7 +26,9 @@ where
         .map(|s| if s.a[2] == F::zero() { 1 } else { 0 })
         .sum::<usize>();
     let ntaps = ntaps - min(bzeros, azeros);
-    let x = DVector::<F>::from_vec(y.map(|yi| *yi.borrow()).collect::<Vec<F>>());
+    let y = y.map(|yi| *yi.borrow()).collect::<Vec<F>>();
+    let y_len = y.len();
+    let x = DVector::<F>::from_vec(y);
     let (edge, ext) = pad(Pad::Odd, None, x, 0, ntaps);
 
     let mut init_sos = sos.clone();
@@ -46,14 +48,12 @@ where
         s.zi0 *= y0;
         s.zi1 *= y0;
     }
-    let mut z = sosfilt_st(y.iter().rev(), &sos_y).collect::<Vec<_>>();
+    let mut z = sosfilt_st(y.iter().rev(), &sos_y)
+        .skip(edge)
+        .take(y_len)
+        .collect::<Vec<_>>();
     z.reverse();
-    if edge > 0 {
-        z.drain(edge..z.len() - 2 * edge).collect::<Vec<F>>()
-    } else {
-        z
-    }
-    // vec![]
+    z
 }
 
 #[cfg(test)]
@@ -106,6 +106,7 @@ mod tests {
 
         let bp_wave = sosfiltfilt_dyn(sin_wave.iter(), &sos);
         println!("{:?}", bp_wave);
+        assert_eq!(sin_wave.len(), bp_wave.len());
 
         let mut fig = Figure::new();
 
@@ -168,6 +169,7 @@ mod tests {
         // println!("{:?}", &sin_wave);
 
         let bp_wave = sosfiltfilt_dyn(sin_wave.iter(), &sos);
+        assert_eq!(sin_wave.len(), bp_wave.len());
         println!("{:?}", bp_wave);
 
         let mut fig = Figure::new();
