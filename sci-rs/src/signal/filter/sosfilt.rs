@@ -3,6 +3,7 @@ use core::{
     mem::{transmute, MaybeUninit},
 };
 use itertools::Itertools;
+use nalgebra::RealField;
 use num_traits::Float;
 
 use super::design::Sos;
@@ -11,7 +12,7 @@ use super::design::Sos;
 /// A series of Second Order Sections may be used to
 /// filter a stream of inputs with a normalization factor
 ///
-pub struct SosFilt<I, F: Float, const N: usize> {
+pub struct SosFilt<I, F: RealField + Copy, const N: usize> {
     pub(crate) iter: I,
 
     ///
@@ -24,7 +25,7 @@ impl<I, B, F, const N: usize> Iterator for SosFilt<I, F, N>
 where
     I: Iterator<Item = B>,
     B: Borrow<F>,
-    F: Float,
+    F: RealField + Copy,
 {
     type Item = F;
 
@@ -58,7 +59,7 @@ where
 #[inline]
 pub fn sosfilt_st<YI, F, const N: usize>(y: YI, sos: &[Sos<F>; N]) -> SosFilt<YI, F, N>
 where
-    F: Float,
+    F: RealField + Copy,
     YI: Iterator,
     YI::Item: Borrow<F>,
 {
@@ -68,7 +69,7 @@ where
 #[inline]
 pub fn sosfilt_dyn<YI, F, const N: usize>(y: YI, sos: &[Sos<F>; N]) -> Vec<F>
 where
-    F: Float,
+    F: RealField + Copy,
     YI: Iterator,
     YI::Item: Borrow<F>,
 {

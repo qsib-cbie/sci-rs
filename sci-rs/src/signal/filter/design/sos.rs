@@ -1,4 +1,5 @@
 use itertools::Itertools;
+use nalgebra::RealField;
 use num_traits::Float;
 
 ///
@@ -15,7 +16,7 @@ use num_traits::Float;
 /// Sos { b: [b0, b1, b2], a: [a0, a1, a2] }
 ///
 #[derive(Debug, Copy, Clone)]
-pub struct Sos<F: Float> {
+pub struct Sos<F: RealField + Copy> {
     ///
     /// Transfer coefficients
     ///
@@ -29,7 +30,7 @@ pub struct Sos<F: Float> {
     pub(crate) zi1: F,
 }
 
-impl<F: Float> Default for Sos<F> {
+impl<F: RealField + Copy> Default for Sos<F> {
     fn default() -> Self {
         Self {
             b: [F::zero(); 3],
@@ -40,7 +41,7 @@ impl<F: Float> Default for Sos<F> {
     }
 }
 
-impl<F: Float> Sos<F> {
+impl<F: RealField + Copy> Sos<F> {
     // Normalizes to Direct Form 1 where a[0] is 1
     pub fn new(mut b: [F; 3], mut a: [F; 3]) -> Sos<F> {
         b[0] = b[0] / a[0];

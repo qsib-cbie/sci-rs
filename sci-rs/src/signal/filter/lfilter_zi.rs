@@ -1,6 +1,6 @@
 use core::{iter::Sum, ops::SubAssign};
 use heapless::Vec;
-use nalgebra::{ClosedAdd, ClosedMul, DMatrix, SMatrix, Scalar};
+use nalgebra::{ClosedAdd, ClosedMul, DMatrix, RealField, SMatrix, Scalar};
 use num_traits::{Float, One, Zero};
 
 use crate::linalg::companion_dyn;
@@ -20,7 +20,7 @@ use crate::linalg::companion_dyn;
 ///
 pub fn lfilter_zi_dyn<F, const M: usize>(b: &[F; M], a: &[F; M]) -> [F; M - 1]
 where
-    F: Float + PartialEq + Scalar + Zero + One + ClosedMul + ClosedAdd + Sum + SubAssign,
+    F: RealField + Copy + PartialEq + Scalar + Zero + One + ClosedMul + ClosedAdd + Sum + SubAssign,
 {
     let ai0 = a
         .iter()

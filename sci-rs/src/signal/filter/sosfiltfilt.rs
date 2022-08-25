@@ -1,5 +1,5 @@
 use core::{borrow::Borrow, cmp::min, iter::Sum, ops::SubAssign};
-use nalgebra::{ClosedAdd, ClosedMul, DVector, Scalar};
+use nalgebra::{ClosedAdd, ClosedMul, DVector, RealField, Scalar};
 use num_traits::{Float, One, Zero};
 
 use super::{design::Sos, pad, sosfilt_st, sosfilt_zi_dyn, Pad};
@@ -12,7 +12,7 @@ use super::{design::Sos, pad, sosfilt_st, sosfilt_zi_dyn, Pad};
 ///
 pub fn sosfiltfilt_dyn<YI, F, const N: usize>(y: YI, sos: &[Sos<F>; N]) -> Vec<F>
 where
-    F: Float + PartialEq + Scalar + Zero + One + ClosedMul + ClosedAdd + Sum + SubAssign,
+    F: RealField + Copy + PartialEq + Scalar + Zero + One + ClosedMul + ClosedAdd + Sum + SubAssign,
     YI: Iterator,
     YI::Item: Borrow<F>,
 {

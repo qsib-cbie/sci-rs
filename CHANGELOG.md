@@ -1,5 +1,12 @@
 # Unreleased
 
+- Added:
+    - signal
+        - design
+            - `Butter`
+            - `FilterType`
+            - `FilterOutput`
+
 ---
 
 # v0.1.4
