@@ -23,9 +23,6 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
 
-      - name: Install Rust toolchain
-        run: rustup update --no-self-update nightly 
-
       - name: Build Documentation
         run: cargo doc --all --no-deps
 
