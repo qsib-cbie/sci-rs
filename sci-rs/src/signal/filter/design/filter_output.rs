@@ -9,23 +9,88 @@ pub enum FilterOutputType {
     Sos,
 }
 
-pub struct Zpk<F: RealField, const N: usize> {
+pub struct BaFormatFilter<F: RealField + Copy, const N: usize> {
+    pub b: [F; N],
+    pub a: [F; N],
+}
+
+pub struct ZpkFormatFilter<F: RealField + Copy, const N: usize>
+where
+    Vec<Complex<F>, N>: Sized,
+{
     pub z: Vec<Complex<F>, N>,
     pub p: Vec<Complex<F>, N>,
     pub k: F,
 }
 
-impl<F: RealField, const N: usize> Zpk<F, N> {
+pub struct SosFormatFilter<F: RealField + Copy, const N: usize> {
+    pub sos: Vec<Sos<F>, N>,
+}
+
+pub enum DigitalFilter<F: RealField + Copy + Sized, const N: usize, const N2: usize> {
+    Ba(BaFormatFilter<F, N>),
+    Zpk(ZpkFormatFilter<F, N2>),
+    Sos(SosFormatFilter<F, N>),
+}
+
+impl<F: RealField + Copy, const N: usize> ZpkFormatFilter<F, N> {
     pub fn new(z: Vec<Complex<F>, N>, p: Vec<Complex<F>, N>, k: F) -> Self {
-        Zpk { z, p, k }
+        ZpkFormatFilter { z, p, k }
     }
 }
 
-pub enum FilterOutput<F: RealField + Copy + Sized, const N: usize>
-where
-    [Sos<F>; N / 2 - 1]: Sized,
-{
-    Ba(([f64; N], [f64; N])),
-    Zpk(Zpk<F, N>),
-    Sos([Sos<F>; N / 2 - 1]),
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn can_create_digital_filter() {
+        let single_side = DigitalFilter::<f32, 1, 2>::Sos(SosFormatFilter { sos: Vec::new() });
+        match single_side {
+            DigitalFilter::Sos(s) => {
+                assert_eq!(s.sos.capacity(), 1);
+            }
+            _ => unreachable!(),
+        }
+
+        let single_side = DigitalFilter::<f32, 1, 2>::Zpk(ZpkFormatFilter {
+            z: Vec::new(),
+            p: Vec::new(),
+            k: 1.,
+        });
+        match single_side {
+            DigitalFilter::Zpk(zpk) => {
+                assert_eq!(zpk.z.capacity(), 2);
+                assert_eq!(zpk.p.capacity(), 2);
+            }
+            _ => unreachable!(),
+        }
+    }
 }
+
+// pub trait FilterFormat {
+//     const ORDER: usize;
+
+//     type Output;
+
+//     fn into(self) -> Self::Output;
+// }
+
+// impl<F: RealField + Copy, const N: usize> FilterFormat for BaFormatFilter<F, N> {
+//     type Output = Self;
+
+//     const ORDER: usize = N;
+
+//     fn into(self) -> Self::Output {
+//         todo!()
+//     }
+// }
+
+// // pub struct ZpkFormatFilter<F: RealField + Copy + Sized, const N: usize> {
+// //     pub z: Vec<Complex<F>, N>,
+// //     pub p: Vec<Complex<F>, N>,
+// //     pub k: F,
+// // }
+
+// // pub struct SosFormatFilter<F: RealField + Copy + Sized, const N: usize> {
+// //     pub sos: Vec<Sos<F>, N>,
+// // }

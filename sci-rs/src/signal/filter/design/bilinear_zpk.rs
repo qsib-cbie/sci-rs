@@ -1,9 +1,13 @@
 use core::{f64::consts::PI, ops::Mul};
 
+use heapless::Vec;
 use nalgebra::{Complex, ComplexField, RealField};
 use num_traits::Float;
 
-use super::{FilterBandType, FilterOutput, FilterOutputType, FilterType, Sos, Zpk};
+use super::{
+    relative_degree::relative_degree, FilterBandType, FilterOutputType, FilterType, Sos,
+    ZpkFormatFilter,
+};
 
 /// """
 /// Return a digital IIR filter from an analog one using a bilinear transform.
@@ -66,28 +70,110 @@ use super::{FilterBandType, FilterOutput, FilterOutputType, FilterType, Sos, Zpk
 /// >>> plt.grid(True)
 /// """
 ///
-pub fn bilinear_zpk<F, const N: usize>(zpk: Zpk<F, N>, fs: F) -> Zpk<F, N>
+pub fn bilinear_zpk<F, const N: usize>(zpk: ZpkFormatFilter<F, N>, fs: F) -> ZpkFormatFilter<F, N>
 where
     F: RealField + Float,
-    [Sos<F>; N / 2 - 1]: Sized,
 {
-    todo!()
-    // z = atleast_1d(z)
-    // p = atleast_1d(p)
+    let degree = relative_degree(&zpk.z, &zpk.p);
 
-    // degree = _relative_degree(z, p)
-
-    // fs2 = 2.0*fs
-
-    // # Bilinear transform the poles and zeros
-    // z_z = (fs2 + z) / (fs2 - z)
-    // p_z = (fs2 + p) / (fs2 - p)
+    // Bilinear transform the poles and zeros
+    let fs2 = Complex::new(F::from(2.).unwrap() * fs, F::zero());
 
     // # Any zeros that were at infinity get moved to the Nyquist frequency
-    // z_z = append(z_z, -ones(degree))
+    let z_z: Vec<Complex<F>, N> = zpk
+        .z
+        .iter()
+        .map(|zi| (fs2 + zi) / (fs2 - zi))
+        .chain((0..degree).map(|_| Complex::new(-F::one(), F::zero())))
+        .collect::<Vec<_, N>>();
+    let p_z: Vec<Complex<F>, N> = zpk
+        .p
+        .iter()
+        .map(|pi| (fs2 + pi) / (fs2 - pi))
+        .collect::<Vec<_, N>>();
 
-    // # Compensate for gain change
-    // k_z = k * real(prod(fs2 - z) / prod(fs2 - p))
+    // Compensate for gain change
+    let num = zpk
+        .z
+        .iter()
+        .map(|zi| fs2 - *zi)
+        .fold(Complex::new(F::one(), F::zero()), |acc, zi| acc * zi);
+    let denom = zpk
+        .p
+        .iter()
+        .map(|pi| fs2 - *pi)
+        .fold(Complex::new(F::one(), F::zero()), |acc, pi| acc * pi);
+    let k_z = zpk.k * (num / denom).real();
 
-    // return z_z, p_z, k_z
+    ZpkFormatFilter::new(z_z, p_z, k_z)
+}
+
+#[cfg(test)]
+mod tests {
+    use approx::assert_relative_eq;
+    use num_traits::Zero;
+
+    use super::*;
+
+    #[test]
+    fn matches_scipy_iirfilter_butter() {
+        // butter(4, [10, 50], btype='bandpass', output='sos', fs=1666)
+        let fs = 2.;
+        let zpk: ZpkFormatFilter<_, 8> = ZpkFormatFilter::new(
+            Vec::from_slice(&[Complex::zero(); 4]).unwrap(),
+            Vec::from_slice(&[
+                Complex::new(-0.02022036, -0.07498294),
+                Complex::new(-0.07648538, -0.06990013),
+                Complex::new(-0.07648538, 0.06990013),
+                Complex::new(-0.02022036, 0.07498294),
+                Complex::new(-0.0956662, 0.35475786),
+                Complex::new(-0.20328954, 0.1857867),
+                Complex::new(-0.20328954, -0.1857867),
+                Complex::new(-0.0956662, -0.35475786),
+            ])
+            .unwrap(),
+            0.008409569194994788,
+        );
+
+        let expected_zpk: ZpkFormatFilter<_, 8> = ZpkFormatFilter::new(
+            Vec::from_slice(&[
+                Complex::new(1., 0.),
+                Complex::new(1., 0.),
+                Complex::new(1., 0.),
+                Complex::new(1., 0.),
+                Complex::new(-1., 0.),
+                Complex::new(-1., 0.),
+                Complex::new(-1., 0.),
+                Complex::new(-1., 0.),
+            ])
+            .unwrap(),
+            Vec::from_slice(&[
+                Complex::new(0.98924866, -0.03710237),
+                Complex::new(0.96189799, -0.03364097),
+                Complex::new(0.96189799, 0.03364097),
+                Complex::new(0.98924866, 0.03710237),
+                Complex::new(0.93873849, 0.16792939),
+                Complex::new(0.89956011, 0.08396115),
+                Complex::new(0.89956011, -0.08396115),
+                Complex::new(0.93873849, -0.16792939),
+            ])
+            .unwrap(),
+            2.6775767382597835e-05,
+        );
+
+        let actual_zpk: ZpkFormatFilter<f64, 8> = bilinear_zpk(zpk, fs);
+        assert_eq!(actual_zpk.z.len(), expected_zpk.z.len());
+        for (a, e) in actual_zpk.z.iter().zip(expected_zpk.z.iter()) {
+            assert_relative_eq!(a.re, e.re, max_relative = 1e-6);
+            assert_relative_eq!(a.im, e.im, max_relative = 1e-6);
+        }
+
+        assert_eq!(actual_zpk.p.len(), expected_zpk.p.len());
+        for (a, e) in actual_zpk.p.iter().zip(expected_zpk.p.iter()) {
+            assert_relative_eq!(a.re, e.re, max_relative = 1e-6);
+            assert_relative_eq!(a.im, e.im, max_relative = 1e-6);
+        }
+
+        assert_relative_eq!(actual_zpk.k, expected_zpk.k, max_relative = 1e-8);
+    }
 }

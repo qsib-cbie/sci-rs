@@ -1,29 +1,15 @@
 use core::{f64::consts::PI, ops::Mul};
 
+use heapless::Vec;
 use nalgebra::{Complex, ComplexField, RealField};
 use num_traits::Float;
 
-use super::{
-    bilinear_zpk, lp2bp_zpk, zpk2sos, FilterBandType, FilterOutput, FilterOutputType, FilterType,
-    Sos, Zpk,
-};
+use crate::signal::filter::design::ZpkFormatFilter;
 
-// filter_dict = {'butter': [buttap, buttord],
-//                'butterworth': [buttap, buttord],
-//                'cauer': [ellipap, ellipord],
-//                'elliptic': [ellipap, ellipord],
-//                'ellip': [ellipap, ellipord],
-//                'bessel': [besselap],
-//                'bessel_phase': [besselap],
-//                'bessel_delay': [besselap],
-//                'bessel_mag': [besselap],
-//                'cheby1': [cheb1ap, cheb1ord],
-//                'chebyshev1': [cheb1ap, cheb1ord],
-//                'chebyshevi': [cheb1ap, cheb1ord],
-//                'cheby2': [cheb2ap, cheb2ord],
-//                'chebyshev2': [cheb2ap, cheb2ord],
-//                'chebyshevii': [cheb2ap, cheb2ord],
-//                }
+use super::{
+    bilinear_zpk, lp2bp_zpk, zpk2sos, DigitalFilter, FilterBandType, FilterOutputType, FilterType,
+    Sos,
+};
 
 ///
 ///
@@ -32,77 +18,16 @@ use super::{
 /// Design an Nth-order digital or analog filter and return the filter
 /// coefficients.
 ///
-/// Parameters
-/// ----------
-/// N : int
-///     The order of the filter.
-/// Wn : array_like
-///     A scalar or length-2 sequence giving the critical frequencies.
-///
-///     For digital filters, `Wn` are in the same units as `fs`. By default,
-///     `fs` is 2 half-cycles/sample, so these are normalized from 0 to 1,
-///     where 1 is the Nyquist frequency. (`Wn` is thus in
-///     half-cycles / sample.)
-///
-///     For analog filters, `Wn` is an angular frequency (e.g., rad/s).
-///
-///     When Wn is a length-2 sequence, ``Wn[0]`` must be less than ``Wn[1]``.
-/// rp : float, optional
-///     For Chebyshev and elliptic filters, provides the maximum ripple
-///     in the passband. (dB)
-/// rs : float, optional
-///     For Chebyshev and elliptic filters, provides the minimum attenuation
-///     in the stop band. (dB)
-/// btype : {'bandpass', 'lowpass', 'highpass', 'bandstop'}, optional
-///     The type of filter.  Default is 'bandpass'.
-/// analog : bool, optional
-///     When True, return an analog filter, otherwise a digital filter is
-///     returned.
-/// ftype : str, optional
-///     The type of IIR filter to design:
-///
-///         - Butterworth   : 'butter'
-///         - Chebyshev I   : 'cheby1'
-///         - Chebyshev II  : 'cheby2'
-///         - Cauer/elliptic: 'ellip'
-///         - Bessel/Thomson: 'bessel'
-///
-/// output : {'ba', 'zpk', 'sos'}, optional
-///     Filter form of the output:
-///
-///         - second-order sections (recommended): 'sos'
-///         - numerator/denominator (default)    : 'ba'
-///         - pole-zero                          : 'zpk'
-///
-///     In general the second-order sections ('sos') form  is
-///     recommended because inferring the coefficients for the
-///     numerator/denominator form ('ba') suffers from numerical
-///     instabilities. For reasons of backward compatibility the default
-///     form is the numerator/denominator form ('ba'), where the 'b'
-///     and the 'a' in 'ba' refer to the commonly used names of the
-///     coefficients used.
-///
-///     Note: Using the second-order sections form ('sos') is sometimes
-///     associated with additional computational costs: for
-///     data-intense use cases it is therefore recommended to also
-///     investigate the numerator/denominator form ('ba').
-///
-/// fs : float, optional
-///     The sampling frequency of the digital system.
-///
-///     .. versionadded:: 1.2.0
-///
-/// Returns
 /// -------
 /// b, a : ndarray, ndarray
-///     Numerator (`b`) and denominator (`a`) polynomials of the IIR filter.
-///     Only returned if ``output='ba'``.
+///     Numerator ('b') and denominator ('a') polynomials of the IIR filter.
+///     Only returned if 'output='ba'.
 /// z, p, k : ndarray, ndarray, float
 ///     Zeros, poles, and system gain of the IIR filter transfer
-///     function.  Only returned if ``output='zpk'``.
+///     function.  Only returned if 'output='zpk'.
 /// sos : ndarray
 ///     Second-order sections representation of the IIR filter.
-///     Only returned if ``output=='sos'``.
+///     Only returned if 'output=='sos'.
 ///
 /// See Also
 /// --------
@@ -112,7 +37,7 @@ use super::{
 /// cheb1ord, cheb2ord, ellipord
 /// iirdesign : General filter design using passband and stopband spec
 ///
-pub fn iirfilter_st<F, const N: usize, const M: usize>(
+pub fn iirfilter_st<F, const N: usize, const N2: usize, const M: usize>(
     wn: [F; M],
     rp: Option<F>,
     rs: Option<F>,
@@ -121,11 +46,12 @@ pub fn iirfilter_st<F, const N: usize, const M: usize>(
     analog: Option<bool>,
     output: Option<FilterOutputType>,
     fs: Option<F>,
-) -> FilterOutput<F, N>
+) -> DigitalFilter<F, N, N2>
 where
     F: RealField + Float,
-    [Sos<F>; N / 2 - 1]: Sized,
 {
+    assert!(N * 2 == N2);
+
     let analog = analog.unwrap_or(false);
     let mut wn = wn;
 
@@ -143,7 +69,7 @@ where
         panic!("filter critical frequencies must be greater than 0");
     }
 
-    if M > 1 && wn[0] < wn[1] {
+    if M > 1 && wn[0] >= wn[1] {
         panic!("Wn[0] must be less than Wn[1]");
     }
 
@@ -161,7 +87,7 @@ where
 
     // Get analog lowpass prototype
     let ftype = ftype.unwrap_or(FilterType::Butterworth);
-    let zpk = match ftype {
+    let zpk: ZpkFormatFilter<F, N> = match ftype {
         FilterType::Butterworth => buttap::<F, N>(),
         FilterType::ChebyshevI => {
             if rp.is_none() {
@@ -246,7 +172,7 @@ where
 
             let bw = warped[1] - warped[0];
             let wo = Float::sqrt(warped[0] * warped[1]);
-            lp2bp_zpk(zpk, Some(wo), Some(bw))
+            lp2bp_zpk::<F, N, N2>(zpk, Some(wo), Some(bw))
         }
         FilterBandType::Bandstop => {
             if M != 2 {
@@ -268,12 +194,12 @@ where
     // Transform to proper out type (pole-zero, state-space, numer-denom)
     let output = output.unwrap_or(FilterOutputType::Ba);
     match output {
-        FilterOutputType::Zpk => FilterOutput::Zpk(zpk),
+        FilterOutputType::Zpk => DigitalFilter::Zpk(zpk),
         FilterOutputType::Ba => {
             // zpk2tf(z, p, k),
             todo!()
         }
-        FilterOutputType::Sos => FilterOutput::Sos(zpk2sos(zpk, analog)),
+        FilterOutputType::Sos => DigitalFilter::Sos(zpk2sos(zpk, analog)),
     }
 }
 
@@ -286,7 +212,7 @@ where
 /// butter : Filter design function using this prototype
 ///
 /// """
-fn buttap<F, const N: usize>() -> Zpk<F, N>
+fn buttap<F, const N: usize>() -> ZpkFormatFilter<F, N>
 where
     F: Float + RealField + Mul<Output = F>,
 {
@@ -301,7 +227,7 @@ where
         })
         .collect::<heapless::Vec<_, N>>();
 
-    Zpk::new(heapless::Vec::new(), p, F::one())
+    ZpkFormatFilter::new(heapless::Vec::new(), p, F::one())
 }
 
 #[cfg(test)]
@@ -324,4 +250,82 @@ mod tests {
             assert_relative_eq!(p[i].im, zpk.p[i].im, max_relative = 1e-7);
         }
     }
+
+    #[test]
+    fn matches_scipy_iirfilter_butter_zpk() {
+        let expected_zpk: ZpkFormatFilter<f64, 8> = ZpkFormatFilter::new(
+            Vec::from_slice(&[
+                Complex::new(1., 0.),
+                Complex::new(1., 0.),
+                Complex::new(1., 0.),
+                Complex::new(1., 0.),
+                Complex::new(-1., 0.),
+                Complex::new(-1., 0.),
+                Complex::new(-1., 0.),
+                Complex::new(-1., 0.),
+            ])
+            .unwrap(),
+            Vec::from_slice(&[
+                Complex::new(0.98924866, -0.03710237),
+                Complex::new(0.96189799, -0.03364097),
+                Complex::new(0.96189799, 0.03364097),
+                Complex::new(0.98924866, 0.03710237),
+                Complex::new(0.93873849, 0.16792939),
+                Complex::new(0.89956011, 0.08396115),
+                Complex::new(0.89956011, -0.08396115),
+                Complex::new(0.93873849, -0.16792939),
+            ])
+            .unwrap(),
+            2.6775767382597835e-5,
+        );
+        let filter = iirfilter_st::<f64, 4, 8, _>(
+            [10., 50.],
+            None,
+            None,
+            Some(FilterBandType::Bandpass),
+            Some(FilterType::Butterworth),
+            Some(false),
+            Some(FilterOutputType::Zpk),
+            Some(1666.),
+        );
+
+        match filter {
+            DigitalFilter::Zpk(zpk) => {
+                assert_eq!(zpk.z.len(), expected_zpk.z.len());
+                for (a, e) in zpk.z.iter().zip(expected_zpk.z.iter()) {
+                    assert_relative_eq!(a.re, e.re, max_relative = 1e-6);
+                    assert_relative_eq!(a.im, e.im, max_relative = 1e-6);
+                }
+
+                assert_eq!(zpk.p.len(), expected_zpk.p.len());
+                for (a, e) in zpk.p.iter().zip(expected_zpk.p.iter()) {
+                    assert_relative_eq!(a.re, e.re, max_relative = 1e-6);
+                    assert_relative_eq!(a.im, e.im, max_relative = 1e-6);
+                }
+
+                assert_relative_eq!(zpk.k, expected_zpk.k, max_relative = 1e-8);
+            }
+            _ => panic!(),
+        }
+    }
+
+    // #[ignore]
+    // #[test]
+    // fn matches_scipy_iirfilter_butter_sos() {
+    //     let filter = iirfilter_st::<f64, 4, 8, _>(
+    //         [10., 50.],
+    //         None,
+    //         None,
+    //         Some(FilterBandType::Bandpass),
+    //         Some(FilterType::Butterworth),
+    //         Some(false),
+    //         Some(FilterOutputType::Sos),
+    //         Some(1666.),
+    //     );
+
+    //     match filter {
+    //         DigitalFilter::Sos(sos) => {}
+    //         _ => panic!(),
+    //     }
+    // }
 }
