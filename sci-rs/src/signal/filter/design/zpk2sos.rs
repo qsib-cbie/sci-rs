@@ -2,9 +2,17 @@ use core::{f64::consts::PI, ops::Mul};
 
 use heapless::Vec;
 use nalgebra::{Complex, ComplexField, RealField};
-use num_traits::Float;
+use num_traits::{Float, Zero};
+
+use crate::signal::filter::design::cplx::cplxreal;
 
 use super::{FilterBandType, FilterOutputType, FilterType, Sos, SosFormatFilter, ZpkFormatFilter};
+
+pub enum ZpkPairing {
+    Minimal,
+    Nearest,
+    KeepOdd,
+}
 
 /// Return second-order sections from zeros, poles, and gain of a system
 ///
@@ -18,63 +26,89 @@ use super::{FilterBandType, FilterOutputType, FilterType, Sos, SosFormatFilter, 
 ///
 pub fn zpk2sos<F, const N: usize, const N2: usize>(
     zpk: ZpkFormatFilter<F, N2>,
-    analog: bool,
+    pairing: Option<ZpkPairing>,
+    analog: Option<bool>,
 ) -> SosFormatFilter<F, N>
 where
     F: RealField + Float,
 {
     assert!(N * 2 == N2);
-    todo!()
-    // # TODO in the near future:
-    // # 1. Add SOS capability to `filtfilt`, `freqz`, etc. somehow (#3259).
-    // # 2. Make `decimate` use `sosfilt` instead of `lfilter`.
-    // # 3. Make sosfilt automatically simplify sections to first order
-    // #    when possible. Note this might make `sosfiltfilt` a bit harder (ICs).
-    // # 4. Further optimizations of the section ordering / pole-zero pairing.
-    // # See the wiki for other potential issues.
 
-    // if pairing is None:
-    //     pairing = 'minimal' if analog else 'nearest'
+    let analog = analog.unwrap_or(false);
+    let pairing = pairing.unwrap_or(if analog {
+        ZpkPairing::Minimal
+    } else {
+        ZpkPairing::Nearest
+    });
 
-    // valid_pairings = ['nearest', 'keep_odd', 'minimal']
-    // if pairing not in valid_pairings:
-    //     raise ValueError('pairing must be one of %s, not %s'
-    //                      % (valid_pairings, pairing))
+    if analog && !matches!(pairing, ZpkPairing::Minimal) {
+        panic!("for analog zpk2sos conversion, pairing must be minimal");
+    }
 
-    // if analog and pairing != 'minimal':
-    //     raise ValueError('for analog zpk2sos conversion, '
-    //                      'pairing must be "minimal"')
+    if zpk.z.len() == 0 && zpk.p.len() == 0 {
+        if !analog {
+            return SosFormatFilter {
+                sos: Vec::from_iter(
+                    [Sos::new(
+                        [zpk.k, F::zero(), F::zero()],
+                        [F::one(), F::zero(), F::zero()],
+                    )]
+                    .iter()
+                    .cloned(),
+                ),
+            };
+        } else {
+            return SosFormatFilter {
+                sos: Vec::from_iter(
+                    [Sos::new(
+                        [F::zero(), F::zero(), zpk.k],
+                        [F::zero(), F::zero(), F::one()],
+                    )]
+                    .iter()
+                    .cloned(),
+                ),
+            };
+        }
+    }
 
-    // if len(z) == len(p) == 0:
-    //     if not analog:
-    //         return np.array([[k, 0., 0., 1., 0., 0.]])
-    //     else:
-    //         return np.array([[0., 0., k, 0., 0., 1.]])
+    let mut z = zpk.z;
+    let mut p = zpk.p;
+    let n_sections = if !matches!(pairing, ZpkPairing::Minimal) {
+        // ensure we have the same number of poles and zeros, and make copies
+        let z_p = z.len() as isize - p.len() as isize;
+        if z_p > 0 {
+            p.extend((0..z_p).map(|_| Complex::zero()));
+        }
+        let p_z = p.len() as isize - z.len() as isize;
+        if p_z > 0 {
+            z.extend((0..p_z).map(|_| Complex::zero()));
+        }
 
-    // if pairing != 'minimal':
-    //     # ensure we have the same number of poles and zeros, and make copies
-    //     p = np.concatenate((p, np.zeros(max(len(z) - len(p), 0))))
-    //     z = np.concatenate((z, np.zeros(max(len(p) - len(z), 0))))
-    //     n_sections = (max(len(p), len(z)) + 1) // 2
+        // TODO: Why is this logic funky?
+        let n_sections = (p.len().max(z.len()) + 1) / 2;
 
-    //     if len(p) % 2 == 1 and pairing == 'nearest':
-    //         p = np.concatenate((p, [0.]))
-    //         z = np.concatenate((z, [0.]))
-    //     assert len(p) == len(z)
-    // else:
-    //     if len(p) < len(z):
-    //         raise ValueError('for analog zpk2sos conversion, '
-    //                          'must have len(p)>=len(z)')
+        if p.len() % 2 == 1 && matches!(pairing, ZpkPairing::Nearest) {
+            z.push(Complex::zero());
+            p.push(Complex::zero());
+        }
 
-    //     n_sections = (len(p) + 1) // 2
+        assert!(z.len() == p.len());
 
-    // # Ensure we have complex conjugate pairs
-    // # (note that _cplxreal only gives us one element of each complex pair):
-    // z = np.concatenate(_cplxreal(z))
-    // p = np.concatenate(_cplxreal(p))
-    // if not np.isreal(k):
-    //     raise ValueError('k must be real')
-    // k = k.real
+        n_sections
+    } else {
+        if p.len() < z.len() {
+            panic!("for analog zpk2sos conversion, must have len(p)>=len(z)");
+        }
+        (p.len() + 1) / 2
+    };
+
+    // Ensure we have complex conjugate pairs
+    // (note that _cplxreal only gives us one element of each complex pair):
+    let (zc, zr) = cplxreal(z, None);
+    let z: Vec<Complex<F>, N> = zc.into_iter().chain(zr.into_iter()).collect::<Vec<_, _>>();
+    let (pc, pr) = cplxreal(p, None);
+    let p: Vec<Complex<F>, N> = pc.into_iter().chain(pr.into_iter()).collect::<Vec<_, _>>();
+    let k = zpk.k;
 
     // if not analog:
     //     # digital: "worst" is the closest to the unit circle
@@ -161,4 +195,5 @@ where
     // # put gain in first sos
     // sos[0][:3] *= k
     // return sos
+    todo!()
 }

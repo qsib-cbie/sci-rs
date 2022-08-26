@@ -199,7 +199,7 @@ where
             // zpk2tf(z, p, k),
             todo!()
         }
-        FilterOutputType::Sos => DigitalFilter::Sos(zpk2sos(zpk, analog)),
+        FilterOutputType::Sos => DigitalFilter::Sos(zpk2sos(zpk, None, Some(analog))),
     }
 }
 

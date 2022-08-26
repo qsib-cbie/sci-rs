@@ -42,14 +42,7 @@ impl<F: RealField + Copy> Default for Sos<F> {
 }
 
 impl<F: RealField + Copy> Sos<F> {
-    // Normalizes to Direct Form 1 where a[0] is 1
-    pub fn new(mut b: [F; 3], mut a: [F; 3]) -> Sos<F> {
-        b[0] = b[0] / a[0];
-        b[1] = b[1] / a[0];
-        b[2] = b[2] / a[0];
-        a[0] = F::one();
-        a[1] = a[1] / a[0];
-        a[2] = a[2] / a[0];
+    pub fn new(b: [F; 3], a: [F; 3]) -> Sos<F> {
         Sos::<F> {
             b,
             a,
