@@ -32,11 +32,11 @@ jobs:
       if: success() || failure()
       run: cargo test --doc
     - name: Test Report
-        uses: dorny/test-reporter@v1
-        if: success() || failure()
-        with:
-          name: Cargo Tests
-          path: target/nextest/ci/junit.xml
-          reporter: java-junit
+      uses: dorny/test-reporter@v1
+      if: success() || failure()
+      with:
+        name: Cargo Tests
+        path: target/nextest/ci/junit.xml
+        reporter: java-junit
 
 
