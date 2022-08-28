@@ -258,7 +258,7 @@ mod tests {
     fn can_autocorrelate() {
         // sin wave w/ multiple periods
         let periods = 1.;
-        let points = 1000;
+        let points = 100;
         let radians_per_pt = (periods * 2. * PI) / points as f64;
         let sin_wave = (0..points)
             .map(|i| (i as f64 * radians_per_pt).sin())
