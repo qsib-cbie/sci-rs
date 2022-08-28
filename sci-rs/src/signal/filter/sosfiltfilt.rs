@@ -31,11 +31,11 @@ where
     let x = DVector::<F>::from_vec(y);
     let (edge, ext) = pad(Pad::Odd, None, x, 0, ntaps);
 
-    let mut init_sos = sos.clone();
+    let mut init_sos = *sos;
     sosfilt_zi_dyn::<_, _, Sos<F>>(init_sos.iter_mut());
 
     let x0 = *ext.index(0);
-    let mut sos_x = init_sos.clone();
+    let mut sos_x = init_sos;
     for s in sos_x.iter_mut() {
         s.zi0 *= x0;
         s.zi1 *= x0;
@@ -43,7 +43,7 @@ where
     let y = sosfilt_st(ext.iter(), &sos_x).collect::<Vec<_>>();
 
     let y0 = *y.last().unwrap();
-    let mut sos_y = init_sos.clone();
+    let mut sos_y = init_sos;
     for s in sos_y.iter_mut() {
         s.zi0 *= y0;
         s.zi1 *= y0;
@@ -69,9 +69,9 @@ mod tests {
     fn can_sosfiltfilt() {
         // 4th order butterworth bandpass 10 to 50 at 1666Hz
         let filter: [f64; 24] = [
-            2.6775767382597835e-05,
-            5.355153476519567e-05,
-            2.6775767382597835e-05,
+            2.677_576_738_259_783_5e-5,
+            5.355_153_476_519_567e-5,
+            2.677_576_738_259_783_5e-5,
             1.0,
             -1.7991202154617734,
             0.8162578614819005,
@@ -135,30 +135,30 @@ mod tests {
     fn can_sosfiltfilt_f32() {
         // 4th order butterworth bandpass 10 to 50 at 1666Hz
         let filter: [f32; 24] = [
-            2.6775767382597835e-05 as f32,
-            5.355153476519567e-05 as f32,
-            2.6775767382597835e-05 as f32,
-            1.0 as f32,
-            -1.7991202154617734 as f32,
-            0.8162578614819005 as f32,
-            1.0 as f32,
-            2.0 as f32,
-            1.0 as f32,
-            1.0 as f32,
-            -1.8774769894419825 as f32,
-            0.9094302413068086 as f32,
-            1.0 as f32,
-            -2.0 as f32,
-            1.0 as f32,
-            1.0 as f32,
-            -1.9237959892866103 as f32,
-            0.9263794671616161 as f32,
-            1.0 as f32,
-            -2.0 as f32,
-            1.0 as f32,
-            1.0 as f32,
-            -1.978497311228862 as f32,
-            0.9799894886973378 as f32,
+            2.677_576_8e-5_f32,
+            5.355_153_6e-5_f32,
+            2.677_576_8e-5_f32,
+            1.0_f32,
+            -1.799_120_2_f32,
+            0.816_257_83_f32,
+            1.0_f32,
+            2.0_f32,
+            1.0_f32,
+            1.0_f32,
+            -1.877_476_9_f32,
+            0.909_430_27_f32,
+            1.0_f32,
+            -2.0_f32,
+            1.0_f32,
+            1.0_f32,
+            -1.923_795_9_f32,
+            0.926_379_44_f32,
+            1.0_f32,
+            -2.0_f32,
+            1.0_f32,
+            1.0_f32,
+            -1.978_497_3_f32,
+            0.979_989_47_f32,
         ];
         let sos = Sos::<f32>::from_scipy::<24, 4>(filter);
 

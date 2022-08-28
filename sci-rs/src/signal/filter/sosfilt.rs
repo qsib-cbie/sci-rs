@@ -64,7 +64,7 @@ where
 {
     SosFilt {
         iter: y,
-        sos: sos.clone(),
+        sos: *sos,
     }
 }
 
@@ -76,7 +76,7 @@ where
     YI::Item: Borrow<F>,
 {
     let y = y.collect_vec();
-    let mut sos = sos.clone();
+    let mut sos = *sos;
     let mut z: Vec<MaybeUninit<F>> = Vec::with_capacity(y.len());
     unsafe {
         z.set_len(y.len());
@@ -109,9 +109,9 @@ mod tests {
     fn can_sosfilt() {
         // 4th order butterworth bandpass 10 to 50 at 1666Hz
         let filter: [f64; 24] = [
-            2.6775767382597835e-05,
-            5.355153476519567e-05,
-            2.6775767382597835e-05,
+            2.677_576_738_259_783_5e-5,
+            5.355_153_476_519_567e-5,
+            2.677_576_738_259_783_5e-5,
             1.0,
             -1.7991202154617734,
             0.8162578614819005,

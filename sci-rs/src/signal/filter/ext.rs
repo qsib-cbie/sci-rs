@@ -23,11 +23,8 @@ where
     N: Dim,
     DefaultAllocator: Allocator<T, M, N> + Allocator<T, Dynamic, Dynamic>,
 {
-    match padtype {
-        Pad::None => {
-            padlen = Some(0);
-        }
-        _ => (),
+    if matches!(padtype, Pad::None) {
+        padlen = Some(0);
     }
 
     let edge = match padlen {
@@ -43,23 +40,20 @@ where
         _ => panic!(),
     }
 
-    match padtype {
-        Pad::None => {
-            return (
-                edge,
-                nalgebra::Matrix::<
+    if matches!(padtype, Pad::None) {
+        return (
+            edge,
+            nalgebra::Matrix::<
+                T,
+                nalgebra::Dynamic,
+                nalgebra::Dynamic,
+                <nalgebra::DefaultAllocator as nalgebra::allocator::Allocator<
                     T,
                     nalgebra::Dynamic,
                     nalgebra::Dynamic,
-                    <nalgebra::DefaultAllocator as nalgebra::allocator::Allocator<
-                        T,
-                        nalgebra::Dynamic,
-                        nalgebra::Dynamic,
-                    >>::Buffer,
-                >::from_iterator(x.shape().0, x.shape().1, x.into_iter().cloned()),
-            )
-        }
-        _ => (),
+                >>::Buffer,
+            >::from_iterator(x.shape().0, x.shape().1, x.into_iter().cloned()),
+        );
     }
 
     if edge == 0 {
