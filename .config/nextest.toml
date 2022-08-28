@@ -1,0 +1,5 @@
+[profile.default]
+slow-timeout = { period = '500ms', terminate-after = 1 }
+
+[profile.ci.junit]
+path = "junit.xml"
