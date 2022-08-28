@@ -39,7 +39,7 @@ jobs:
   
   report:
     name: "Publish Test Results"
-    needs: Build and Test 
+    needs: build 
     runs-on: ubuntu-latest
     if: always()
 
