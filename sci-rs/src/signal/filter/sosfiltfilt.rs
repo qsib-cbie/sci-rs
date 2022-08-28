@@ -59,6 +59,7 @@ where
 #[cfg(test)]
 mod tests {
     use dasp::{signal, Signal};
+    #[cfg(feature = "plot")]
     use gnuplot::Figure;
     use itertools::Itertools;
 
@@ -108,21 +109,23 @@ mod tests {
         println!("{:?}", bp_wave);
         assert_eq!(sin_wave.len(), bp_wave.len());
 
-        let mut fig = Figure::new();
+        #[cfg(feature = "plot")]
+        {
+            let mut fig = Figure::new();
+            fig.axes2d().lines(
+                bp_wave
+                    .iter()
+                    .take(400)
+                    .enumerate()
+                    .map(|(i, _)| i)
+                    .collect_vec(),
+                bp_wave.iter().take(400).collect_vec(),
+                &[],
+            );
 
-        fig.axes2d().lines(
-            bp_wave
-                .iter()
-                .take(400)
-                .enumerate()
-                .map(|(i, _)| i)
-                .collect_vec(),
-            bp_wave.iter().take(400).collect_vec(),
-            &[],
-        );
-
-        fig.set_pre_commands("set term dumb 100 30");
-        fig.show().unwrap();
+            fig.set_pre_commands("set term dumb 100 30");
+            fig.show().unwrap();
+        }
 
         println!("{:?}", &bp_wave[..10]);
         println!("{:?}", &sin_wave[..10]);
@@ -172,21 +175,23 @@ mod tests {
         assert_eq!(sin_wave.len(), bp_wave.len());
         println!("{:?}", bp_wave);
 
-        let mut fig = Figure::new();
+        #[cfg(feature = "plot")]
+        {
+            let mut fig = Figure::new();
+            fig.axes2d().lines(
+                bp_wave
+                    .iter()
+                    .take(400)
+                    .enumerate()
+                    .map(|(i, _)| i)
+                    .collect_vec(),
+                bp_wave.iter().take(400).collect_vec(),
+                &[],
+            );
 
-        fig.axes2d().lines(
-            bp_wave
-                .iter()
-                .take(400)
-                .enumerate()
-                .map(|(i, _)| i)
-                .collect_vec(),
-            bp_wave.iter().take(400).collect_vec(),
-            &[],
-        );
-
-        fig.set_pre_commands("set term dumb 100 30");
-        fig.show().unwrap();
+            fig.set_pre_commands("set term dumb 100 30");
+            fig.show().unwrap();
+        }
 
         println!("{:?}", &bp_wave[..10]);
         println!("{:?}", &sin_wave[..10]);
