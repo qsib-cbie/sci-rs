@@ -30,10 +30,10 @@ jobs:
     - name: Run tests
       run: cargo nextest run --profile ci
     - name: Run doctests
-      if: always()
+      if: success() || failure()
       run: cargo test --doc
     - uses: actions-rs/clippy-check@v1
-      if: always()
+      if: success() || failure()
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
     - name: Upload test results
