@@ -4,3 +4,4 @@ tmp
 *.json
 *.svg
 .DS_Store
+venv

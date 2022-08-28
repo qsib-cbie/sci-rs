@@ -56,6 +56,20 @@ In general, `cargo build`, `cargo test`, and `cargo doc` work like usual. `sci-r
 I haven't decided if we will be primarily using ndarray or nalgebra, for now both are supported. Either going back to python can be converted to a numpy ndarray with the python runtime. Between the two crates, one of the primary reasons for creating `sci-rs` is to support targets that may not have reasonable access to LAPACK or blas. The choice of library will be determined on feature compatibility rather than performance. That said, there will be many instances where the performance is great, and there will be benchmarks.
 
 ndarray and nalgebra both have features related to matrixmultiply and lapack.
+
+## Compare
+
+To compare functionality between sci-rs, sciprs, and scipy, some tests include values that were manually extracted for comparison. The versions are frozen in `requirements.txt`. Along with the virtualenv usage for `sciprs`, It is recommended to also develop `sci-rs` against a venv with frozen versions.
+
+* Creating a venv
+  * `python3 -m venv venv` creates a venv folder that is already gitignore'd
+* Activating a venv
+  * `source venv/bin/activate`
+* Installing the frozen package versions for development
+  * `pip3 install -r requirements.txt`
+* Deactivating the venv
+  * `deactivate`
+
 ## Test
 
 For correctness, results from scipy are directly compared with sciprs output. At the moment, this requires manual scripting and testing. A local python virtualenv is recommended for development of this crate.
