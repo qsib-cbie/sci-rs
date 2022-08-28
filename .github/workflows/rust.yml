@@ -29,14 +29,12 @@ jobs:
     - name: Run tests
       run: cargo nextest run --profile ci
     - name: Run doctests
-      if: success() || failure()
+      if: always()
       run: cargo test --doc
     - name: Test Report
-      uses: phoenix-actions/test-reporting@v8
-      if: success() || failure()
+      uses: EnricoMi/publish-unit-test-result-action@v2
+      if: always()
       with:
-        name: Cargo Tests
-        path: target/nextest/ci/junit.xml
-        reporter: java-junit
+        xunit_files: target/nextest/ci/junit.xml
 
 
