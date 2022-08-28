@@ -23,7 +23,7 @@ jobs:
       with:
         toolchain: nightly
     - name: Install nextest
-      run: cargo install nextest
+      run: cargo install cargo-nextest
     - name: Build
       run: cargo build --verbose
     - name: Run tests
