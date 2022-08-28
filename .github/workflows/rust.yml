@@ -34,7 +34,7 @@ jobs:
       if: always()
       uses: actions/upload-artifact@v2
       with:
-        name: Unit Test Results
+        name: nextest 
         path: target/nextest/ci/junit.xml
   
   report:
@@ -52,4 +52,4 @@ jobs:
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action@v2
         with:
-          xunit_files: artifacts/target/nextest/ci/junit.xml
+          xunit_files: artifacts/**/*.xml
