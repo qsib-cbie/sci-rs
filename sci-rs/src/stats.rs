@@ -246,11 +246,11 @@ where
 
 #[cfg(test)]
 mod tests {
-    use std::f64::consts::PI;
-    use std::vec::Vec;
-
+    #[cfg(feature = "plot")]
     use gnuplot::{Figure, PlotOption::Caption};
     use itertools::Itertools;
+    use std::f64::consts::PI;
+    use std::vec::Vec;
 
     use super::*;
 
@@ -258,7 +258,7 @@ mod tests {
     fn can_autocorrelate() {
         // sin wave w/ multiple periods
         let periods = 1.;
-        let points = 10000;
+        let points = 100;
         let radians_per_pt = (periods * 2. * PI) / points as f64;
         let sin_wave = (0..points)
             .map(|i| (i as f64 * radians_per_pt).sin())
@@ -273,18 +273,21 @@ mod tests {
             .collect_vec();
         println!("correlations = {:?}", correlations);
 
-        let mut fig = Figure::new();
-        fig.axes2d().lines(
-            correlations
-                .iter()
-                .enumerate()
-                .map(|(i, _)| i)
-                .collect_vec(),
-            correlations,
-            &[Caption("Sin Wave Autocorrelation")],
-        );
-        fig.set_pre_commands("set term dumb 100 30");
-        fig.show().unwrap();
+        #[cfg(feature = "plot")]
+        {
+            let mut fig = Figure::new();
+            fig.axes2d().lines(
+                correlations
+                    .iter()
+                    .enumerate()
+                    .map(|(i, _)| i)
+                    .collect_vec(),
+                correlations,
+                &[Caption("Sin Wave Autocorrelation")],
+            );
+            fig.set_pre_commands("set term dumb 100 30");
+            fig.show().unwrap();
+        }
     }
 
     #[test]
