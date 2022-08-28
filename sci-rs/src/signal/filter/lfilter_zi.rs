@@ -24,9 +24,7 @@ where
 {
     let ai0 = a
         .iter()
-        .enumerate()
-        .filter(|(_, ai)| **ai != F::zero())
-        .next()
+        .enumerate().find(|(_, ai)| **ai != F::zero())
         .expect("There must be at least one nonzero `a` coefficient.")
         .0;
 
