@@ -23,8 +23,11 @@ jobs:
         toolchain: nightly
         components: clippy
         override: true
-    - name: Install nextest
-      run: cargo install cargo-nextest
+    - name: Install cargo dependencies
+      run:
+        |
+        cargo install cargo-nextest
+        cargo install sccache --no-default-features
     - name: Build
       run: cargo build --verbose
     - name: Run tests
