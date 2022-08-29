@@ -28,9 +28,6 @@ jobs:
         with:
           toolchain: nightly
 
-      - name: Install cargo dependencies
-        run: cargo install sccache
-
       - name: Build Documentation
         run: cargo doc --all --no-deps
 
