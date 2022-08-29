@@ -67,8 +67,8 @@ where
 {
     assert!(N * 2 == N2);
 
-    let wo = wo.unwrap_or(F::one());
-    let bw = bw.unwrap_or(F::one());
+    let wo = wo.unwrap_or_else(F::one);
+    let bw = bw.unwrap_or_else(F::one);
 
     let degree = relative_degree(&zpk.z, &zpk.p);
 

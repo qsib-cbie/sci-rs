@@ -45,7 +45,7 @@ where
         panic!("for analog zpk2sos conversion, pairing must be minimal");
     }
 
-    if zpk.z.len() == 0 && zpk.p.len() == 0 {
+    if zpk.z.is_empty() && zpk.p.is_empty() {
         if !analog {
             return SosFormatFilter {
                 sos: Vec::from_iter(

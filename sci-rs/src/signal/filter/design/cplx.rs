@@ -56,12 +56,12 @@ pub fn cplxreal<F, const N: usize>(
 where
     F: RealField + Float,
 {
-    if z.len() == 0 {
+    if z.is_empty() {
         return (Vec::new(), Vec::new());
     }
 
     // Get tolerance from dtype of input
-    let tol = tol.unwrap_or(F::epsilon() * F::from(100.).unwrap());
+    let tol = tol.unwrap_or_else(|| F::epsilon() * F::from(100.).unwrap());
 
     let mut z = z;
     z.sort_unstable_by(

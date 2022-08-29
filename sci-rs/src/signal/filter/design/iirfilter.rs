@@ -37,6 +37,7 @@ use super::{
 /// cheb1ord, cheb2ord, ellipord
 /// iirdesign : General filter design using passband and stopband spec
 ///
+#[allow(clippy::too_many_arguments)]
 pub fn iirfilter_st<F, const N: usize, const N2: usize, const M: usize>(
     wn: [F; M],
     rp: Option<F>,
@@ -60,9 +61,9 @@ where
             panic!("fs cannot be specified for an analog filter");
         }
 
-        for i in 0..M {
-            wn[i] = F::from(2.).unwrap() * wn[i] / fs;
-        }
+        wn.iter_mut().for_each(|wni| {
+            *wni = F::from(2.).unwrap() * *wni / fs;
+        });
     }
 
     if wn.iter().any(|wi| *wi <= F::zero()) {
@@ -137,7 +138,7 @@ where
         }
         (fs, warped)
     } else {
-        (fs.unwrap_or(F::one()), wn)
+        (fs.unwrap_or_else(F::one), wn)
     };
 
     // transform to lowpass, bandpass, highpass, or bandstop
