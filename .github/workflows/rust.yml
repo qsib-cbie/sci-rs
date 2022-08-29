@@ -23,8 +23,6 @@ jobs:
         toolchain: nightly
         components: clippy
         override: true
-    - name: Install nextest
-      run: cargo install cargo-nextest
     - name: Build
       run: cargo build --verbose
     - name: Run tests
@@ -36,6 +34,9 @@ jobs:
       if: success() || failure()
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Compile Stats Check
+      if: success() || failure()
+      run: sccache -s
     - name: Upload test results
       if: always()
       uses: actions/upload-artifact@v2

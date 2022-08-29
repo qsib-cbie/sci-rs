@@ -53,7 +53,11 @@ let filtered_data: nalgebra::DVector<f64> = sciprs! {
 
 Install the nightly toolchain, `rustup toolchain install nightly`, `rust-toolchain.toml` asks for configures the toolchain choice.
 
-In general, `cargo build`, `cargo test`, and `cargo doc` work like usual. `sci-rs` does not bind against your local python installation like `sciprs` will. When building ndarray or nalgebra, you should not need LAPACK or blas, but eventually it will be an option to accelerate usage on systems that have the option.
+By default, `sccache` is enabled to match CI builds and improve build from clean speeds for some of the heavier dependent crates. Install with `cargo install sccache --no-default-features`.
+
+In general, `cargo build`, `cargo test`, and `cargo doc` work like usual. `sci-rs` does not bind against your local python installation like `sciprs` will. The CI workflow runs the unit tests via `cargo nextest run` to disallow slow unit tests and to facilitate JUnit + GitHub integration.
+
+When building ndarray or nalgebra, you should not need LAPACK or blas, but eventually it will be an option to accelerate usage on systems that have the option.
 
 ### System Linear Algebra Dependency
 
