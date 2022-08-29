@@ -62,10 +62,7 @@ where
     YI: Iterator,
     YI::Item: Borrow<F>,
 {
-    SosFilt {
-        iter: y,
-        sos: *sos,
-    }
+    SosFilt { iter: y, sos: *sos }
 }
 
 #[inline]
@@ -98,7 +95,7 @@ where
 #[cfg(test)]
 mod tests {
     use approx::assert_relative_eq;
-    use dasp::{signal, Signal};
+    use dasp_signal::{rate, Signal};
     #[cfg(feature = "plot")]
     use gnuplot::Figure;
     use itertools::Itertools;
@@ -139,7 +136,7 @@ mod tests {
         // A signal with a frequency that we can recover
         let sample_hz = 1666.;
         let seconds = 10;
-        let mut signal = signal::rate(sample_hz).const_hz(25.).sine();
+        let mut signal = rate(sample_hz).const_hz(25.).sine();
         let sin_wave: Vec<f64> = (0..seconds * sample_hz as usize)
             .map(|_| signal.next())
             .collect_vec();
