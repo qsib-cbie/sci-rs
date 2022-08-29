@@ -26,8 +26,7 @@ jobs:
     - name: Install cargo dependencies
       run:
         |
-        cargo install cargo-nextest
-        cargo install sccache --no-default-features
+        cargo install cargo-nextest sccache
     - name: Build
       run: cargo build --verbose
     - name: Run tests
