@@ -1,3 +1,5 @@
+[![CI](https://github.com/qsib-cbie/sci-rs/actions/workflows/rust.yml/badge.svg)](https://github.com/qsib-cbie/sci-rs/actions/workflows/rust.yml)
+
 # sci-rs
 
 Pure Rust translation of scipy for reliable cross-platform and cross-tier behavior. See the sibling repo, https://github.com/qsib-cbie/sciprs, for pythonic interaction with this library. `sci-rs` will prefer idiomatic Rust with feature parity to the scipy interface when possible.
