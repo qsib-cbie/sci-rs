@@ -58,7 +58,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use dasp::{signal, Signal};
+    use dasp_signal::{rate, Signal};
     #[cfg(feature = "plot")]
     use gnuplot::Figure;
     use itertools::Itertools;
@@ -99,7 +99,7 @@ mod tests {
         // A signal with a frequency that we can recover
         let sample_hz = 1666.;
         let seconds = 10;
-        let mut signal = signal::rate(sample_hz).const_hz(25.).sine();
+        let mut signal = rate(sample_hz).const_hz(25.).sine();
         let sin_wave: Vec<f64> = (0..seconds * sample_hz as usize)
             .map(|_| signal.next())
             .collect_vec();
@@ -165,7 +165,7 @@ mod tests {
         // A signal with a frequency that we can recover
         let sample_hz = 1666.;
         let seconds = 10;
-        let mut signal = signal::rate(sample_hz).const_hz(25.).sine();
+        let mut signal = rate(sample_hz).const_hz(25.).sine();
         let sin_wave: Vec<f32> = (0..seconds * sample_hz as usize)
             .map(|_| signal.next() as f32)
             .collect_vec();

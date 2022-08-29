@@ -1,5 +1,5 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
-use dasp::{signal, Signal};
+use dasp_signal::{rate, Signal};
 use itertools::Itertools;
 use sci_rs::signal::filter::{design::Sos, sosfiltfilt_dyn};
 
@@ -51,7 +51,7 @@ fn butter_sosfiltfilt_100x(c: &mut Criterion) {
     // A signal with a frequency that we can recover
     let sample_hz = 1666.;
     let seconds = 10;
-    let mut signal = signal::rate(sample_hz).const_hz(25.).sine();
+    let mut signal = rate(sample_hz).const_hz(25.).sine();
     let sin_wave: Vec<f64> = (0..seconds * sample_hz as usize)
         .map(|_| signal.next())
         .collect_vec();
@@ -97,7 +97,7 @@ fn butter_sosfiltfilt_10x(c: &mut Criterion) {
     // A signal with a frequency that we can recover
     let sample_hz = 1666.;
     let seconds = 10;
-    let mut signal = signal::rate(sample_hz).const_hz(25.).sine();
+    let mut signal = rate(sample_hz).const_hz(25.).sine();
     let sin_wave: Vec<f64> = (0..seconds * sample_hz as usize)
         .map(|_| signal.next())
         .collect_vec();
@@ -143,7 +143,7 @@ fn butter_sosfiltfilt_f64(c: &mut Criterion) {
     // A signal with a frequency that we can recover
     let sample_hz = 1666.;
     let seconds = 10;
-    let mut signal = signal::rate(sample_hz).const_hz(25.).sine();
+    let mut signal = rate(sample_hz).const_hz(25.).sine();
     let sin_wave: Vec<f64> = (0..seconds * sample_hz as usize)
         .map(|_| signal.next())
         .collect_vec();
@@ -188,7 +188,7 @@ fn butter_sosfiltfilt_f32(c: &mut Criterion) {
     // A signal with a frequency that we can recover
     let sample_hz = 1666.;
     let seconds = 10;
-    let mut signal = signal::rate(sample_hz).const_hz(25.).sine();
+    let mut signal = rate(sample_hz).const_hz(25.).sine();
     let sin_wave: Vec<f32> = (0..seconds * sample_hz as usize)
         .map(|_| signal.next() as f32)
         .collect_vec();
