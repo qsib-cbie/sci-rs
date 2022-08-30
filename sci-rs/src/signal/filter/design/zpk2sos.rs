@@ -119,7 +119,7 @@ where
         |p: &Vec<Complex<F>, N2>| -> usize {
             p.iter()
                 .enumerate()
-                .map(|(i, pi)| (i, ComplexField::abs((F::one() - pi.abs()))))
+                .map(|(i, pi)| (i, ComplexField::abs(F::one() - pi.abs())))
                 .min_by(|a, b| (a.1).partial_cmp(&b.1).unwrap_or(Ordering::Equal))
                 .map(|(i, _)| i)
                 .expect("Poles must have a min")
@@ -219,25 +219,23 @@ where
                         F::one(),
                     );
                     sos.push(sos_si);
+                } else if !z.is_empty() {
+                    let z2_idx = nearest_real_complex_idx(&z, p1, WhichNearestComplex::Real);
+                    let z2 = z.remove(z2_idx);
+                    assert!(z2.im.is_zero());
+                    let sos_si = single_zpksos(
+                        Vec::from_slice(&[z1, z2]).unwrap(),
+                        Vec::from_slice(&[p1, p2]).unwrap(),
+                        F::one(),
+                    );
+                    sos.push(sos_si);
                 } else {
-                    if !z.is_empty() {
-                        let z2_idx = nearest_real_complex_idx(&z, p1, WhichNearestComplex::Real);
-                        let z2 = z.remove(z2_idx);
-                        assert!(z2.im.is_zero());
-                        let sos_si = single_zpksos(
-                            Vec::from_slice(&[z1, z2]).unwrap(),
-                            Vec::from_slice(&[p1, p2]).unwrap(),
-                            F::one(),
-                        );
-                        sos.push(sos_si);
-                    } else {
-                        let sos_si = single_zpksos(
-                            Vec::from_slice(&[z1]).unwrap(),
-                            Vec::from_slice(&[p1, p2]).unwrap(),
-                            F::one(),
-                        );
-                        sos.push(sos_si);
-                    }
+                    let sos_si = single_zpksos(
+                        Vec::from_slice(&[z1]).unwrap(),
+                        Vec::from_slice(&[p1, p2]).unwrap(),
+                        F::one(),
+                    );
+                    sos.push(sos_si);
                 }
             } else {
                 let sos_si = single_zpksos(
@@ -254,7 +252,7 @@ where
     sos.reverse();
 
     assert!(p.len() == z.len());
-    assert!(p.len() == 0);
+    assert!(p.is_empty());
 
     // Put the gain in the first sos
     for bi in sos[0].b.iter_mut() {

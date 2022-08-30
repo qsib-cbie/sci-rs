@@ -48,7 +48,7 @@ where
 
     let b = poly(z)
         .into_iter()
-        .map(|bi| <C as ComplexField>::from_real(k.clone()) * bi)
+        .map(|bi| <C as ComplexField>::from_real(k) * bi)
         .collect::<Vec<_, _>>();
     let a = poly(p);
 
