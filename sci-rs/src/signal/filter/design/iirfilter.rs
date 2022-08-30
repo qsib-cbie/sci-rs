@@ -4,7 +4,7 @@ use heapless::Vec;
 use nalgebra::{Complex, ComplexField, RealField};
 use num_traits::Float;
 
-use crate::signal::filter::design::ZpkFormatFilter;
+use crate::signal::filter::design::{zpk2tf, ZpkFormatFilter};
 
 use super::{
     bilinear_zpk, lp2bp_zpk, zpk2sos, DigitalFilter, FilterBandType, FilterOutputType, FilterType,
@@ -38,7 +38,7 @@ use super::{
 /// iirdesign : General filter design using passband and stopband spec
 ///
 #[allow(clippy::too_many_arguments)]
-pub fn iirfilter_st<F, const N: usize, const N2: usize, const M: usize>(
+pub fn iirfilter_st<F, const N: usize, const M: usize>(
     wn: [F; M],
     rp: Option<F>,
     rs: Option<F>,
@@ -47,12 +47,12 @@ pub fn iirfilter_st<F, const N: usize, const N2: usize, const M: usize>(
     analog: Option<bool>,
     output: Option<FilterOutputType>,
     fs: Option<F>,
-) -> DigitalFilter<F, N, N2>
+) -> DigitalFilter<F, N>
 where
     F: RealField + Float + Sum,
+    [(); { N * 2 + 1 }]: Sized,
+    [(); { N * 2 }]: Sized,
 {
-    assert!(N * 2 == N2);
-
     let analog = analog.unwrap_or(false);
     let mut wn = wn;
 
@@ -173,7 +173,7 @@ where
 
             let bw = warped[1] - warped[0];
             let wo = Float::sqrt(warped[0] * warped[1]);
-            lp2bp_zpk::<F, N, N2>(zpk, Some(wo), Some(bw))
+            lp2bp_zpk::<F, N, { N * 2 }>(zpk, Some(wo), Some(bw))
         }
         FilterBandType::Bandstop => {
             if M != 2 {
@@ -196,10 +196,7 @@ where
     let output = output.unwrap_or(FilterOutputType::Ba);
     match output {
         FilterOutputType::Zpk => DigitalFilter::Zpk(zpk),
-        FilterOutputType::Ba => {
-            // zpk2tf(z, p, k),
-            todo!()
-        }
+        FilterOutputType::Ba => DigitalFilter::Ba(zpk2tf(&zpk.z, &zpk.p, zpk.k)),
         FilterOutputType::Sos => DigitalFilter::Sos(zpk2sos(zpk, None, Some(analog))),
     }
 }
@@ -279,7 +276,7 @@ mod tests {
             .unwrap(),
             2.6775767382597835e-5,
         );
-        let filter = iirfilter_st::<f64, 4, 8, _>(
+        let filter = iirfilter_st::<f64, 4, _>(
             [10., 50.],
             None,
             None,
@@ -312,7 +309,7 @@ mod tests {
 
     #[test]
     fn matches_scipy_iirfilter_butter_sos() {
-        let filter = iirfilter_st::<f64, 4, 8, _>(
+        let filter = iirfilter_st::<f64, 4, _>(
             [10., 50.],
             None,
             None,
@@ -325,7 +322,7 @@ mod tests {
 
         match filter {
             DigitalFilter::Sos(sos) => {
-                println!("{:#?}", sos);
+                // println!("{:?}", sos);
 
                 let expected_sos = [
                     Sos::new(
@@ -356,6 +353,64 @@ mod tests {
                     assert_relative_eq!(actual.a[0], expected.a[0], max_relative = 1e-7);
                     assert_relative_eq!(actual.a[1], expected.a[1], max_relative = 1e-7);
                     assert_relative_eq!(actual.a[2], expected.a[2], max_relative = 1e-7);
+                }
+            }
+            _ => panic!(),
+        }
+    }
+
+    #[test]
+    fn matches_scipy_iirfilter_butter_ba() {
+        let filter = iirfilter_st::<f64, 4, _>(
+            [10., 50.],
+            None,
+            None,
+            Some(FilterBandType::Bandpass),
+            Some(FilterType::Butterworth),
+            Some(false),
+            Some(FilterOutputType::Ba),
+            Some(1666.),
+        );
+
+        match filter {
+            DigitalFilter::Ba(ba) => {
+                let expected_b = [
+                    2.67757674e-05,
+                    0.00000000e+00,
+                    -1.07103070e-04,
+                    0.00000000e+00,
+                    1.60654604e-04,
+                    0.00000000e+00,
+                    -1.07103070e-04,
+                    0.00000000e+00,
+                    2.67757674e-05,
+                ];
+                let expected_a = [
+                    1.,
+                    -7.57889051,
+                    25.1632497,
+                    -47.80506049,
+                    56.83958432,
+                    -43.31144279,
+                    20.65538731,
+                    -5.63674562,
+                    0.67391808,
+                ];
+
+                assert_eq!(expected_b.len(), ba.b.len());
+                assert_eq!(expected_a.len(), ba.a.len());
+                for i in 0..expected_b.len() {
+                    assert_relative_eq!(ba.b[0], expected_b[0], max_relative = 1e-7);
+                    assert_relative_eq!(ba.b[1], expected_b[1], max_relative = 1e-7);
+                    assert_relative_eq!(ba.b[2], expected_b[2], max_relative = 1e-7);
+                    assert_relative_eq!(ba.b[3], expected_b[3], max_relative = 1e-7);
+                    assert_relative_eq!(ba.b[4], expected_b[4], max_relative = 1e-7);
+
+                    assert_relative_eq!(ba.a[0], expected_a[0], max_relative = 1e-7);
+                    assert_relative_eq!(ba.a[1], expected_a[1], max_relative = 1e-7);
+                    assert_relative_eq!(ba.a[2], expected_a[2], max_relative = 1e-7);
+                    assert_relative_eq!(ba.a[3], expected_a[3], max_relative = 1e-7);
+                    assert_relative_eq!(ba.a[4], expected_a[4], max_relative = 1e-7);
                 }
             }
             _ => panic!(),

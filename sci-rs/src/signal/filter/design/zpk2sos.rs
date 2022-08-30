@@ -257,8 +257,8 @@ where
     assert!(p.len() == 0);
 
     // Put the gain in the first sos
-    for ai in sos[0].a.iter_mut() {
-        *ai *= zpk.k;
+    for bi in sos[0].b.iter_mut() {
+        *bi *= zpk.k;
     }
 
     SosFormatFilter { sos }

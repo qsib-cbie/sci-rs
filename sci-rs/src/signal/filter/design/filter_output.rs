@@ -31,9 +31,13 @@ pub struct SosFormatFilter<F: RealField + Copy, const N: usize> {
 }
 
 #[derive(Debug)]
-pub enum DigitalFilter<F: RealField + Copy + Sized, const N: usize, const N2: usize> {
-    Ba(BaFormatFilter<F, N>),
-    Zpk(ZpkFormatFilter<F, N2>),
+pub enum DigitalFilter<F: RealField + Copy + Sized, const N: usize>
+where
+    [(); { N * 2 + 1 }]: Sized,
+    [(); { N * 2 }]: Sized,
+{
+    Ba(BaFormatFilter<F, { N * 2 + 1 }>),
+    Zpk(ZpkFormatFilter<F, { N * 2 }>),
     Sos(SosFormatFilter<F, N>),
 }
 
@@ -48,7 +52,7 @@ mod tests {
     use super::*;
     #[test]
     fn can_create_digital_filter() {
-        let single_side = DigitalFilter::<f32, 1, 2>::Sos(SosFormatFilter { sos: Vec::new() });
+        let single_side = DigitalFilter::<f32, 1>::Sos(SosFormatFilter { sos: Vec::new() });
         match single_side {
             DigitalFilter::Sos(s) => {
                 assert_eq!(s.sos.capacity(), 1);
@@ -56,7 +60,7 @@ mod tests {
             _ => unreachable!(),
         }
 
-        let single_side = DigitalFilter::<f32, 1, 2>::Zpk(ZpkFormatFilter {
+        let single_side = DigitalFilter::<f32, 1>::Zpk(ZpkFormatFilter {
             z: Vec::new(),
             p: Vec::new(),
             k: 1.,
