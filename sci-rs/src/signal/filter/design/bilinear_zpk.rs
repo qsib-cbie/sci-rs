@@ -65,8 +65,8 @@ use super::{
 /// >>> plt.semilogx(wz*fs/(2*np.pi), 20*np.log10(np.abs(hs).clip(1e-15)),
 /// ...              label=r'$|H(j \omega)|$')
 /// >>> plt.legend()
-/// >>> plt.xlabel('Frequency [Hz]')
-/// >>> plt.ylabel('Magnitude [dB]')
+/// >>> plt.xlabel('Frequency (Hz)')
+/// >>> plt.ylabel('Magnitude (dB)')
 /// >>> plt.grid(True)
 /// """
 ///

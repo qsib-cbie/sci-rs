@@ -1,4 +1,4 @@
-use core::{f64::consts::PI, ops::Mul};
+use core::{f64::consts::PI, iter::Sum, ops::Mul};
 
 use heapless::Vec;
 use nalgebra::{Complex, ComplexField, RealField};
@@ -49,7 +49,7 @@ pub fn iirfilter_st<F, const N: usize, const N2: usize, const M: usize>(
     fs: Option<F>,
 ) -> DigitalFilter<F, N, N2>
 where
-    F: RealField + Float,
+    F: RealField + Float + Sum,
 {
     assert!(N * 2 == N2);
 
@@ -310,23 +310,55 @@ mod tests {
         }
     }
 
-    // #[ignore]
-    // #[test]
-    // fn matches_scipy_iirfilter_butter_sos() {
-    //     let filter = iirfilter_st::<f64, 4, 8, _>(
-    //         [10., 50.],
-    //         None,
-    //         None,
-    //         Some(FilterBandType::Bandpass),
-    //         Some(FilterType::Butterworth),
-    //         Some(false),
-    //         Some(FilterOutputType::Sos),
-    //         Some(1666.),
-    //     );
+    #[test]
+    fn matches_scipy_iirfilter_butter_sos() {
+        let filter = iirfilter_st::<f64, 4, 8, _>(
+            [10., 50.],
+            None,
+            None,
+            Some(FilterBandType::Bandpass),
+            Some(FilterType::Butterworth),
+            Some(false),
+            Some(FilterOutputType::Sos),
+            Some(1666.),
+        );
 
-    //     match filter {
-    //         DigitalFilter::Sos(sos) => {}
-    //         _ => panic!(),
-    //     }
-    // }
+        match filter {
+            DigitalFilter::Sos(sos) => {
+                println!("{:#?}", sos);
+
+                let expected_sos = [
+                    Sos::new(
+                        [2.67757674e-05, 5.35515348e-05, 2.67757674e-05],
+                        [1.00000000e+00, -1.79912022e+00, 8.16257861e-01],
+                    ),
+                    Sos::new(
+                        [1.00000000e+00, 2.00000000e+00, 1.00000000e+00],
+                        [1.00000000e+00, -1.87747699e+00, 9.09430241e-01],
+                    ),
+                    Sos::new(
+                        [1.00000000e+00, -2.00000000e+00, 1.00000000e+00],
+                        [1.00000000e+00, -1.92379599e+00, 9.26379467e-01],
+                    ),
+                    Sos::new(
+                        [1.00000000e+00, -2.00000000e+00, 1.00000000e+00],
+                        [1.00000000e+00, -1.97849731e+00, 9.79989489e-01],
+                    ),
+                ];
+
+                assert_eq!(expected_sos.len(), sos.sos.len());
+                for i in 0..sos.sos.len() {
+                    let actual = sos.sos[i];
+                    let expected = expected_sos[i];
+                    assert_relative_eq!(actual.b[0], expected.b[0], max_relative = 1e-7);
+                    assert_relative_eq!(actual.b[1], expected.b[1], max_relative = 1e-7);
+                    assert_relative_eq!(actual.b[2], expected.b[2], max_relative = 1e-7);
+                    assert_relative_eq!(actual.a[0], expected.a[0], max_relative = 1e-7);
+                    assert_relative_eq!(actual.a[1], expected.a[1], max_relative = 1e-7);
+                    assert_relative_eq!(actual.a[2], expected.a[2], max_relative = 1e-7);
+                }
+            }
+            _ => panic!(),
+        }
+    }
 }

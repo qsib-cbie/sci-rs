@@ -9,11 +9,13 @@ pub enum FilterOutputType {
     Sos,
 }
 
-pub struct BaFormatFilter<F: RealField + Copy, const N: usize> {
+#[derive(Debug)]
+pub struct BaFormatFilter<F: RealField, const N: usize> {
     pub b: [F; N],
     pub a: [F; N],
 }
 
+#[derive(Debug)]
 pub struct ZpkFormatFilter<F: RealField + Copy, const N: usize>
 where
     Vec<Complex<F>, N>: Sized,
@@ -23,10 +25,12 @@ where
     pub k: F,
 }
 
+#[derive(Debug)]
 pub struct SosFormatFilter<F: RealField + Copy, const N: usize> {
     pub sos: Vec<Sos<F>, N>,
 }
 
+#[derive(Debug)]
 pub enum DigitalFilter<F: RealField + Copy + Sized, const N: usize, const N2: usize> {
     Ba(BaFormatFilter<F, N>),
     Zpk(ZpkFormatFilter<F, N2>),

@@ -64,13 +64,11 @@ where
     let tol = tol.unwrap_or_else(|| F::epsilon() * F::from(100.).unwrap());
 
     let mut z = z;
-    z.sort_unstable_by(
-        |a, b| match Float::abs(a.im).partial_cmp(&Float::abs(b.im)).unwrap() {
-            Ordering::Less => Ordering::Less,
-            Ordering::Greater => Ordering::Greater,
-            Ordering::Equal => a.re.partial_cmp(&b.re).unwrap(),
-        },
-    );
+    z.sort_unstable_by(|a, b| match a.re.partial_cmp(&b.re).unwrap() {
+        Ordering::Less => Ordering::Less,
+        Ordering::Greater => Ordering::Greater,
+        Ordering::Equal => Float::abs(a.im).partial_cmp(&Float::abs(b.im)).unwrap(),
+    });
 
     // Split reals from conjugate pairs
     let (zr, zc): (Vec<_, N>, Vec<_, N>) = z
@@ -97,7 +95,7 @@ where
         .chain(
             zp.iter()
                 .zip(zp.iter().skip(1))
-                .map(|(a, b)| (a.re - b.re) <= tol * a.abs())
+                .map(|(a, b)| (b.re - a.re) <= tol * a.abs())
                 .chain(zero_arr.iter().cloned()),
         )
         .collect();
@@ -135,10 +133,10 @@ where
             .zip(zn[start..stop].iter().cloned())
             .collect();
         chunk.sort_unstable_by(|a, b| {
-            match Float::abs(a.0.im).partial_cmp(&Float::abs(b.0.im)).unwrap() {
+            match Float::abs(a.1.im).partial_cmp(&Float::abs(b.1.im)).unwrap() {
                 Ordering::Less => Ordering::Less,
                 Ordering::Greater => Ordering::Greater,
-                Ordering::Equal => a.1.im.partial_cmp(&b.1.im).unwrap(),
+                Ordering::Equal => a.0.im.partial_cmp(&b.0.im).unwrap(),
             }
         });
         zp[start..stop]
@@ -170,6 +168,25 @@ where
     (zc, zr)
 }
 
+pub fn sort_cplx<F: ComplexField, const N: usize>(x: &mut Vec<F, N>) {
+    x.sort_unstable_by(|a, b| {
+        match a
+            .clone()
+            .real()
+            .partial_cmp(&b.clone().real())
+            .expect("Reals must be orderable")
+        {
+            Ordering::Equal => a
+                .clone()
+                .imaginary()
+                .partial_cmp(&b.clone().imaginary())
+                .expect("Imaginaries must be orderable"),
+            Ordering::Less => Ordering::Less,
+            Ordering::Greater => Ordering::Greater,
+        }
+    });
+}
+
 #[cfg(test)]
 mod tests {
     use approx::assert_relative_eq;
@@ -177,5 +194,69 @@ mod tests {
     use super::*;
 
     #[test]
-    fn matches_scipy_example() {}
+    fn matches_scipy_example() {
+        let z: Vec<_, 8> = Vec::from_slice(&[
+            Complex::new(1., 0.),
+            Complex::new(1., 0.),
+            Complex::new(1., 0.),
+            Complex::new(1., 0.),
+            Complex::new(-1., 0.),
+            Complex::new(-1., 0.),
+            Complex::new(-1., 0.),
+            Complex::new(-1., 0.),
+        ])
+        .unwrap();
+
+        let expected_zc: Vec<Complex<f64>, 8> = Vec::new();
+        let expected_zr: Vec<_, 8> = Vec::from_slice(&[
+            Complex::new(1., 0.),
+            Complex::new(1., 0.),
+            Complex::new(1., 0.),
+            Complex::new(1., 0.),
+            Complex::new(1., 0.),
+            Complex::new(1., 0.),
+            Complex::new(1., 0.),
+            Complex::new(1., 0.),
+        ])
+        .unwrap();
+
+        let (zc, zr) = cplxreal(z, None);
+
+        assert_eq!(expected_zc.len(), zc.len());
+        expected_zc.iter().zip(zc.iter()).for_each(|(e, a)| {
+            assert_relative_eq!(e.re, a.re, max_relative = 1e-7);
+            assert_relative_eq!(e.im, a.im, max_relative = 1e-7);
+        });
+
+        let z: Vec<_, 8> = Vec::from_slice(&[
+            Complex::new(0.98924866, -0.03710237),
+            Complex::new(0.96189799, -0.03364097),
+            Complex::new(0.96189799, 0.03364097),
+            Complex::new(0.98924866, 0.03710237),
+            Complex::new(0.93873849, 0.16792939),
+            Complex::new(0.89956011, 0.08396115),
+            Complex::new(0.89956011, -0.08396115),
+            Complex::new(0.93873849, -0.16792939),
+        ])
+        .unwrap();
+
+        let expected_zc: Vec<_, 8> = Vec::from_slice(&[
+            Complex::new(0.89956011, 0.08396115),
+            Complex::new(0.93873849, 0.16792939),
+            Complex::new(0.96189799, 0.03364097),
+            Complex::new(0.98924866, 0.03710237),
+        ])
+        .unwrap();
+        let expected_zr: Vec<Complex<f64>, 8> = Vec::new();
+
+        let (zc, zr) = cplxreal(z, None);
+
+        assert_eq!(expected_zc.len(), zc.len());
+        expected_zc.iter().zip(zc.iter()).for_each(|(e, a)| {
+            assert_relative_eq!(e.re, a.re, max_relative = 1e-7);
+            assert_relative_eq!(e.im, a.im, max_relative = 1e-7);
+        });
+
+        // TODO: add test cases with > 0 run_starts and run_stops
+    }
 }
