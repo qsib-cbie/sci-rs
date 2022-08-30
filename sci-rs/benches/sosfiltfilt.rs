@@ -1,6 +1,5 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use dasp_signal::{rate, Signal};
-use itertools::Itertools;
 use sci_rs::signal::filter::{design::Sos, sosfiltfilt_dyn};
 
 /// TLDR: 4.6x faster
@@ -54,8 +53,8 @@ fn butter_sosfiltfilt_100x(c: &mut Criterion) {
     let mut signal = rate(sample_hz).const_hz(25.).sine();
     let sin_wave: Vec<f64> = (0..seconds * sample_hz as usize)
         .map(|_| signal.next())
-        .collect_vec();
-    let sin_wave = (0..100).flat_map(|_| sin_wave.clone()).collect_vec();
+        .collect::<Vec<_>>();
+    let sin_wave = (0..100).flat_map(|_| sin_wave.clone()).collect::<Vec<_>>();
 
     c.bench_function("sosfiltfilt_100x", |b| {
         b.iter(|| {
@@ -100,8 +99,8 @@ fn butter_sosfiltfilt_10x(c: &mut Criterion) {
     let mut signal = rate(sample_hz).const_hz(25.).sine();
     let sin_wave: Vec<f64> = (0..seconds * sample_hz as usize)
         .map(|_| signal.next())
-        .collect_vec();
-    let sin_wave = (0..10).flat_map(|_| sin_wave.clone()).collect_vec();
+        .collect::<Vec<_>>();
+    let sin_wave = (0..10).flat_map(|_| sin_wave.clone()).collect::<Vec<_>>();
 
     c.bench_function("sosfiltfilt_10x", |b| {
         b.iter(|| {
@@ -146,7 +145,7 @@ fn butter_sosfiltfilt_f64(c: &mut Criterion) {
     let mut signal = rate(sample_hz).const_hz(25.).sine();
     let sin_wave: Vec<f64> = (0..seconds * sample_hz as usize)
         .map(|_| signal.next())
-        .collect_vec();
+        .collect::<Vec<_>>();
 
     c.bench_function("sosfiltfilt_f64", |b| {
         b.iter(|| {
@@ -191,7 +190,7 @@ fn butter_sosfiltfilt_f32(c: &mut Criterion) {
     let mut signal = rate(sample_hz).const_hz(25.).sine();
     let sin_wave: Vec<f32> = (0..seconds * sample_hz as usize)
         .map(|_| signal.next() as f32)
-        .collect_vec();
+        .collect::<Vec<_>>();
 
     c.bench_function("sosfiltfilt_f32", |b| {
         b.iter(|| {

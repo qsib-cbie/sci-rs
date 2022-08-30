@@ -16,6 +16,7 @@
 //! that is required to compile in some algorithms.
 //!
 
+#![allow(unused)]
 #![allow(incomplete_features)]
 #![feature(generic_const_exprs, generic_arg_infer)]
 #![cfg_attr(not(feature = "use_std"), no_std)]

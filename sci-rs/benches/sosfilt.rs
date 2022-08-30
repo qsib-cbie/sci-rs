@@ -1,6 +1,5 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use dasp_signal::{rate, Signal};
-use itertools::Itertools;
 use sci_rs::signal::filter::design::Sos;
 use sci_rs::signal::filter::{sosfilt_dyn, sosfilt_st};
 
@@ -56,8 +55,8 @@ fn butter_sosfilt_100x_dyn(c: &mut Criterion) {
     let mut signal = rate(sample_hz).const_hz(25.).sine();
     let sin_wave: Vec<f64> = (0..seconds * sample_hz as usize)
         .map(|_| signal.next())
-        .collect_vec();
-    let sin_wave = (0..100).flat_map(|_| sin_wave.clone()).collect_vec();
+        .collect::<Vec<_>>();
+    let sin_wave = (0..100).flat_map(|_| sin_wave.clone()).collect::<Vec<_>>();
 
     c.bench_function("sosfilt_100x_dyn", |b| {
         b.iter(|| {
@@ -116,13 +115,13 @@ fn butter_sosfilt_100x_st(c: &mut Criterion) {
     let mut signal = rate(sample_hz).const_hz(25.).sine();
     let sin_wave: Vec<f64> = (0..seconds * sample_hz as usize)
         .map(|_| signal.next())
-        .collect_vec();
-    let sin_wave = (0..100).flat_map(|_| sin_wave.clone()).collect_vec();
+        .collect::<Vec<_>>();
+    let sin_wave = (0..100).flat_map(|_| sin_wave.clone()).collect::<Vec<_>>();
 
     c.bench_function("sosfilt_100x_st", |b| {
         b.iter(|| {
             // let _profiler = dhat::Profiler::new_heap();
-            black_box(sosfilt_st(sin_wave.iter(), &sos).collect_vec());
+            black_box(sosfilt_st(sin_wave.iter(), &sos).collect::<Vec<_>>());
         });
     });
 }
@@ -163,11 +162,11 @@ fn butter_sosfilt_f64(c: &mut Criterion) {
     let mut signal = rate(sample_hz).const_hz(25.).sine();
     let sin_wave: Vec<f64> = (0..seconds * sample_hz as usize)
         .map(|_| signal.next())
-        .collect_vec();
+        .collect::<Vec<_>>();
 
     c.bench_function("sosfilt_f64", |b| {
         b.iter(|| {
-            black_box(sosfilt_st(sin_wave.iter(), &sos).collect_vec());
+            black_box(sosfilt_st(sin_wave.iter(), &sos).collect::<Vec<_>>());
         });
     });
 }
@@ -208,11 +207,11 @@ fn butter_sosfilt_f32(c: &mut Criterion) {
     let mut signal = rate(sample_hz).const_hz(25.).sine();
     let sin_wave: Vec<f32> = (0..seconds * sample_hz as usize)
         .map(|_| signal.next() as f32)
-        .collect_vec();
+        .collect::<Vec<_>>();
 
     c.bench_function("sosfilt_f32", |b| {
         b.iter(|| {
-            black_box(sosfilt_st(sin_wave.iter(), &sos).collect_vec());
+            black_box(sosfilt_st(sin_wave.iter(), &sos).collect::<Vec<_>>());
         });
     });
 }

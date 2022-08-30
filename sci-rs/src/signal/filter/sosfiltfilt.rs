@@ -1,5 +1,7 @@
+#![cfg(feature = "use_std")]
+
 use core::{borrow::Borrow, cmp::min, iter::Sum, ops::SubAssign};
-use nalgebra::{ClosedAdd, ClosedMul, DVector, Scalar};
+use nalgebra::{ClosedAdd, ClosedMul, DVector, RealField, Scalar};
 use num_traits::{Float, One, Zero};
 
 use super::{design::Sos, pad, sosfilt_st, sosfilt_zi_dyn, Pad};
@@ -12,7 +14,7 @@ use super::{design::Sos, pad, sosfilt_st, sosfilt_zi_dyn, Pad};
 ///
 pub fn sosfiltfilt_dyn<YI, F, const N: usize>(y: YI, sos: &[Sos<F>; N]) -> Vec<F>
 where
-    F: Float + PartialEq + Scalar + Zero + One + ClosedMul + ClosedAdd + Sum + SubAssign,
+    F: RealField + Copy + PartialEq + Scalar + Zero + One + ClosedMul + ClosedAdd + Sum + SubAssign,
     YI: Iterator,
     YI::Item: Borrow<F>,
 {
@@ -61,7 +63,6 @@ mod tests {
     use dasp_signal::{rate, Signal};
     #[cfg(feature = "plot")]
     use gnuplot::Figure;
-    use itertools::Itertools;
 
     use super::*;
 
@@ -102,7 +103,7 @@ mod tests {
         let mut signal = rate(sample_hz).const_hz(25.).sine();
         let sin_wave: Vec<f64> = (0..seconds * sample_hz as usize)
             .map(|_| signal.next())
-            .collect_vec();
+            .collect::<Vec<_>>();
         // println!("{:?}", &sin_wave);
 
         let bp_wave = sosfiltfilt_dyn(sin_wave.iter(), &sos);
@@ -118,8 +119,8 @@ mod tests {
                     .take(400)
                     .enumerate()
                     .map(|(i, _)| i)
-                    .collect_vec(),
-                bp_wave.iter().take(400).collect_vec(),
+                    .collect::<Vec<_>>(),
+                bp_wave.iter().take(400).collect::<Vec<_>>(),
                 &[],
             );
 
@@ -168,7 +169,7 @@ mod tests {
         let mut signal = rate(sample_hz).const_hz(25.).sine();
         let sin_wave: Vec<f32> = (0..seconds * sample_hz as usize)
             .map(|_| signal.next() as f32)
-            .collect_vec();
+            .collect::<Vec<_>>();
         // println!("{:?}", &sin_wave);
 
         let bp_wave = sosfiltfilt_dyn(sin_wave.iter(), &sos);
@@ -184,8 +185,8 @@ mod tests {
                     .take(400)
                     .enumerate()
                     .map(|(i, _)| i)
-                    .collect_vec(),
-                bp_wave.iter().take(400).collect_vec(),
+                    .collect::<Vec<_>>(),
+                bp_wave.iter().take(400).collect::<Vec<_>>(),
                 &[],
             );
 

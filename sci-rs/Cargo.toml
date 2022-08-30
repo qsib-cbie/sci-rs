@@ -17,13 +17,13 @@ all-features = true
 
 [features]
 default = ['use_std']
-use_std = ['itertools', 'nalgebra/std', 'nalgebra/macros']
+use_std = ['nalgebra/std', 'nalgebra/macros']
 plot = ['gnuplot']
 bench = ['criterion']
 
 [dependencies]
 num-traits = "0.2.15"
-itertools = { version = "0.10.3", optional = true }
+itertools = { version = "0.10.3", default-features = false }
 heapless = "0.7.16"
 nalgebra = { version = "0.31.1", default-features = false }
 ndarray = { version = "0.15.6", default-features = false }
@@ -33,7 +33,6 @@ criterion = { version = "0.3", features = ["html_reports"], optional = true }
 [dev-dependencies]
 approx = "0.5.1"
 dasp_signal = { version = "0.11.0", default-features = false }
-itertools = "0.10"
 # dhat = "0.3.0"
 
 
