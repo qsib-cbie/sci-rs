@@ -1,13 +1,21 @@
 pub mod design;
 
 mod ext;
-mod lfilter_zi;
 mod sosfilt;
-mod sosfilt_zi;
-mod sosfiltfilt;
 
 pub use ext::*;
-pub use lfilter_zi::*;
 pub use sosfilt::*;
+
+#[cfg(feature = "use_std")]
+mod lfilter_zi;
+#[cfg(feature = "use_std")]
+mod sosfilt_zi;
+#[cfg(feature = "use_std")]
+mod sosfiltfilt;
+
+#[cfg(feature = "use_std")]
+pub use lfilter_zi::*;
+#[cfg(feature = "use_std")]
 pub use sosfilt_zi::*;
+#[cfg(feature = "use_std")]
 pub use sosfiltfilt::*;

@@ -1,11 +1,26 @@
 # Unreleased
 
 - Added:
+    - Began using more RealField and ComplexField, Float/RealField/ComplexField will change
+    - `no_std` compat butterworth iirfilter design for ba, zpk, or sos
     - signal
         - design
-            - `Butter`
+            - `butter_st`
+            - `iirfilter_st`
+            - `cplxreal_st`
+            - `sort_cplx_st`
+            - `buttap_st`
+            - `lp2bp_zpk_st`
+            - `zpk2sos_st`
+            - `zpk2tf_st`
+            - `poly_st` (1D only)
+            - `FilterOutputType`
+            - `BaFormatFilter`
+            - `ZpkFormatFilter`
+            - `SosFormatFilter`
+            - `DigitalFilter`
             - `FilterType`
-            - `FilterOutput`
+            - `FilterBandType`
 
 ---
 

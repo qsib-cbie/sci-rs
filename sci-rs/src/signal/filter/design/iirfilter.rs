@@ -4,11 +4,11 @@ use heapless::Vec;
 use nalgebra::{Complex, ComplexField, RealField};
 use num_traits::Float;
 
-use crate::signal::filter::design::{zpk2tf, ZpkFormatFilter};
+use crate::signal::filter::design::{zpk2tf_st, ZpkFormatFilter};
 
 use super::{
-    bilinear_zpk, lp2bp_zpk, zpk2sos, DigitalFilter, FilterBandType, FilterOutputType, FilterType,
-    Sos,
+    bilinear_zpk, lp2bp_zpk_st, zpk2sos_st, DigitalFilter, FilterBandType, FilterOutputType,
+    FilterType, Sos,
 };
 
 ///
@@ -89,7 +89,7 @@ where
     // Get analog lowpass prototype
     let ftype = ftype.unwrap_or(FilterType::Butterworth);
     let zpk: ZpkFormatFilter<F, N> = match ftype {
-        FilterType::Butterworth => buttap::<F, N>(),
+        FilterType::Butterworth => buttap_st::<F, N>(),
         FilterType::ChebyshevI => {
             if rp.is_none() {
                 panic!("passband ripple (rp) must be provided to design a Chebyshev I filter");
@@ -173,7 +173,7 @@ where
 
             let bw = warped[1] - warped[0];
             let wo = Float::sqrt(warped[0] * warped[1]);
-            lp2bp_zpk::<F, N, { N * 2 }>(zpk, Some(wo), Some(bw))
+            lp2bp_zpk_st::<F, N, { N * 2 }>(zpk, Some(wo), Some(bw))
         }
         FilterBandType::Bandstop => {
             if M != 2 {
@@ -196,8 +196,8 @@ where
     let output = output.unwrap_or(FilterOutputType::Ba);
     match output {
         FilterOutputType::Zpk => DigitalFilter::Zpk(zpk),
-        FilterOutputType::Ba => DigitalFilter::Ba(zpk2tf(&zpk.z, &zpk.p, zpk.k)),
-        FilterOutputType::Sos => DigitalFilter::Sos(zpk2sos(zpk, None, Some(analog))),
+        FilterOutputType::Ba => DigitalFilter::Ba(zpk2tf_st(&zpk.z, &zpk.p, zpk.k)),
+        FilterOutputType::Sos => DigitalFilter::Sos(zpk2sos_st(zpk, None, Some(analog))),
     }
 }
 
@@ -210,7 +210,7 @@ where
 /// butter : Filter design function using this prototype
 ///
 /// """
-fn buttap<F, const N: usize>() -> ZpkFormatFilter<F, N>
+fn buttap_st<F, const N: usize>() -> ZpkFormatFilter<F, N>
 where
     F: Float + RealField + Mul<Output = F>,
 {
@@ -242,7 +242,7 @@ mod tests {
             Complex::new(-0.92387953, -0.38268343),
             Complex::new(-0.38268343, -0.92387953),
         ];
-        let zpk = buttap::<f64, 4>();
+        let zpk = buttap_st::<f64, 4>();
         for i in 0..4 {
             assert_relative_eq!(p[i].re, zpk.p[i].re, max_relative = 1e-7);
             assert_relative_eq!(p[i].im, zpk.p[i].im, max_relative = 1e-7);

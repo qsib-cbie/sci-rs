@@ -31,6 +31,7 @@ where
     m
 }
 
+#[cfg(feature = "use_std")]
 pub fn companion_dyn<T, B, I>(itr: I, m: usize) -> OMatrix<T, Dynamic, Dynamic>
 where
     T: Scalar + One + Zero + Div<Output = T> + Neg<Output = T> + Copy,

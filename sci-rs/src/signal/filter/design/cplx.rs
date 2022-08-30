@@ -49,7 +49,7 @@ use super::{
 /// _cplxpair
 /// """
 
-pub fn cplxreal<F, const N: usize>(
+pub fn cplxreal_st<F, const N: usize>(
     z: Vec<Complex<F>, N>,
     tol: Option<F>,
 ) -> (Vec<Complex<F>, N>, Vec<Complex<F>, N>)
@@ -168,7 +168,7 @@ where
     (zc, zr)
 }
 
-pub fn sort_cplx<F: ComplexField, const N: usize>(x: &mut Vec<F, N>) {
+pub fn sort_cplx_st<F: ComplexField, const N: usize>(x: &mut Vec<F, N>) {
     x.sort_unstable_by(|a, b| {
         match a
             .clone()
@@ -220,7 +220,7 @@ mod tests {
         ])
         .unwrap();
 
-        let (zc, zr) = cplxreal(z, None);
+        let (zc, zr) = cplxreal_st(z, None);
 
         assert_eq!(expected_zc.len(), zc.len());
         expected_zc.iter().zip(zc.iter()).for_each(|(e, a)| {
@@ -249,7 +249,7 @@ mod tests {
         .unwrap();
         let expected_zr: Vec<Complex<f64>, 8> = Vec::new();
 
-        let (zc, zr) = cplxreal(z, None);
+        let (zc, zr) = cplxreal_st(z, None);
 
         assert_eq!(expected_zc.len(), zc.len());
         expected_zc.iter().zip(zc.iter()).for_each(|(e, a)| {

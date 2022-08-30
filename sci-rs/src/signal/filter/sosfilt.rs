@@ -2,7 +2,6 @@ use core::{
     borrow::Borrow,
     mem::{transmute, MaybeUninit},
 };
-use itertools::Itertools;
 use nalgebra::RealField;
 use num_traits::Float;
 
@@ -66,6 +65,7 @@ where
     SosFilt { iter: y, sos: *sos }
 }
 
+#[cfg(feature = "use_std")]
 #[inline]
 pub fn sosfilt_dyn<YI, F, const N: usize>(y: YI, sos: &[Sos<F>; N]) -> Vec<F>
 where
@@ -73,7 +73,7 @@ where
     YI: Iterator,
     YI::Item: Borrow<F>,
 {
-    let y = y.collect_vec();
+    let y = y.collect::<Vec<_>>();
     let mut sos = *sos;
     let mut z: Vec<MaybeUninit<F>> = Vec::with_capacity(y.len());
     unsafe {
@@ -99,7 +99,6 @@ mod tests {
     use dasp_signal::{rate, Signal};
     #[cfg(feature = "plot")]
     use gnuplot::Figure;
-    use itertools::Itertools;
 
     use super::*;
 
@@ -140,10 +139,10 @@ mod tests {
         let mut signal = rate(sample_hz).const_hz(25.).sine();
         let sin_wave: Vec<f64> = (0..seconds * sample_hz as usize)
             .map(|_| signal.next())
-            .collect_vec();
+            .collect::<Vec<_>>();
         println!("{:?}", &sin_wave);
 
-        let bp_wave = sosfilt_st(sin_wave.iter(), &sos).collect_vec();
+        let bp_wave = sosfilt_st(sin_wave.iter(), &sos).collect::<Vec<_>>();
         let bp_dyn_wave = sosfilt_dyn(sin_wave.iter(), &sos);
         for (a, b) in bp_wave.iter().zip(bp_dyn_wave.iter()) {
             assert_relative_eq!(*a, *b);
@@ -159,8 +158,8 @@ mod tests {
                     .take(400)
                     .enumerate()
                     .map(|(i, _)| i)
-                    .collect_vec(),
-                bp_wave.iter().take(400).collect_vec(),
+                    .collect::<Vec<_>>(),
+                bp_wave.iter().take(400).collect::<Vec<_>>(),
                 &[],
             );
 

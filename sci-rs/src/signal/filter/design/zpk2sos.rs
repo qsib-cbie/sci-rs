@@ -4,10 +4,10 @@ use heapless::Vec;
 use nalgebra::{Complex, ComplexField, RealField};
 use num_traits::{Float, Zero};
 
-use crate::signal::filter::design::cplx::cplxreal;
+use crate::signal::filter::design::cplx::cplxreal_st;
 
 use super::{
-    zpk2tf, BaFormatFilter, FilterBandType, FilterOutputType, FilterType, Sos, SosFormatFilter,
+    zpk2tf_st, BaFormatFilter, FilterBandType, FilterOutputType, FilterType, Sos, SosFormatFilter,
     ZpkFormatFilter,
 };
 
@@ -27,7 +27,7 @@ pub enum ZpkPairing {
 ///     specification.
 ///
 ///
-pub fn zpk2sos<F, const N: usize, const N2: usize>(
+pub fn zpk2sos_st<F, const N: usize, const N2: usize>(
     zpk: ZpkFormatFilter<F, N2>,
     pairing: Option<ZpkPairing>,
     analog: Option<bool>,
@@ -107,9 +107,9 @@ where
 
     // Ensure we have complex conjugate pairs
     // (note that _cplxreal only gives us one element of each complex pair):
-    let (zc, zr) = cplxreal(z, None);
+    let (zc, zr) = cplxreal_st(z, None);
     let z: Vec<Complex<F>, N2> = zc.into_iter().chain(zr.into_iter()).collect::<Vec<_, _>>();
-    let (pc, pr) = cplxreal(p, None);
+    let (pc, pr) = cplxreal_st(p, None);
     let p: Vec<Complex<F>, N2> = pc.into_iter().chain(pr.into_iter()).collect::<Vec<_, _>>();
     let k = zpk.k;
 
@@ -302,6 +302,6 @@ fn single_zpksos<F>(z: Vec<Complex<F>, 2>, p: Vec<Complex<F>, 2>, k: F) -> Sos<F
 where
     F: Float + RealField,
 {
-    let ba: BaFormatFilter<F, 3> = zpk2tf(&z, &p, k);
+    let ba: BaFormatFilter<F, 3> = zpk2tf_st(&z, &p, k);
     Sos::new(ba.b, ba.a)
 }

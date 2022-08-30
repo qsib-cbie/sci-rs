@@ -106,7 +106,7 @@ fig.axes2d().lines(
         .iter()
         .enumerate()
         .map(|(i, _)| i)
-        .collect_vec(),
+        .collect::<Vec<_>>(),
     correlations,
     &[Caption("Sin Wave")],
 );

@@ -57,7 +57,7 @@ use super::{
 /// .. versionadded:: 1.1.0
 ///
 /// """
-pub fn lp2bp_zpk<F, const N: usize, const N2: usize>(
+pub fn lp2bp_zpk_st<F, const N: usize, const N2: usize>(
     zpk: ZpkFormatFilter<F, N>,
     wo: Option<F>,
     bw: Option<F>,
@@ -154,7 +154,7 @@ mod tests {
         ])
         .unwrap();
         let expected_k = 0.008409569194994788;
-        let actual_zpk: ZpkFormatFilter<f64, 8> = lp2bp_zpk(zpk, Some(wo), Some(bw));
+        let actual_zpk: ZpkFormatFilter<f64, 8> = lp2bp_zpk_st(zpk, Some(wo), Some(bw));
 
         assert_eq!(actual_zpk.z.len(), expected_z.len());
         for (a, e) in actual_zpk.z.iter().zip(expected_z.iter()) {

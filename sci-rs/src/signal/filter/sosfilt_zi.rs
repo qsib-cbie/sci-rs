@@ -1,3 +1,5 @@
+#![cfg(feature = "use_std")]
+
 use core::{iter::Sum, ops::SubAssign};
 use nalgebra::{ClosedAdd, ClosedMul, RealField, Scalar};
 use num_traits::{Float, One, Zero};

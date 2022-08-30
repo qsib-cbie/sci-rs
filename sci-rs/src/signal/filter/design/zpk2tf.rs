@@ -1,4 +1,4 @@
-use super::{cplx::sort_cplx, BaFormatFilter};
+use super::{cplx::sort_cplx_st, BaFormatFilter};
 use core::{cmp::Ordering, f64::consts::PI, iter::Sum, ops::Mul};
 
 use heapless::Vec;
@@ -8,7 +8,7 @@ use nalgebra::{
 };
 use num_traits::{Float, Zero};
 
-use crate::signal::filter::design::cplx::cplxreal;
+use crate::signal::filter::design::cplx::cplxreal_st;
 
 use super::{FilterBandType, FilterOutputType, FilterType, Sos, SosFormatFilter, ZpkFormatFilter};
 
@@ -34,7 +34,7 @@ use super::{FilterBandType, FilterOutputType, FilterType, Sos, SosFormatFilter, 
 ///
 /// """
 ///
-pub fn zpk2tf<C, F, const N: usize>(
+pub fn zpk2tf_st<C, F, const N: usize>(
     z: &Vec<C, N>,
     p: &Vec<C, N>,
     k: F,
@@ -46,11 +46,11 @@ where
 {
     // not possible to have length of shape > 1, but handled in zpk2tf python code
 
-    let b = poly(z)
+    let b = poly_st(z)
         .into_iter()
         .map(|bi| <C as ComplexField>::from_real(k) * bi)
         .collect::<Vec<_, _>>();
-    let a = poly(p);
+    let a = poly_st(p);
 
     // Use real output if possible.
     let poly2ba = |x: Vec<C, { N + 1 }>, y: &Vec<C, N>| -> Vec<C, { N + 1 }> {
@@ -67,8 +67,8 @@ where
             .map(|i| i.conjugate())
             .collect::<Vec<_, N>>();
         if pos_roots.len() == neg_roots.len() {
-            sort_cplx(&mut pos_roots);
-            sort_cplx(&mut neg_roots);
+            sort_cplx_st(&mut pos_roots);
+            sort_cplx_st(&mut neg_roots);
             if pos_roots.into_iter().zip(neg_roots).all(|(p, n)| p == n) {
                 x = x
                     .into_iter()
@@ -94,7 +94,7 @@ where
     BaFormatFilter { b, a }
 }
 
-pub fn poly<F, const N: usize>(z: &Vec<F, N>) -> Vec<F, { N + 1 }>
+pub fn poly_st<F, const N: usize>(z: &Vec<F, N>) -> Vec<F, { N + 1 }>
 where
     F: ComplexField,
     [(); { N + 1 }]: Sized,
@@ -124,12 +124,12 @@ where
     }
 
     let mut roots = z.clone();
-    sort_cplx(&mut roots);
+    sort_cplx_st(&mut roots);
     let mut root_conjs = z
         .iter()
         .map(|zi| zi.clone().conjugate())
         .collect::<Vec<_, N>>();
-    sort_cplx(&mut root_conjs);
+    sort_cplx_st(&mut root_conjs);
     if roots.into_iter().zip(root_conjs).all(|(a, b)| a == b) {
         a = a
             .into_iter()
@@ -152,7 +152,7 @@ mod tests {
         for i in [1., 1.] {
             a.push(Complex::new(i, 0.));
         }
-        let c = poly(&a);
+        let c = poly_st(&a);
         [1., -2., 1.].iter().zip(c.iter()).for_each(|(e, a)| {
             assert_relative_eq!(*e, a.real());
             assert_relative_eq!(0., a.imaginary());
@@ -161,7 +161,7 @@ mod tests {
         a.clear();
         a.push(Complex::new(0.98924866, 0.03710237));
         a.push(Complex::new(0.98924866, -0.03710237));
-        let c = poly(&a);
+        let c = poly_st(&a);
         [1., -1.97849731, 0.97998949]
             .iter()
             .zip(c.iter())
@@ -173,7 +173,7 @@ mod tests {
         a.clear();
         a.push(Complex::new(0.96189799, 0.03364097));
         a.push(Complex::new(0.96189799, -0.03364097));
-        let c = poly(&a);
+        let c = poly_st(&a);
         [1., -1.92379599, 0.92637947]
             .iter()
             .zip(c.iter())

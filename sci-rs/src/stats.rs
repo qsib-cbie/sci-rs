@@ -1,10 +1,8 @@
 use core::{borrow::Borrow, iter::Sum, ops::Add};
 use num_traits::Float;
 
-#[cfg(feature = "use_std")]
-use itertools::Itertools;
-
 // Quick select finds the `i`th smallest element with 2N comparisons
+#[cfg(feature = "use_std")]
 fn quickselect<B, F>(y: &Vec<B>, k: usize) -> F
 where
     B: Borrow<F>,
@@ -20,13 +18,13 @@ where
         .iter()
         .filter(|yi| *(*yi).borrow() < *pivot)
         .map(|yi| *yi.borrow())
-        .collect_vec();
+        .collect::<Vec<_>>();
     let lowers = lower.len();
     let upper = y
         .iter()
         .filter(|yi| *(*yi).borrow() > *pivot)
         .map(|yi| *yi.borrow())
-        .collect_vec();
+        .collect::<Vec<_>>();
     let uppers = upper.len();
     let pivots = n - lowers - uppers;
 
@@ -62,6 +60,7 @@ where
 ///
 /// ```
 ///
+#[cfg(feature = "use_std")]
 pub fn median<YI, F>(y: YI) -> (F, usize)
 where
     F: Float + Default,
@@ -69,7 +68,7 @@ where
     YI::Item: Borrow<F>,
 {
     // Materialize the values in the iterator in order to run O(n) quick select
-    let y = y.collect_vec();
+    let y = y.collect::<Vec<_>>();
     let n = y.len();
 
     if n == 0 {
@@ -248,7 +247,6 @@ where
 mod tests {
     #[cfg(feature = "plot")]
     use gnuplot::{Figure, PlotOption::Caption};
-    use itertools::Itertools;
     use std::f64::consts::PI;
     use std::vec::Vec;
 
@@ -262,15 +260,15 @@ mod tests {
         let radians_per_pt = (periods * 2. * PI) / points as f64;
         let sin_wave = (0..points)
             .map(|i| (i as f64 * radians_per_pt).sin())
-            .collect_vec();
+            .collect::<Vec<_>>();
         // println!("sin_wave = {:?}", sin_wave);
 
         let _correlations: Vec<f64> = (0..points)
             .map(|i| autocorr(sin_wave.iter(), i))
-            .collect_vec();
+            .collect::<Vec<_>>();
         let correlations: Vec<f32> = (0..points)
             .map(|i| autocorr(sin_wave.iter().map(|f| *f as f32), i))
-            .collect_vec();
+            .collect::<Vec<_>>();
         println!("correlations = {:?}", correlations);
 
         #[cfg(feature = "plot")]
@@ -281,7 +279,7 @@ mod tests {
                     .iter()
                     .enumerate()
                     .map(|(i, _)| i)
-                    .collect_vec(),
+                    .collect::<Vec<_>>(),
                 correlations,
                 &[Caption("Sin Wave Autocorrelation")],
             );
