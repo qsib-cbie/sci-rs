@@ -1,6 +1,6 @@
 [![CI](https://github.com/qsib-cbie/sci-rs/actions/workflows/rust.yml/badge.svg)](https://github.com/qsib-cbie/sci-rs/actions/workflows/rust.yml)
-[![Crate](https://img.shields.io/crates/v/sci-rs)](https://crates.io/sci-rs)
-[![Crate Downloads](https://img.shields.io/crates/d/sci-rs?label=downloads)](https://crates.io/sci-rs)
+[![Crate](https://img.shields.io/crates/v/sci-rs)](https://crates.io/crates/sci-rs)
+[![Crate Downloads](https://img.shields.io/crates/d/sci-rs?label=downloads)](https://crates.io/crates/sci-rs)
 
 # sci-rs
 

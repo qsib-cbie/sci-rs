@@ -34,6 +34,7 @@ jobs:
       if: success() || failure()
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
+        args: -- -D warnings
     - name: Compile Stats Check
       if: success() || failure()
       run: sccache -s
