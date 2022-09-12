@@ -19,14 +19,8 @@ where
     YI::Item: Borrow<F>,
 {
     let ntaps = 2 * N + 1;
-    let bzeros = sos
-        .iter()
-        .map(|s| if s.b[2] == F::zero() { 1 } else { 0 })
-        .sum::<usize>();
-    let azeros = sos
-        .iter()
-        .map(|s| if s.a[2] == F::zero() { 1 } else { 0 })
-        .sum::<usize>();
+    let bzeros = sos.iter().filter(|s| s.b[2] == F::zero()).count();
+    let azeros = sos.iter().filter(|s| s.a[2] == F::zero()).count();
     let ntaps = ntaps - min(bzeros, azeros);
     let y = y.map(|yi| *yi.borrow()).collect::<Vec<F>>();
     let y_len = y.len();
