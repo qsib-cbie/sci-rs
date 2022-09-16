@@ -62,7 +62,7 @@ where
     YI: Iterator,
     YI::Item: Borrow<F>,
 {
-    SosFilt { iter: y, sos: sos }
+    SosFilt { iter: y, sos }
 }
 
 #[cfg(feature = "use_std")]
