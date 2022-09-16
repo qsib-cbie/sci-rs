@@ -1,4 +1,7 @@
-# Unreleased
+# v0.1.6
+
+- Changed:
+    - `sosfilt_st` and `sosfilt_dyn` take a mutable reference to second order sections to allow reuse of z state
 
 ---
 

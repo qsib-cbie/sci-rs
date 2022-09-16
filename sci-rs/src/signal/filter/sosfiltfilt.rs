@@ -36,7 +36,7 @@ where
         s.zi0 *= x0;
         s.zi1 *= x0;
     }
-    let y = sosfilt_st(ext.iter(), &sos_x).collect::<Vec<_>>();
+    let y = sosfilt_st(ext.iter(), &mut sos_x).collect::<Vec<_>>();
 
     let y0 = *y.last().unwrap();
     let mut sos_y = init_sos;
@@ -44,7 +44,7 @@ where
         s.zi0 *= y0;
         s.zi1 *= y0;
     }
-    let mut z = sosfilt_st(y.iter().rev(), &sos_y)
+    let mut z = sosfilt_st(y.iter().rev(), &mut sos_y)
         .skip(edge)
         .take(y_len)
         .collect::<Vec<_>>();

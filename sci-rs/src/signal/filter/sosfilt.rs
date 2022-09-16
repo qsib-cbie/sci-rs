@@ -11,16 +11,16 @@ use super::design::Sos;
 /// A series of Second Order Sections may be used to
 /// filter a stream of inputs with a normalization factor
 ///
-pub struct SosFilt<I, F: RealField + Copy, const N: usize> {
+pub struct SosFilt<'a, I, F: RealField + Copy, const N: usize> {
     pub(crate) iter: I,
 
     ///
     /// H(z) = product(H(z) for each Sos)
     ///
-    sos: [Sos<F>; N],
+    sos: &'a mut [Sos<F>; N],
 }
 
-impl<I, B, F, const N: usize> Iterator for SosFilt<I, F, N>
+impl<'a, I, B, F, const N: usize> Iterator for SosFilt<'a, I, F, N>
 where
     I: Iterator<Item = B>,
     B: Borrow<F>,
@@ -56,25 +56,24 @@ where
 /// from a previous iteration achieves the same result as passing `zi` in the scipy interface
 ///
 #[inline]
-pub fn sosfilt_st<YI, F, const N: usize>(y: YI, sos: &[Sos<F>; N]) -> SosFilt<YI, F, N>
+pub fn sosfilt_st<YI, F, const N: usize>(y: YI, sos: &mut [Sos<F>; N]) -> SosFilt<YI, F, N>
 where
     F: RealField + Copy,
     YI: Iterator,
     YI::Item: Borrow<F>,
 {
-    SosFilt { iter: y, sos: *sos }
+    SosFilt { iter: y, sos }
 }
 
 #[cfg(feature = "use_std")]
 #[inline]
-pub fn sosfilt_dyn<YI, F, const N: usize>(y: YI, sos: &[Sos<F>; N]) -> Vec<F>
+pub fn sosfilt_dyn<YI, F, const N: usize>(y: YI, sos: &mut [Sos<F>; N]) -> Vec<F>
 where
     F: RealField + Copy,
     YI: Iterator,
     YI::Item: Borrow<F>,
 {
     let y = y.collect::<Vec<_>>();
-    let mut sos = *sos;
     let mut z: Vec<MaybeUninit<F>> = Vec::with_capacity(y.len());
     unsafe {
         z.set_len(y.len());
@@ -131,7 +130,7 @@ mod tests {
             -1.978497311228862,
             0.9799894886973378,
         ];
-        let sos = Sos::from_scipy::<24, 4>(filter);
+        let mut sos = Sos::from_scipy::<24, 4>(filter);
 
         // A signal with a frequency that we can recover
         let sample_hz = 1666.;
@@ -142,8 +141,10 @@ mod tests {
             .collect::<Vec<_>>();
         println!("{:?}", &sin_wave);
 
-        let bp_wave = sosfilt_st(sin_wave.iter(), &sos).collect::<Vec<_>>();
-        let bp_dyn_wave = sosfilt_dyn(sin_wave.iter(), &sos);
+        let mut sos_st = sos.clone();
+        let bp_wave = sosfilt_st(sin_wave.iter(), &mut sos_st).collect::<Vec<_>>();
+        let mut sos_dyn = sos;
+        let bp_dyn_wave = sosfilt_dyn(sin_wave.iter(), &mut sos_dyn);
         for (a, b) in bp_wave.iter().zip(bp_dyn_wave.iter()) {
             assert_relative_eq!(*a, *b);
         }
@@ -169,5 +170,58 @@ mod tests {
 
         println!("{:?}", &bp_wave[..10]);
         println!("{:?}", &sin_wave[..10]);
+    }
+
+    #[test]
+    fn can_resume_sosfilt() {
+        // 4th order butterworth bandpass 10 to 50 at 1666Hz
+        let filter: [f64; 24] = [
+            2.677_576_738_259_783_5e-5,
+            5.355_153_476_519_567e-5,
+            2.677_576_738_259_783_5e-5,
+            1.0,
+            -1.7991202154617734,
+            0.8162578614819005,
+            1.0,
+            2.0,
+            1.0,
+            1.0,
+            -1.8774769894419825,
+            0.9094302413068086,
+            1.0,
+            -2.0,
+            1.0,
+            1.0,
+            -1.9237959892866103,
+            0.9263794671616161,
+            1.0,
+            -2.0,
+            1.0,
+            1.0,
+            -1.978497311228862,
+            0.9799894886973378,
+        ];
+        let mut sos = Sos::from_scipy::<24, 4>(filter);
+
+        // A signal with a frequency that we can recover
+        let sample_hz = 1666.;
+        let seconds = 10;
+        let mut signal = rate(sample_hz).const_hz(25.).sine();
+        let sin_wave: Vec<f64> = (0..seconds * sample_hz as usize)
+            .map(|_| signal.next())
+            .collect::<Vec<_>>();
+        println!("{:?}", &sin_wave);
+
+        let mut sos_st = sos.clone();
+        let bp_wave = sosfilt_st(sin_wave.iter(), &mut sos_st).collect::<Vec<_>>();
+        let mut sos_st2 = sos;
+        let mut bp_st2_wave = sosfilt_dyn(sin_wave.iter().take(sin_wave.len() / 2), &mut sos_st2);
+        bp_st2_wave.extend(sosfilt_st(
+            sin_wave.iter().skip(sin_wave.len() / 2),
+            &mut sos_st2,
+        ));
+        for (a, b) in bp_wave.iter().zip(bp_st2_wave.iter()) {
+            assert_relative_eq!(*a, *b);
+        }
     }
 }
