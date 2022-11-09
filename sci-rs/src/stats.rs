@@ -57,6 +57,9 @@ where
 ///
 /// let y: &[f32] = &[];
 /// assert_eq!((0f32, 0), median(y.iter()));
+/// 
+/// let y: &[f32] = &[1.];
+/// assert_eq!((1f32, 1), median(y.iter()));
 ///
 /// ```
 ///
@@ -73,6 +76,8 @@ where
 
     if n == 0 {
         Default::default()
+    } else if n == 1 {
+        (y[0].borrow().clone(), 1)
     } else if n % 2 == 1 {
         (quickselect(&y, n / 2 - 1), n)
     } else {

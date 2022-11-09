@@ -1,3 +1,11 @@
+# v0.1.7
+
+- Changed:
+    - fix `median` on n=1
+
+---
+
+
 # v0.1.6
 
 - Changed:
