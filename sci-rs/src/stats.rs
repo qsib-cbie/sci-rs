@@ -77,7 +77,7 @@ where
     if n == 0 {
         Default::default()
     } else if n == 1 {
-        (y[0].borrow().clone(), 1)
+        (*y[0].borrow(), 1)
     } else if n % 2 == 1 {
         (quickselect(&y, n / 2 - 1), n)
     } else {
