@@ -1,4 +1,5 @@
 use core::{borrow::Borrow, iter::Sum, ops::Add};
+use itertools::Itertools;
 use num_traits::Float;
 
 // Quick select finds the `i`th smallest element with 2N comparisons
@@ -240,6 +241,31 @@ where
     y.clone()
         .zip(y.skip(1))
         .map(|(yi0, yi1)| *yi1.borrow() - *yi0.borrow())
+}
+
+///
+/// Compute the root mean square of successive differences
+/// 
+/// ```
+/// use approx::assert_relative_eq;
+/// use sci_rs::stats::rmssd;
+/// 
+/// let y: [f64; 4] = [1.,2.,4.,7.];
+/// assert_relative_eq!(2.1602468995, rmssd(y.iter()), max_relative = 1e-8);
+/// ```
+///
+pub fn rmssd<YI, F>(y: YI) -> F
+where
+    F: Float + Add + Sum + Default,
+    YI: Iterator + Clone,
+    YI::Item: Borrow<F> + Copy,
+{
+    let square_diffs = y
+        .tuple_windows()
+        .map(|(yi0, yi1)| (*yi1.borrow() - *yi0.borrow()).powi(2))
+        .collect::<Vec<_>>();
+    let (sum, n): (F, usize) = mean(square_diffs.iter());
+    sum.sqrt()
 }
 
 #[cfg(test)]
