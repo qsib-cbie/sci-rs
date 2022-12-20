@@ -43,21 +43,24 @@ where
 /// Return the median and the number of points averaged
 ///
 /// ```
-/// use approx::relative_eq;
+/// use approx::assert_relative_eq;
 /// use sci_rs::stats::median;
 ///
 /// let y: [f64; 5] = [1.,2.,3.,4.,5.];
-/// relative_eq!(3f64, median(y.iter()).0);
+/// assert_relative_eq!(3f64, median(y.iter()).0);
+///
+/// let y: [f64; 4] = [1.,2.,3.,4.];
+/// assert_relative_eq!(2.5f64, median(y.iter()).0);
 ///
 /// let y: [f32; 5] = [3.,1.,4.,2.,5.];
-/// relative_eq!(3f32, median(y.iter()).0);
+/// assert_relative_eq!(3f32, median(y.iter()).0);
 ///
 /// let y: [f64; 6] = [3.,1.,4.,2.,3.,5.];
-/// relative_eq!(3f64, median(y.iter()).0);
+/// assert_relative_eq!(3f64, median(y.iter()).0);
 ///
 /// let y: &[f32] = &[];
 /// assert_eq!((0f32, 0), median(y.iter()));
-/// 
+///
 /// let y: &[f32] = &[1.];
 /// assert_eq!((1f32, 1), median(y.iter()));
 ///
@@ -79,7 +82,7 @@ where
     } else if n == 1 {
         (*y[0].borrow(), 1)
     } else if n % 2 == 1 {
-        (quickselect(&y, n / 2 - 1), n)
+        (quickselect(&y, n / 2), n)
     } else {
         (
             (quickselect(&y, n / 2 - 1) + quickselect(&y, n / 2)) / F::from(2.).unwrap(),
@@ -94,12 +97,12 @@ where
 /// Return the mean and the number of points averaged
 ///
 /// ```
-/// use approx::relative_eq;
+/// use approx::assert_relative_eq;
 /// use sci_rs::stats::mean;
 ///
 /// // Flat signal perfectly correlates with itself
 /// let y: [f64; 5] = [1.,2.,3.,4.,5.];
-/// relative_eq!(3f64, mean(y.iter()).0);
+/// assert_relative_eq!(3f64, mean(y.iter()).0);
 ///
 /// let y: &[f32] = &[];
 /// assert_eq!((0f32, 0), mean(y.iter()));
@@ -128,11 +131,11 @@ where
 /// Return the variance and the number of points averaged
 ///
 /// ```
-/// use approx::relative_eq;
+/// use approx::assert_relative_eq;
 /// use sci_rs::stats::variance;
 ///
 /// let y: [f64; 5] = [1.,2.,3.,4.,5.];
-/// relative_eq!(2.5f64, variance(y.iter()).0);
+/// assert_relative_eq!(2f64, variance(y.iter()).0);
 ///
 /// let y: &[f32] = &[];
 /// assert_eq!((0f32, 0), variance(y.iter()));
@@ -165,11 +168,11 @@ where
 /// Return the standard deviation and the number of points averaged
 ///
 /// ```
-/// use approx::relative_eq;
+/// use approx::assert_relative_eq;
 /// use sci_rs::stats::stdev;
 ///
 /// let y: [f64; 5] = [1.,2.,3.,4.,5.];
-/// relative_eq!(2.5f64.sqrt(), stdev(y.iter()).0);
+/// assert_relative_eq!(1.41421356237, stdev(y.iter()).0, max_relative = 1e-8);
 ///
 /// let y: &[f32] = &[];
 /// assert_eq!((0f32, 0), stdev(y.iter()));
@@ -191,16 +194,7 @@ where
 /// Autocorrelate the signal `y` with lag `k`,
 /// using 1/N formulation
 ///
-/// h<https://www.itl.nist.gov/div898/handbook/eda/section3/autocopl.htm>
-///
-/// ```
-/// use approx::relative_eq;
-/// use sci_rs::stats::autocorr;
-///
-/// // Flat signal perfectly correlates with itself
-/// let y: [f64; 4] = [1.,1.,1.,1.];
-/// relative_eq!(1f64, autocorr(y.iter(), 1));
-/// ```
+/// <https://www.itl.nist.gov/div898/handbook/eda/section3/autocopl.htm>
 ///
 pub fn autocorr<YI, F>(y: YI, k: usize) -> F
 where
@@ -226,14 +220,14 @@ where
 /// <https://www.itl.nist.gov/div898/handbook/eda/section3/lagplot.htm>
 ///
 /// ```
-/// use approx::relative_eq;
+/// use approx::assert_relative_eq;
 /// use sci_rs::stats::lag_diff;
 ///
 /// // Flat signal perfectly correlates with itself
 /// let y: [f64; 4] = [1.,2.,4.,7.];
 /// let z = lag_diff(y.iter()).collect::<Vec<_>>();
 /// for i in 0..3 {
-///     relative_eq!(i as f64 + 1f64, z[i]);
+///     assert_relative_eq!(i as f64 + 1f64, z[i]);
 /// }
 /// ```
 ///
@@ -250,12 +244,25 @@ where
 
 #[cfg(test)]
 mod tests {
+    use approx::assert_relative_eq;
     #[cfg(feature = "plot")]
     use gnuplot::{Figure, PlotOption::Caption};
     use std::f64::consts::PI;
     use std::vec::Vec;
 
     use super::*;
+
+    #[test]
+    fn can_median() {
+        let y: [f64; 4] = [1., 2., 3., 4.];
+        println!("y = {:?}", y);
+        println!("y = {:?}", median::<_, f64>(y.iter()));
+        assert_relative_eq!(2.5, median::<_, f64>(y.iter()).0);
+        let y: [f64; 5] = [1., 2., 3., 4., 5.];
+        println!("y = {:?}", y);
+        println!("y = {:?}", median::<_, f64>(y.iter()));
+        assert_relative_eq!(3.0, median::<_, f64>(y.iter()).0);
+    }
 
     #[test]
     fn can_autocorrelate() {

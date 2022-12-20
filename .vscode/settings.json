@@ -1,4 +1,5 @@
 {
+    "editor.formatOnSave": true,
     "rust-analyzer.diagnostics.disabled": [
         "mismatched-arg-count"
     ]
