@@ -245,11 +245,15 @@ where
 
 ///
 /// Compute the root mean square of successive differences
-/// 
+///
 /// ```
 /// use approx::assert_relative_eq;
 /// use sci_rs::stats::rmssd;
-/// 
+///
+/// // Differences are 1, 2, 3
+/// // Square differences are 1, 4, 9
+/// // Mean is 4.666666666666667
+/// // RMSSD is 2.1602468995
 /// let y: [f64; 4] = [1.,2.,4.,7.];
 /// assert_relative_eq!(2.1602468995, rmssd(y.iter()), max_relative = 1e-8);
 /// ```
