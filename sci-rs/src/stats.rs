@@ -266,9 +266,8 @@ where
 {
     let square_diffs = y
         .tuple_windows()
-        .map(|(yi0, yi1)| (*yi1.borrow() - *yi0.borrow()).powi(2))
-        .collect::<Vec<_>>();
-    let (sum, n): (F, usize) = mean(square_diffs.iter());
+        .map(|(yi0, yi1)| (*yi1.borrow() - *yi0.borrow()).powi(2));
+    let (sum, n): (F, usize) = mean(square_diffs);
     sum.sqrt()
 }
 
