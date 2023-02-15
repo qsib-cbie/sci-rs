@@ -15,6 +15,7 @@ use crate::linalg::companion_dyn;
 /// output of the filter starts at the same value as the first element of
 /// the signal to be filtered.
 ///
+///
 /// <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.lfilter_zi.html#scipy.signal.lfilter_zi>
 ///
 ///
