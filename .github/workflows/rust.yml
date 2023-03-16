@@ -20,7 +20,6 @@ jobs:
     - name: Install latest stable 
       uses: dtolnay/rust-toolchain@stable
       with:
-        toolchain: stable
         components: clippy
         override: true
     - name: Build no_std

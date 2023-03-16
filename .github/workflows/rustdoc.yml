@@ -22,11 +22,11 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
-      
+      - name: Install latest stable
+        uses: dtolnay/rust-toolchain@stable
       - name: Install latest nightly
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: nightly
 
       - name: Build Documentation
         run: cargo doc --all --no-deps
