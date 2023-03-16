@@ -70,7 +70,7 @@ where
 
 #[cfg(feature = "use_std")]
 #[inline]
-pub fn sosfilt_dyn<YI, F>(y: YI, sos: &mut Vec<Sos<F>>) -> Vec<F>
+pub fn sosfilt_dyn<YI, F>(y: YI, sos: &mut [Sos<F>]) -> Vec<F>
 where
     F: RealField + Copy,
     YI: Iterator,

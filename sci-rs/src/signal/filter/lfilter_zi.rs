@@ -36,7 +36,7 @@ where
 
     // Mormalize to a[0] == 1
     let mut a = a.iter().skip(ai0).cloned().collect::<Vec<_>>();
-    let mut b = b.iter().cloned().collect::<Vec<_>>();
+    let mut b = b.to_vec();
     let a0 = a[0];
     if a0 != F::one() {
         a = a.iter_mut().map(|xi| *xi / a0).collect();

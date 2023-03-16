@@ -524,7 +524,7 @@ where
 /// """Get the next closest real or complex element based on distance"""
 #[cfg(feature = "use_std")]
 fn nearest_real_complex_idx_dyn<F>(
-    fro: &Vec<Complex<F>>,
+    fro: &[Complex<F>],
     to: Complex<F>,
     which: WhichNearestComplex,
 ) -> usize

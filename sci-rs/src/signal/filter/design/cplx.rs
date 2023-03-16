@@ -313,7 +313,7 @@ where
 }
 
 #[cfg(feature = "use_std")]
-pub fn sort_cplx_dyn<F: ComplexField>(x: &mut Vec<F>) {
+pub fn sort_cplx_dyn<F: ComplexField>(x: &mut [F]) {
     x.sort_unstable_by(|a, b| {
         match a
             .clone()
