@@ -1,3 +1,16 @@
+# v0.1.9
+- Changed to using stable (with allocations)
+    - all *_st only implementations have a *_dyn implementation
+    - `unstable` feature requires nightly and doesn't build right now (goodbye no_std)
+    - last working nightly toolchain was 2022-11-27
+    - CI runs on stable now with default features
+
+---
+
+# v0.1.8
+-- Added:
+    - `rmssd`: Root mean square of successive differences
+
 # v0.1.7
 
 - Changed:
