@@ -5,6 +5,7 @@ use ::core::{
 use nalgebra::{allocator::Allocator, *};
 use num_traits::{One, Zero};
 
+#[cfg(feature = "unstable")]
 pub fn companion_st<T, I, const M: usize>(itr: I) -> OMatrix<T, Const<{ M - 1 }>, Const<{ M - 1 }>>
 where
     T: Scalar + One + Zero + Div<Output = T> + Neg<Output = T> + Copy,
@@ -32,12 +33,12 @@ where
 }
 
 #[cfg(feature = "use_std")]
-pub fn companion_dyn<T, B, I>(itr: I, m: usize) -> OMatrix<T, Dynamic, Dynamic>
+pub fn companion_dyn<T, B, I>(itr: I, m: usize) -> OMatrix<T, Dyn, Dyn>
 where
     T: Scalar + One + Zero + Div<Output = T> + Neg<Output = T> + Copy,
     B: Borrow<T>,
     I: Iterator<Item = B>,
-    DefaultAllocator: Allocator<T, Dynamic, Dynamic>,
+    DefaultAllocator: Allocator<T, Dyn, Dyn>,
 {
     let mut itr = itr;
     let a0: T = *itr.next().expect("Invalid data length").borrow();
@@ -47,9 +48,9 @@ where
         .chain((0..(m - 2)).map(|i| (((i + 1), i), T::one())));
     let mut m = Matrix::<
         T,
-        Dynamic,
-        Dynamic,
-        <DefaultAllocator as allocator::Allocator<T, Dynamic, Dynamic>>::Buffer,
+        Dyn,
+        Dyn,
+        <DefaultAllocator as allocator::Allocator<T, Dyn, Dyn>>::Buffer,
     >::zeros(m - 1, m - 1);
     for (i, t) in itr {
         unsafe {
@@ -63,6 +64,7 @@ where
 mod tests {
     use super::*;
 
+    #[cfg(feature = "unstable")]
     #[test]
     fn scipy_example_st() {
         const M: usize = 4;

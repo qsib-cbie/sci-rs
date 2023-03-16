@@ -1,6 +1,7 @@
 use core::{iter::Sum, ops::SubAssign};
+#[cfg(feature = "unstable")]
 use heapless::Vec;
-use nalgebra::{ClosedAdd, ClosedMul, DMatrix, RealField, SMatrix, Scalar};
+use nalgebra::{ClosedAdd, ClosedMul, DMatrix, OMatrix, RealField, SMatrix, Scalar};
 use num_traits::{Float, One, Zero};
 
 use crate::linalg::companion_dyn;
@@ -19,19 +20,23 @@ use crate::linalg::companion_dyn;
 /// <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.lfilter_zi.html#scipy.signal.lfilter_zi>
 ///
 ///
-pub fn lfilter_zi_dyn<F, const M: usize>(b: &[F; M], a: &[F; M]) -> [F; M - 1]
+pub fn lfilter_zi_dyn<F>(b: &[F], a: &[F]) -> Vec<F>
 where
     F: RealField + Copy + PartialEq + Scalar + Zero + One + ClosedMul + ClosedAdd + Sum + SubAssign,
 {
+    assert!(b.len() == a.len());
+    let m = b.len();
+
     let ai0 = a
         .iter()
-        .enumerate().find(|(_, ai)| **ai != F::zero())
+        .enumerate()
+        .find(|(_, ai)| **ai != F::zero())
         .expect("There must be at least one nonzero `a` coefficient.")
         .0;
 
     // Mormalize to a[0] == 1
-    let mut a = a.iter().skip(ai0).cloned().collect::<Vec<_, M>>();
-    let mut b = b.iter().cloned().collect::<Vec<_, M>>();
+    let mut a = a.iter().skip(ai0).cloned().collect::<Vec<_>>();
+    let mut b = b.iter().cloned().collect::<Vec<_>>();
     let a0 = a[0];
     if a0 != F::one() {
         a = a.iter_mut().map(|xi| *xi / a0).collect();
@@ -39,15 +44,15 @@ where
     }
 
     // Pad with zeros to match length
-    while a.len() < M {
-        a.push(F::zero()).unwrap();
+    while a.len() < m {
+        a.push(F::zero());
     }
 
     // Solve zi = A*zi + B
-    let mut compa: DMatrix<_> = companion_dyn(a.iter(), M);
+    let mut compa: DMatrix<_> = companion_dyn(a.iter(), m);
     compa.transpose_mut();
-    let i_minus_a: SMatrix<F, { M - 1 }, { M - 1 }> = SMatrix::one() - compa;
-    let mut zi: [F; M - 1] = [F::zero(); { M - 1 }];
+    let i_minus_a = DMatrix::from_diagonal_element(m - 1, m - 1, F::one()) - compa;
+    let mut zi = vec![F::zero(); m - 1];
     let b0 = b[0];
     let bsum = b
         .iter()
@@ -61,7 +66,7 @@ where
     let mut asum = F::one();
     let mut csum = F::zero();
     let b0 = b[0];
-    for k in 1..M - 1 {
+    for k in 1..m - 1 {
         unsafe {
             let ak = *a.get_unchecked(k);
             asum += ak;

@@ -17,12 +17,6 @@
 //!
 
 #![allow(unused)]
-#![allow(incomplete_features)]
-#![feature(generic_const_exprs, generic_arg_infer)]
-#![cfg_attr(not(feature = "use_std"), no_std)]
-#[cfg(any(not(feature = "use_std"), test))]
-#[macro_use]
-extern crate std;
 
 pub mod linalg;
 pub mod signal;

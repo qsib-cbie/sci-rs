@@ -50,7 +50,8 @@ impl<F: RealField + Copy> Sos<F> {
         }
     }
 
-    pub fn from_scipy<const M: usize, const N: usize>(sos: [F; M]) -> [Sos<F>; N] {
+    #[cfg(feature = "unstable")]
+    pub fn from_scipy_st<const M: usize, const N: usize>(sos: [F; M]) -> [Sos<F>; N] {
         // TODO: Replace with stable const expressions
         assert!(N * 6 == M);
 
@@ -64,12 +65,24 @@ impl<F: RealField + Copy> Sos<F> {
             });
         rslt
     }
+
+    #[cfg(feature = "use_std")]
+    pub fn from_scipy_dyn(order: usize, sos: Vec<F>) -> Vec<Sos<F>> {
+        assert!(order * 6 == sos.len());
+
+        sos.iter()
+            .tuples::<(&F, &F, &F, &F, &F, &F)>()
+            .take(order)
+            .map(|ba| Sos::new([*ba.0, *ba.1, *ba.2], [*ba.3, *ba.4, *ba.5]))
+            .collect()
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
+    #[cfg(feature = "unstable")]
     #[test]
     fn can_use_external_filter_design() {
         let _design_filter = r#"
@@ -105,6 +118,46 @@ print(buttersos)
             0.9976149,
         ];
         let sos: [Sos<f64>; 4] = Sos::from_scipy(butterworth_filter_sos);
+        println!("{:?}", sos);
+    }
+
+    #[cfg(feature = "use_std")]
+    #[test]
+    fn can_use_external_filter_design() {
+        let _design_filter = r#"
+import scipy.signal as sg
+buttersos = sg.butter(4, [0.5, 100], btype='bandpass', output='sos', fs=1666)
+print(buttersos)
+        "#;
+
+        let butterworth_filter_sos = [
+            0.00474269,
+            0.00948539,
+            0.00474269,
+            1.,
+            -1.05531479,
+            0.29986557,
+            1.,
+            2.,
+            1.,
+            1.,
+            -1.32397785,
+            0.6355536,
+            1.,
+            -2.,
+            1.,
+            1.,
+            -1.99416225,
+            0.99417226,
+            1.,
+            -2.,
+            1.,
+            1.,
+            -1.99760501,
+            0.9976149,
+        ];
+        let sos: Vec<Sos<f64>> = Sos::from_scipy_dyn(4, butterworth_filter_sos.to_vec());
+        assert_eq!(sos.len(), 4);
         println!("{:?}", sos);
     }
 }

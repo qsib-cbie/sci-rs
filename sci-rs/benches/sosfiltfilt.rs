@@ -45,7 +45,7 @@ fn butter_sosfiltfilt_100x(c: &mut Criterion) {
         -1.978497311228862,
         0.9799894886973378,
     ];
-    let sos = Sos::from_scipy::<24, 4>(filter);
+    let sos = Sos::from_scipy_dyn(4, filter.to_vec());
 
     // A signal with a frequency that we can recover
     let sample_hz = 1666.;
@@ -91,7 +91,7 @@ fn butter_sosfiltfilt_10x(c: &mut Criterion) {
         -1.978497311228862,
         0.9799894886973378,
     ];
-    let sos = Sos::from_scipy::<24, 4>(filter);
+    let sos = Sos::from_scipy_dyn(4, filter.to_vec());
 
     // A signal with a frequency that we can recover
     let sample_hz = 1666.;
@@ -137,7 +137,7 @@ fn butter_sosfiltfilt_f64(c: &mut Criterion) {
         -1.978497311228862,
         0.9799894886973378,
     ];
-    let sos = Sos::from_scipy::<24, 4>(filter);
+    let sos = Sos::from_scipy_dyn(4, filter.to_vec());
 
     // A signal with a frequency that we can recover
     let sample_hz = 1666.;
@@ -182,7 +182,7 @@ fn butter_sosfiltfilt_f32(c: &mut Criterion) {
         -1.978_497_3,
         0.979_989_47,
     ];
-    let sos = Sos::from_scipy::<24, 4>(filter);
+    let sos = Sos::from_scipy_dyn(4, filter.to_vec());
 
     // A signal with a frequency that we can recover
     let sample_hz = 1666.;

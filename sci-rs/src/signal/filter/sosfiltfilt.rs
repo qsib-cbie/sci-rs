@@ -4,7 +4,7 @@ use core::{borrow::Borrow, cmp::min, iter::Sum, ops::SubAssign};
 use nalgebra::{ClosedAdd, ClosedMul, DVector, RealField, Scalar};
 use num_traits::{Float, One, Zero};
 
-use super::{design::Sos, pad, sosfilt_st, sosfilt_zi_dyn, Pad};
+use super::{design::Sos, pad, sosfilt_dyn, sosfilt_zi_dyn, Pad};
 
 ///
 /// A forward-backward digital filter using cascaded second-order sections
@@ -12,13 +12,14 @@ use super::{design::Sos, pad, sosfilt_st, sosfilt_zi_dyn, Pad};
 /// <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.sosfiltfilt.html#scipy.signal.sosfiltfilt>
 ///
 ///
-pub fn sosfiltfilt_dyn<YI, F, const N: usize>(y: YI, sos: &[Sos<F>; N]) -> Vec<F>
+pub fn sosfiltfilt_dyn<YI, F>(y: YI, sos: &Vec<Sos<F>>) -> Vec<F>
 where
     F: RealField + Copy + PartialEq + Scalar + Zero + One + ClosedMul + ClosedAdd + Sum + SubAssign,
     YI: Iterator,
     YI::Item: Borrow<F>,
 {
-    let ntaps = 2 * N + 1;
+    let n = sos.len();
+    let ntaps = 2 * n + 1;
     let bzeros = sos.iter().filter(|s| s.b[2] == F::zero()).count();
     let azeros = sos.iter().filter(|s| s.a[2] == F::zero()).count();
     let ntaps = ntaps - min(bzeros, azeros);
@@ -27,16 +28,16 @@ where
     let x = DVector::<F>::from_vec(y);
     let (edge, ext) = pad(Pad::Odd, None, x, 0, ntaps);
 
-    let mut init_sos = *sos;
+    let mut init_sos = sos.clone();
     sosfilt_zi_dyn::<_, _, Sos<F>>(init_sos.iter_mut());
 
     let x0 = *ext.index(0);
-    let mut sos_x = init_sos;
+    let mut sos_x = init_sos.clone();
     for s in sos_x.iter_mut() {
         s.zi0 *= x0;
         s.zi1 *= x0;
     }
-    let y = sosfilt_st(ext.iter(), &mut sos_x).collect::<Vec<_>>();
+    let y = sosfilt_dyn(ext.iter(), &mut sos_x);
 
     let y0 = *y.last().unwrap();
     let mut sos_y = init_sos;
@@ -44,7 +45,8 @@ where
         s.zi0 *= y0;
         s.zi1 *= y0;
     }
-    let mut z = sosfilt_st(y.iter().rev(), &mut sos_y)
+    let mut z = sosfilt_dyn(y.iter().rev(), &mut sos_y)
+        .into_iter()
         .skip(edge)
         .take(y_len)
         .collect::<Vec<_>>();
@@ -89,7 +91,8 @@ mod tests {
             -1.978497311228862,
             0.9799894886973378,
         ];
-        let sos = Sos::from_scipy::<24, 4>(filter);
+        let sos = Sos::from_scipy_dyn(4, filter.to_vec());
+        assert_eq!(sos.len(), 4);
 
         // A signal with a frequency that we can recover
         let sample_hz = 1666.;
@@ -155,7 +158,8 @@ mod tests {
             -1.978_497_3_f32,
             0.979_989_47_f32,
         ];
-        let sos = Sos::<f32>::from_scipy::<24, 4>(filter);
+        let sos = Sos::<f32>::from_scipy_dyn(4, filter.to_vec());
+        assert_eq!(sos.len(), 4);
 
         // A signal with a frequency that we can recover
         let sample_hz = 1666.;

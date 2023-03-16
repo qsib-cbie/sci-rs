@@ -6,7 +6,42 @@
 
 Pure Rust translation of scipy for reliable cross-platform and cross-tier behavior. See the sibling repo, https://github.com/qsib-cbie/sciprs, for pythonic interaction with this library. `sci-rs` will prefer idiomatic Rust with feature parity to the scipy interface when possible.
 
-Memory usage is a priority. While `use_std` is a default feature, the library will prefer implementations that do not require runtime allocations, unless noted otherwise.
+
+Memory usage is a priority. ~~While `use_std` is a default feature, the library will prefer implementations that do not require runtime allocations, unless noted otherwise.~~
+
+## Nightly Feature Instability
+
+**With no future fixes in sight, all nightly features will be hidden behind a maybe broken feature `unstable`. This breaks much of the const generic implementations that support `no_std` use, but at least dyn features will be available on stable.**
+
+**https://github.com/rust-lang/rust/issues/106423 has been glaciered and there isn't anyone working on fixing const-generic-exprs right now. There isn't anyone available on that working group to mentor new people to work on them either.**
+
+**There will be some backtracking to move `sci-rs` to stable until there is a more clear path forward for Rust support.**
+
+
+## What does work
+
+Butterworth bandpass filter design to SOS or BA. SOS filtering with sosfilt and sosfiltfilt. Statistics like standard deviation or median.
+
+```rust
+use sci_rs::signal::filter::{design::*, sosfiltfilt_dyn};
+let filter = iirfilter_dyn::<f32>(
+    4,
+    vec![10., 50.],
+    None,
+    None,
+    Some(FilterBandType::Bandpass),
+    Some(FilterType::Butterworth),
+    Some(false),
+    Some(FilterOutputType::Sos),
+    Some(1666.),
+);
+let DigitalFilter::Sos(sos) = filter else { panic!("Not SOS filter") };
+let data = (0..100000).map(|i| i as f32);
+let filtered: Vec<f32> = sosfiltfilt_dyn(data, &sos.sos);
+```
+
+## Some old docs with some things that may work
+
 
 ### Python :: Replace scipy with sciprs
 
@@ -22,21 +57,12 @@ sos = butter(4, [10, 50], btype='bandpass', output='sos', fs=1666)
 np_ndarray_filtered_by_rust_code = sosfiltfilt(buttersos, raw, 0)
 ```
 
-### Rust :: Call sci-rs directly
-
-
-```rust
-let y = Array1::from_vec(vec![0.0, 0.09414586007215595, 0.18745540640340155, ...]);
-let sos_arr = Butter::new(4, FilterType::Bandpass(10, 50), FilterOutput::Sos, 1666.);
-let sos: [Sos<f64>; N] = Sos::from_scipy(sos_arr);
-let z: Vec<f64> = sosfiltfilt_dyn(y.iter(), &sos);
-```
-
 ### Rust :: Conventions
 
-Functions that end with `.*_st` do not require allocation. Functions that end with `.*_dyn` require allocation. Static implementations are preferred for maximizing the `no_std` feature set, but some algorithms require allocation. An example would be `sosfilt_st` and `sosfilt_dyn`, where benchmarks show negligible performance changes between static and dynamic implementations and 8.6x performance improvement over `scipy.signal.sosfilt` with the same data and parameters.
+Functions that end with `.*_st` do not require allocation. Functions that end with `.*_dyn` require allocation. Static implementations are preferred for maximizing the `no_std` feature set, but some algorithms require allocation and nightly compiler featuers are brittle. An example would be `sosfilt_st` and `sosfilt_dyn`, where benchmarks show negligible performance changes between static and dynamic implementations and 8.6x performance improvement over `scipy.signal.sosfilt` with the same data and parameters.
 
 We use nightly with features `generic_const_exprs` and `generic_args_infer` to allow static functions to compute intermediate and output sizing when possible. As these features are not complete or stabilized, the `.*_dyn` implementations can be considered more stable than `.*_st`.
+
 #### Rust Goal :: Copy paste python with macros
 
 In order to minimize friction from using scipy python code directly in rust, sci-rs will include a macro system for python-compatible syntax to expand the sci-rs side logic that is currently interacting with pyo3 and the local python runtime. The following doesn't exist but provides a vision for the future compatibility.
@@ -51,7 +77,9 @@ let filtered_data: nalgebra::DVector<f64> = sciprs! {
 
 ## Build 
 
-Install the nightly toolchain, `rustup toolchain install nightly`, `rust-toolchain.toml` asks for configures the toolchain choice.
+~~Install the nightly toolchain, `rustup toolchain install nightly`, `rust-toolchain.toml` asks for configures the toolchain choice.~~
+
+Nightly builds have been broken since Nov, 2022, see https://github.com/rust-lang/rust/issues/106423. Default features compile on stable.
 
 By default, `sccache` is enabled to match CI builds and improve build from clean speeds for some of the heavier dependent crates. Install with `cargo install sccache --no-default-features`.
 
@@ -64,6 +92,8 @@ When building ndarray or nalgebra, you should not need LAPACK or blas, but event
 I haven't decided if we will be primarily using ndarray or nalgebra, for now both are supported. Either going back to python can be converted to a numpy ndarray with the python runtime. Between the two crates, one of the primary reasons for creating `sci-rs` is to support targets that may not have reasonable access to LAPACK or blas. The choice of library will be determined on feature compatibility rather than performance. That said, there will be many instances where the performance is great, and there will be benchmarks.
 
 ndarray and nalgebra both have features related to matrixmultiply and lapack.
+
+Iterator patterns are used where possible for better compatibility. In the future, rayon may be on the radar for parallelizing compute.
 
 ## Compare
 

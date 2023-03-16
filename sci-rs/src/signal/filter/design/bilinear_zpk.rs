@@ -1,11 +1,18 @@
 use core::{f64::consts::PI, ops::Mul};
 
+#[cfg(feature = "unstable")]
 use heapless::Vec;
 use nalgebra::{Complex, ComplexField, RealField};
 use num_traits::Float;
 
+#[cfg(feature = "use_std")]
 use super::{
-    relative_degree::relative_degree, FilterBandType, FilterOutputType, FilterType, Sos,
+    relative_degree::relative_degree_dyn, FilterBandType, FilterOutputType, FilterType, Sos,
+    ZpkFormatFilter,
+};
+#[cfg(feature = "unstable")]
+use super::{
+    relative_degree::relative_degree_st, FilterBandType, FilterOutputType, FilterType, Sos,
     ZpkFormatFilter,
 };
 
@@ -70,7 +77,11 @@ use super::{
 /// >>> plt.grid(True)
 /// """
 ///
-pub fn bilinear_zpk<F, const N: usize>(zpk: ZpkFormatFilter<F, N>, fs: F) -> ZpkFormatFilter<F, N>
+#[cfg(feature = "unstable")]
+pub fn bilinear_zpk_st<F, const N: usize>(
+    zpk: ZpkFormatFilter<F, N>,
+    fs: F,
+) -> ZpkFormatFilter<F, N>
 where
     F: RealField + Float,
 {
@@ -108,6 +119,45 @@ where
     ZpkFormatFilter::new(z_z, p_z, k_z)
 }
 
+#[cfg(feature = "use_std")]
+pub fn bilinear_zpk_dyn<F>(zpk: ZpkFormatFilter<F>, fs: F) -> ZpkFormatFilter<F>
+where
+    F: RealField + Float,
+{
+    let degree = relative_degree_dyn(&zpk.z, &zpk.p);
+
+    // Bilinear transform the poles and zeros
+    let fs2 = Complex::new(F::from(2.).unwrap() * fs, F::zero());
+
+    // # Any zeros that were at infinity get moved to the Nyquist frequency
+    let z_z: Vec<Complex<F>> = zpk
+        .z
+        .iter()
+        .map(|zi| (fs2 + zi) / (fs2 - zi))
+        .chain((0..degree).map(|_| Complex::new(-F::one(), F::zero())))
+        .collect::<Vec<_>>();
+    let p_z: Vec<Complex<F>> = zpk
+        .p
+        .iter()
+        .map(|pi| (fs2 + pi) / (fs2 - pi))
+        .collect::<Vec<_>>();
+
+    // Compensate for gain change
+    let num = zpk
+        .z
+        .iter()
+        .map(|zi| fs2 - *zi)
+        .fold(Complex::new(F::one(), F::zero()), |acc, zi| acc * zi);
+    let denom = zpk
+        .p
+        .iter()
+        .map(|pi| fs2 - *pi)
+        .fold(Complex::new(F::one(), F::zero()), |acc, pi| acc * pi);
+    let k_z = zpk.k * (num / denom).real();
+
+    ZpkFormatFilter::new(z_z, p_z, k_z)
+}
+
 #[cfg(test)]
 mod tests {
     use approx::assert_relative_eq;
@@ -115,6 +165,7 @@ mod tests {
 
     use super::*;
 
+    #[cfg(feature = "unstable")]
     #[test]
     fn matches_scipy_iirfilter_butter() {
         // butter(4, [10, 50], btype='bandpass', output='sos', fs=1666)
@@ -161,7 +212,67 @@ mod tests {
             2.6775767382597835e-05,
         );
 
-        let actual_zpk: ZpkFormatFilter<f64, 8> = bilinear_zpk(zpk, fs);
+        let actual_zpk: ZpkFormatFilter<f64, 8> = bilinear_zpk_st(zpk, fs);
+        assert_eq!(actual_zpk.z.len(), expected_zpk.z.len());
+        for (a, e) in actual_zpk.z.iter().zip(expected_zpk.z.iter()) {
+            assert_relative_eq!(a.re, e.re, max_relative = 1e-6);
+            assert_relative_eq!(a.im, e.im, max_relative = 1e-6);
+        }
+
+        assert_eq!(actual_zpk.p.len(), expected_zpk.p.len());
+        for (a, e) in actual_zpk.p.iter().zip(expected_zpk.p.iter()) {
+            assert_relative_eq!(a.re, e.re, max_relative = 1e-6);
+            assert_relative_eq!(a.im, e.im, max_relative = 1e-6);
+        }
+
+        assert_relative_eq!(actual_zpk.k, expected_zpk.k, max_relative = 1e-8);
+    }
+
+    #[cfg(feature = "use_std")]
+    #[test]
+    fn matches_scipy_iirfilter_butter() {
+        // butter(4, [10, 50], btype='bandpass', output='sos', fs=1666)
+        let fs = 2.;
+        let zpk: ZpkFormatFilter<_> = ZpkFormatFilter::new(
+            vec![Complex::zero(); 4],
+            vec![
+                Complex::new(-0.02022036, -0.07498294),
+                Complex::new(-0.07648538, -0.06990013),
+                Complex::new(-0.07648538, 0.06990013),
+                Complex::new(-0.02022036, 0.07498294),
+                Complex::new(-0.0956662, 0.35475786),
+                Complex::new(-0.20328954, 0.1857867),
+                Complex::new(-0.20328954, -0.1857867),
+                Complex::new(-0.0956662, -0.35475786),
+            ],
+            0.008409569194994788,
+        );
+
+        let expected_zpk: ZpkFormatFilter<_> = ZpkFormatFilter::new(
+            vec![
+                Complex::new(1., 0.),
+                Complex::new(1., 0.),
+                Complex::new(1., 0.),
+                Complex::new(1., 0.),
+                Complex::new(-1., 0.),
+                Complex::new(-1., 0.),
+                Complex::new(-1., 0.),
+                Complex::new(-1., 0.),
+            ],
+            vec![
+                Complex::new(0.98924866, -0.03710237),
+                Complex::new(0.96189799, -0.03364097),
+                Complex::new(0.96189799, 0.03364097),
+                Complex::new(0.98924866, 0.03710237),
+                Complex::new(0.93873849, 0.16792939),
+                Complex::new(0.89956011, 0.08396115),
+                Complex::new(0.89956011, -0.08396115),
+                Complex::new(0.93873849, -0.16792939),
+            ],
+            2.6775767382597835e-05,
+        );
+
+        let actual_zpk: ZpkFormatFilter<f64> = bilinear_zpk_dyn(zpk, fs);
         assert_eq!(actual_zpk.z.len(), expected_zpk.z.len());
         for (a, e) in actual_zpk.z.iter().zip(expected_zpk.z.iter()) {
             assert_relative_eq!(a.re, e.re, max_relative = 1e-6);

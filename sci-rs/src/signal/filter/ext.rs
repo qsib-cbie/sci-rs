@@ -1,6 +1,6 @@
 use core::ops::Sub;
 
-use nalgebra::{allocator::Allocator, DefaultAllocator, Dim, Dynamic, OMatrix, Scalar};
+use nalgebra::{allocator::Allocator, DefaultAllocator, Dim, Dyn, OMatrix, Scalar};
 use num_traits::{One, Zero};
 
 pub enum Pad {
@@ -16,12 +16,12 @@ pub fn pad<T, M, N>(
     x: OMatrix<T, M, N>,
     axis: usize,
     ntaps: usize,
-) -> (usize, OMatrix<T, Dynamic, Dynamic>)
+) -> (usize, OMatrix<T, Dyn, Dyn>)
 where
     T: Scalar + Copy + Zero + One + Sub<Output = T>,
     M: Dim,
     N: Dim,
-    DefaultAllocator: Allocator<T, M, N> + Allocator<T, Dynamic, Dynamic>,
+    DefaultAllocator: Allocator<T, M, N> + Allocator<T, Dyn, Dyn>,
 {
     if matches!(padtype, Pad::None) {
         padlen = Some(0);
@@ -45,12 +45,12 @@ where
             edge,
             nalgebra::Matrix::<
                 T,
-                nalgebra::Dynamic,
-                nalgebra::Dynamic,
+                nalgebra::Dyn,
+                nalgebra::Dyn,
                 <nalgebra::DefaultAllocator as nalgebra::allocator::Allocator<
                     T,
-                    nalgebra::Dynamic,
-                    nalgebra::Dynamic,
+                    nalgebra::Dyn,
+                    nalgebra::Dyn,
                 >>::Buffer,
             >::from_iterator(x.shape().0, x.shape().1, x.into_iter().cloned()),
         );
@@ -61,12 +61,12 @@ where
             edge,
             nalgebra::Matrix::<
                 T,
-                nalgebra::Dynamic,
-                nalgebra::Dynamic,
+                nalgebra::Dyn,
+                nalgebra::Dyn,
                 <nalgebra::DefaultAllocator as nalgebra::allocator::Allocator<
                     T,
-                    nalgebra::Dynamic,
-                    nalgebra::Dynamic,
+                    nalgebra::Dyn,
+                    nalgebra::Dyn,
                 >>::Buffer,
             >::from_iterator(x.shape().0, x.shape().1, x.into_iter().cloned()),
         );
@@ -78,16 +78,12 @@ where
     }
 }
 
-pub fn odd_ext_dyn<T, M, N>(
-    x: OMatrix<T, M, N>,
-    n: usize,
-    axis: usize,
-) -> OMatrix<T, Dynamic, Dynamic>
+pub fn odd_ext_dyn<T, M, N>(x: OMatrix<T, M, N>, n: usize, axis: usize) -> OMatrix<T, Dyn, Dyn>
 where
     T: Scalar + Copy + Zero + One + Sub<Output = T>,
     M: Dim,
     N: Dim,
-    DefaultAllocator: Allocator<T, M, N> + Allocator<T, Dynamic, Dynamic>,
+    DefaultAllocator: Allocator<T, M, N> + Allocator<T, Dyn, Dyn>,
 {
     //TODO: Figure out the ndarray situation
     assert!(axis < 2);
@@ -95,12 +91,12 @@ where
     if n < 1 {
         return nalgebra::Matrix::<
             T,
-            nalgebra::Dynamic,
-            nalgebra::Dynamic,
+            nalgebra::Dyn,
+            nalgebra::Dyn,
             <nalgebra::DefaultAllocator as nalgebra::allocator::Allocator<
                 T,
-                nalgebra::Dynamic,
-                nalgebra::Dynamic,
+                nalgebra::Dyn,
+                nalgebra::Dyn,
             >>::Buffer,
         >::from_iterator(x.shape().0, x.shape().1, x.into_iter().cloned());
     }
@@ -115,12 +111,12 @@ where
             let (new_rows, new_columns) = (old_rows + 2 * n, old_columns);
             let mut m = nalgebra::Matrix::<
                 T,
-                nalgebra::Dynamic,
-                nalgebra::Dynamic,
+                nalgebra::Dyn,
+                nalgebra::Dyn,
                 <nalgebra::DefaultAllocator as nalgebra::allocator::Allocator<
                     T,
-                    nalgebra::Dynamic,
-                    nalgebra::Dynamic,
+                    nalgebra::Dyn,
+                    nalgebra::Dyn,
                 >>::Buffer,
             >::zeros(new_rows, new_columns);
 
@@ -167,12 +163,12 @@ where
             let (new_rows, new_columns) = (old_rows, shape.1 + 2 * n);
             let mut m = nalgebra::Matrix::<
                 T,
-                nalgebra::Dynamic,
-                nalgebra::Dynamic,
+                nalgebra::Dyn,
+                nalgebra::Dyn,
                 <nalgebra::DefaultAllocator as nalgebra::allocator::Allocator<
                     T,
-                    nalgebra::Dynamic,
-                    nalgebra::Dynamic,
+                    nalgebra::Dyn,
+                    nalgebra::Dyn,
                 >>::Buffer,
             >::zeros(new_rows, new_columns);
 

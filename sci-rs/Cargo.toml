@@ -1,6 +1,6 @@
 [package]
 name = "sci-rs"
-version = "0.1.8"
+version = "0.1.9"
 edition = "2021"
 authors = ["Jacob Trueb <jtrueb@northwestern.edu>"]
 description = "Rust library behind sciprs like scipy"
@@ -8,7 +8,7 @@ license = "MIT OR Apache-2.0"
 repository = "https://github.com/qsib-cbie/sci-rs.git"
 homepage = "https://qsib-cbie.github.io/sci-rs"
 readme = "../README.md"
-keywords = ["scipy", "sciprs", "python", "filter", "numpy"]
+keywords = ["scipy", "sciprs", "python", "filter", "dsp"]
 categories = ["science"]
 
 
@@ -18,21 +18,22 @@ all-features = true
 [features]
 default = ['use_std']
 use_std = ['nalgebra/std', 'nalgebra/macros']
+unstable = ['heapless']
 plot = ['gnuplot']
 bench = ['criterion']
 
 [dependencies]
 num-traits = "0.2.15"
 itertools = { version = "0.10.3", default-features = false }
-heapless = "0.7.16"
-nalgebra = { version = "0.31.1", default-features = false }
+heapless = { version = "0.7.16", optional = true }
+nalgebra = { version = "0.32.2", default-features = false }
 ndarray = { version = "0.15.6", default-features = false }
 gnuplot = { version = "0.0.37", optional = true }
 criterion = { version = "0.3", features = ["html_reports"], optional = true }
 
 [dev-dependencies]
 approx = "0.5.1"
-dasp_signal = { version = "0.11.0", default-features = false }
+dasp_signal = { version = "0.11.0" }
 # dhat = "0.3.0"
 
 
