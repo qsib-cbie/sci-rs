@@ -1,6 +1,7 @@
-
-[dependencies]
-sci-rs = {path = "/Users/laurafelix/Documents/GitHub/sci-rs/"}
+[workspace]
+members = [
+"sci-rs",
+]
 
 [profile.bench]
 debug = true
