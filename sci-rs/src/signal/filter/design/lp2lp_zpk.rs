@@ -118,7 +118,7 @@ mod tests {
         let expected_k = 1.204213960778651e-07;
         let actual_zpk: ZpkFormatFilter<f64> = lp2lp_zpk_dyn(zpk, Some(wo));
 
-        println!("BAHH: {}", actual_zpk.k);
+        // println!("BAHH: {}", actual_zpk.k);
 
         assert_eq!(actual_zpk.z.len(), expected_z.len());
         for (a, e) in actual_zpk.z.iter().zip(expected_z.iter()) {
