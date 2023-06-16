@@ -1,7 +1,3 @@
-[workspace]
-members = [
-"sci-rs",
-]
 
 [dependencies]
 sci-rs = {path = "/Users/laurafelix/Documents/GitHub/sci-rs/"}
