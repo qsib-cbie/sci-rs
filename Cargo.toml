@@ -1,6 +1,6 @@
 [workspace]
 members = [
-"sci-rs/Cargo/sci-rs",
+"sci-rs",
 ]
 
 [profile.bench]
