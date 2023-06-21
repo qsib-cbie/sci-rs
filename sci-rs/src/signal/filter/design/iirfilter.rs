@@ -12,8 +12,8 @@ use crate::signal::filter::design::{zpk2tf_st, ZpkFormatFilter};
 
 #[cfg(feature = "use_std")]
 use super::{
-    bilinear_zpk_dyn, lp2bp_zpk_dyn, zpk2sos_dyn, DigitalFilter, FilterBandType, FilterOutputType,
-    FilterType, Sos,
+    bilinear_zpk_dyn, lp2bp_zpk_dyn, lp2lp_zpk_dyn, zpk2sos_dyn, DigitalFilter, FilterBandType,
+    FilterOutputType, FilterType, Sos,
 };
 
 ///
@@ -355,8 +355,8 @@ where
                 );
             }
 
-            // lp2lp_zpk(z, p, k, wo = warped)
-            todo!()
+            let wo = Float::sqrt(warped[0] * warped[1]);
+            lp2lp_zpk_dyn(zpk, Some(wo))
         }
         FilterBandType::Highpass => {
             if wn.len() != 1 {
@@ -365,7 +365,6 @@ where
                 );
             }
 
-            // lp2hp_zpk(z, p, k, wo = warped)
             todo!()
         }
         FilterBandType::Bandpass => {
