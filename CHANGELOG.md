@@ -1,3 +1,6 @@
+# v0.2.1
+- Add FilterBandType::Lowpass support (#28)
+
 # v0.2.0
 - Breaking interface changes to remove const generics
 - Changed to using stable (with allocations)
