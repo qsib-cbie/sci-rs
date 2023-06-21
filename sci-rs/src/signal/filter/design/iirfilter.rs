@@ -355,7 +355,7 @@ where
                 );
             }
 
-            let wo = Float::sqrt(warped[0] * warped[1]);
+            let wo = Float::sqrt(warped[0]);
             lp2lp_zpk_dyn(zpk, Some(wo))
         }
         FilterBandType::Highpass => {
