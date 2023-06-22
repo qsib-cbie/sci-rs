@@ -12,8 +12,8 @@ use crate::signal::filter::design::{zpk2tf_st, ZpkFormatFilter};
 
 #[cfg(feature = "use_std")]
 use super::{
-    bilinear_zpk_dyn, lp2bp_zpk_dyn, lp2lp_zpk_dyn, zpk2sos_dyn, DigitalFilter, FilterBandType,
-    FilterOutputType, FilterType, Sos,
+    bilinear_zpk_dyn, lp2bp_zpk_dyn, lp2hp_zpk_dyn, lp2lp_zpk_dyn, zpk2sos_dyn, DigitalFilter,
+    FilterBandType, FilterOutputType, FilterType, Sos,
 };
 
 ///
@@ -364,8 +364,8 @@ where
                     "Must specify a single critical frequency Wn for lowpass or highpass filter"
                 );
             }
-
-            todo!()
+            let wo = Float::sqrt(warped[0]);
+            lp2hp_zpk_dyn(zpk, Some(wo))
         }
         FilterBandType::Bandpass => {
             if wn.len() != 2 {
