@@ -18,7 +18,6 @@ all-features = true
 [features]
 default = ['use_std']
 use_std = ['nalgebra/std', 'nalgebra/macros']
-unstable = ['heapless']
 plot = ['gnuplot']
 bench = ['criterion']
 

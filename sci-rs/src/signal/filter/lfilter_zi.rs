@@ -1,6 +1,4 @@
 use core::{iter::Sum, ops::SubAssign};
-#[cfg(feature = "unstable")]
-use heapless::Vec;
 use nalgebra::{ClosedAdd, ClosedMul, DMatrix, OMatrix, RealField, SMatrix, Scalar};
 use num_traits::{Float, One, Zero};
 

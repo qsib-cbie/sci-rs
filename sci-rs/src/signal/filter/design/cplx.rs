@@ -1,18 +1,10 @@
 use core::{cmp::Ordering, f64::consts::PI, ops::Mul};
-
-#[cfg(feature = "unstable")]
-use heapless::Vec;
 use nalgebra::{Complex, ComplexField, RealField};
 use num_traits::Float;
 
 #[cfg(feature = "use_std")]
 use super::{
     relative_degree::relative_degree_dyn, FilterBandType, FilterOutputType, FilterType, Sos,
-    ZpkFormatFilter,
-};
-#[cfg(feature = "unstable")]
-use super::{
-    relative_degree::relative_degree_st, FilterBandType, FilterOutputType, FilterType, Sos,
     ZpkFormatFilter,
 };
 
@@ -55,145 +47,6 @@ use super::{
 /// --------
 /// _cplxpair
 /// """
-#[cfg(feature = "unstable")]
-pub fn cplxreal_st<F, const N: usize>(
-    z: Vec<Complex<F>, N>,
-    tol: Option<F>,
-) -> (Vec<Complex<F>, N>, Vec<Complex<F>, N>)
-where
-    F: RealField + Float,
-{
-    if z.is_empty() {
-        return (Vec::new(), Vec::new());
-    }
-
-    // Get tolerance from dtype of input
-    let tol = tol.unwrap_or_else(|| F::epsilon() * F::from(100.).unwrap());
-
-    let mut z = z;
-    z.sort_unstable_by(|a, b| match a.re.partial_cmp(&b.re).unwrap() {
-        Ordering::Less => Ordering::Less,
-        Ordering::Greater => Ordering::Greater,
-        Ordering::Equal => Float::abs(a.im).partial_cmp(&Float::abs(b.im)).unwrap(),
-    });
-
-    // Split reals from conjugate pairs
-    let (zr, zc): (Vec<_, N>, Vec<_, N>) = z
-        .iter()
-        .partition(|zi| Float::abs(zi.im) <= tol * (*zi * *zi).sqrt().re);
-
-    if zr.len() == z.len() {
-        // Input is entirely real
-        return (Vec::new(), zr);
-    }
-
-    // Split positive and negative halves of conjugates
-    let mut zp: Vec<Complex<F>, N> = zc.iter().filter(|zi| zi.im > F::zero()).cloned().collect();
-    let mut zn: Vec<Complex<F>, N> = zc.iter().filter(|zi| zi.im < F::zero()).cloned().collect();
-    if zp.len() != zn.len() {
-        panic!("Array contains complex value with no matchin conjugate");
-    }
-
-    // Find runs of (approximately) the same real part
-    let zero_arr = [false; 1];
-    let same_real: Vec<_, N> = zero_arr
-        .iter()
-        .cloned()
-        .chain(
-            zp.iter()
-                .zip(zp.iter().skip(1))
-                .map(|(a, b)| (b.re - a.re) <= tol * a.abs())
-                .chain(zero_arr.iter().cloned()),
-        )
-        .collect();
-    let same_real: Vec<_, N> = same_real
-        .iter()
-        .zip(same_real.iter().skip(1))
-        .map(|(a, b)| match (a, b) {
-            (true, true) => 0,
-            (true, false) => -1,
-            (false, true) => 1,
-            (false, false) => 0,
-        })
-        .collect();
-    let run_starts: Vec<_, N> = same_real
-        .iter()
-        .enumerate()
-        .filter(|(i, same_real)| **same_real > 0)
-        .map(|(i, _)| i)
-        .collect();
-    let run_stops: Vec<_, N> = same_real
-        .iter()
-        .enumerate()
-        .filter(|(i, same_real)| **same_real < 0)
-        .map(|(i, _)| i)
-        .collect();
-
-    // Sort each run by their imaginary parts
-    assert!(run_starts.len() == run_stops.len());
-    for i in 0..run_starts.len() {
-        let start = run_starts[i];
-        let stop = run_stops[i] + 1;
-        let mut chunk: Vec<(Complex<F>, Complex<F>), N> = zp[start..stop]
-            .iter()
-            .cloned()
-            .zip(zn[start..stop].iter().cloned())
-            .collect();
-        chunk.sort_unstable_by(|a, b| {
-            match Float::abs(a.1.im).partial_cmp(&Float::abs(b.1.im)).unwrap() {
-                Ordering::Less => Ordering::Less,
-                Ordering::Greater => Ordering::Greater,
-                Ordering::Equal => a.0.im.partial_cmp(&b.0.im).unwrap(),
-            }
-        });
-        zp[start..stop]
-            .iter_mut()
-            .zip(zn[start..stop].iter_mut())
-            .zip(chunk.iter())
-            .for_each(|((zpi, zni), ci)| {
-                *zpi = ci.0;
-                *zni = ci.1;
-            })
-    }
-
-    // Check that negatives match positives
-    if zp
-        .iter()
-        .zip(zn.iter())
-        .any(|(zpi, zni)| (zpi - zni.conj()).abs() > tol * zni.abs())
-    {
-        panic!("Array contains complex value with no matching conjugate");
-    }
-
-    // Average out numerical inaccuracy in real vs imag parts of pairs
-    let zc: Vec<Complex<F>, N> = zp
-        .iter()
-        .zip(zn.iter())
-        .map(|(zpi, zni)| (zpi + zni.conj()) / F::from(2.).unwrap())
-        .collect();
-
-    (zc, zr)
-}
-
-#[cfg(feature = "unstable")]
-pub fn sort_cplx_st<F: ComplexField, const N: usize>(x: &mut Vec<F, N>) {
-    x.sort_unstable_by(|a, b| {
-        match a
-            .clone()
-            .real()
-            .partial_cmp(&b.clone().real())
-            .expect("Reals must be orderable")
-        {
-            Ordering::Equal => a
-                .clone()
-                .imaginary()
-                .partial_cmp(&b.clone().imaginary())
-                .expect("Imaginaries must be orderable"),
-            Ordering::Less => Ordering::Less,
-            Ordering::Greater => Ordering::Greater,
-        }
-    });
-}
 
 #[cfg(feature = "use_std")]
 pub fn cplxreal_dyn<F>(z: Vec<Complex<F>>, tol: Option<F>) -> (Vec<Complex<F>>, Vec<Complex<F>>)
@@ -337,74 +190,6 @@ mod tests {
     use approx::assert_relative_eq;
 
     use super::*;
-
-    #[cfg(feature = "unstable")]
-    #[test]
-    fn matches_scipy_example() {
-        let z: Vec<_, 8> = Vec::from_slice(&[
-            Complex::new(1., 0.),
-            Complex::new(1., 0.),
-            Complex::new(1., 0.),
-            Complex::new(1., 0.),
-            Complex::new(-1., 0.),
-            Complex::new(-1., 0.),
-            Complex::new(-1., 0.),
-            Complex::new(-1., 0.),
-        ])
-        .unwrap();
-
-        let expected_zc: Vec<Complex<f64>, 8> = Vec::new();
-        let expected_zr: Vec<_, 8> = Vec::from_slice(&[
-            Complex::new(1., 0.),
-            Complex::new(1., 0.),
-            Complex::new(1., 0.),
-            Complex::new(1., 0.),
-            Complex::new(1., 0.),
-            Complex::new(1., 0.),
-            Complex::new(1., 0.),
-            Complex::new(1., 0.),
-        ])
-        .unwrap();
-
-        let (zc, zr) = cplxreal_st(z, None);
-
-        assert_eq!(expected_zc.len(), zc.len());
-        expected_zc.iter().zip(zc.iter()).for_each(|(e, a)| {
-            assert_relative_eq!(e.re, a.re, max_relative = 1e-7);
-            assert_relative_eq!(e.im, a.im, max_relative = 1e-7);
-        });
-
-        let z: Vec<_, 8> = Vec::from_slice(&[
-            Complex::new(0.98924866, -0.03710237),
-            Complex::new(0.96189799, -0.03364097),
-            Complex::new(0.96189799, 0.03364097),
-            Complex::new(0.98924866, 0.03710237),
-            Complex::new(0.93873849, 0.16792939),
-            Complex::new(0.89956011, 0.08396115),
-            Complex::new(0.89956011, -0.08396115),
-            Complex::new(0.93873849, -0.16792939),
-        ])
-        .unwrap();
-
-        let expected_zc: Vec<_, 8> = Vec::from_slice(&[
-            Complex::new(0.89956011, 0.08396115),
-            Complex::new(0.93873849, 0.16792939),
-            Complex::new(0.96189799, 0.03364097),
-            Complex::new(0.98924866, 0.03710237),
-        ])
-        .unwrap();
-        let expected_zr: Vec<Complex<f64>, 8> = Vec::new();
-
-        let (zc, zr) = cplxreal_st(z, None);
-
-        assert_eq!(expected_zc.len(), zc.len());
-        expected_zc.iter().zip(zc.iter()).for_each(|(e, a)| {
-            assert_relative_eq!(e.re, a.re, max_relative = 1e-7);
-            assert_relative_eq!(e.im, a.im, max_relative = 1e-7);
-        });
-
-        // TODO: add test cases with > 0 run_starts and run_stops
-    }
 
     #[cfg(feature = "use_std")]
     #[test]
