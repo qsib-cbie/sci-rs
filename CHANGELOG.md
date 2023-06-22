@@ -1,3 +1,6 @@
+# v0.2.3
+- Fix iirfilter designing w/ sqrt of desired cutoff
+
 # v0.2.2
 - Add FilterBandType::Highpass support (#29)
 

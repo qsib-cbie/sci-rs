@@ -355,8 +355,7 @@ where
                 );
             }
 
-            let wo = Float::sqrt(warped[0]);
-            lp2lp_zpk_dyn(zpk, Some(wo))
+            lp2lp_zpk_dyn(zpk, Some(warped[0]))
         }
         FilterBandType::Highpass => {
             if wn.len() != 1 {
@@ -364,8 +363,7 @@ where
                     "Must specify a single critical frequency Wn for lowpass or highpass filter"
                 );
             }
-            let wo = Float::sqrt(warped[0]);
-            lp2hp_zpk_dyn(zpk, Some(wo))
+            lp2hp_zpk_dyn(zpk, Some(warped[0]))
         }
         FilterBandType::Bandpass => {
             if wn.len() != 2 {
