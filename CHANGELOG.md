@@ -1,3 +1,6 @@
+# v0.2.2
+- Add FilterBandType::Highpass support (#29)
+
 # v0.2.1
 - Add FilterBandType::Lowpass support (#28)
 
