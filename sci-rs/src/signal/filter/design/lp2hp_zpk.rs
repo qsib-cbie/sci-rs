@@ -111,9 +111,6 @@ where
         .fold(Complex::new(F::one(), F::zero()), |acc, pi| acc * pi);
     let k_hp = zpk.k * (num / denom).real();
 
-    println!("num: {:?}", num);
-    println!("denom: {:?}", denom);
-
     // return z_hp, p_hp, k_hp
     ZpkFormatFilter::new(z_hp, p_hp, k_hp)
 }
@@ -160,8 +157,6 @@ mod tests_1 {
         ];
         let expected_k = 1.2799346870309942;
         let actual_zpk: ZpkFormatFilter<f64> = lp2hp_zpk_dyn(zpk, Some(wo));
-
-        println!("BAHH: {:?}", actual_zpk.p);
 
         assert_eq!(actual_zpk.z.len(), expected_z.len());
         for (a, e) in actual_zpk.z.iter().zip(expected_z.iter()) {
@@ -213,8 +208,6 @@ mod tests_1 {
         ];
         let expected_k = 1.4481908047355312;
         let actual_zpk: ZpkFormatFilter<f64> = lp2hp_zpk_dyn(zpk, Some(wo));
-
-        println!("BAHH: {:?}", actual_zpk.p);
 
         assert_eq!(actual_zpk.z.len(), expected_z.len());
         for (a, e) in actual_zpk.z.iter().zip(expected_z.iter()) {
