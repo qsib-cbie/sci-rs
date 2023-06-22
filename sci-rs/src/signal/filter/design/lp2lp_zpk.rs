@@ -9,11 +9,9 @@ use super::{
 };
 
 /// Transform a lowpass filter prototype to a different frequency.
-
 /// Return an analog low-pass filter with cutoff frequency `wo`
 /// from an analog low-pass filter prototype with unity cutoff frequency,
 /// using zeros, poles, and gain ('zpk') representation.
-
 /// Parameters
 /// ----------
 /// z : array_like
@@ -25,7 +23,6 @@ use super::{
 /// wo : float
 ///     Desired cutoff, as angular frequency (e.g., rad/s).
 ///     Defaults to no change.
-
 /// Returns
 /// -------
 /// z : ndarray
@@ -34,18 +31,14 @@ use super::{
 ///     Poles of the transformed low-pass filter transfer function.
 /// k : float
 ///     System gain of the transformed low-pass filter.
-
 /// See Also
 /// --------
 /// lp2hp_zpk, lp2bp_zpk, lp2bs_zpk, bilinear
 /// lp2lp
-
 /// Notes
 /// -----
 /// This is derived from the s-plane substitution
-
 /// .. math:: s \rightarrow \frac{s}{\omega_0}
-
 /// .. versionadded:: 1.1.0
 
 #[cfg(feature = "use_std")]
@@ -91,10 +84,12 @@ mod tests {
         // po = [0.98507508+0.03433962j 0.96565036+0.01394346j 0.96565036-0.01394346j  0.98507508-0.03433962j]
         //ko = 1.204213960778651e-07
         let zpk: ZpkFormatFilter<_> = ZpkFormatFilter::new(
-            vec![Complex::new(-1., -1.),
-            Complex::new(-1., -1.),
-            Complex::new(-1., -1.),
-            Complex::new(-1., -1.),],
+            vec![
+                Complex::new(-1., -1.),
+                Complex::new(-1., -1.),
+                Complex::new(-1., -1.),
+                Complex::new(-1., -1.),
+            ],
             vec![
                 Complex::new(0.98507508, 0.03433962),
                 Complex::new(0.96565036, 0.01394346),
