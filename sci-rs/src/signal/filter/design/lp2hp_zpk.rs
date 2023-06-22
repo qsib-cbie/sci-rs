@@ -116,7 +116,7 @@ where
 }
 
 #[cfg(test)]
-mod tests_1 {
+mod tests {
     use approx::assert_relative_eq;
 
     use super::*;
