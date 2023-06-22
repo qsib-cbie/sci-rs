@@ -177,13 +177,6 @@ mod tests_1 {
 
         assert_relative_eq!(actual_zpk.k, expected_k, max_relative = 1e-8);
     }
-}
-#[cfg(test)]
-mod tests_2 {
-    use approx::assert_relative_eq;
-
-    use super::*;
-
     #[cfg(feature = "use_std")]
     #[test]
     fn matches_scipy_example_highpass_two() {
