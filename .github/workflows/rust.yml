@@ -14,7 +14,7 @@ env:
 jobs:
   build:
     name: Build and Test
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
     - name: Install latest stable
@@ -35,9 +35,6 @@ jobs:
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         args: -- -D warnings
-    - name: Compile Stats Check
-      if: success() || failure()
-      run: sccache -s
     - name: Upload test results
       if: always()
       uses: actions/upload-artifact@v2
