@@ -812,4 +812,110 @@ mod tests {
             _ => panic!(),
         }
     }
+
+    #[cfg(feature = "use_std")]
+    #[test]
+    fn matches_scipy_iirfilter_butter_zpk_highpass() {
+        //zo = [1. 1. 1. 1.]
+        //po = [0.86788666-0.23258286j 0.76382075-0.08478723j 0.76382075+0.08478723j 0.86788666+0.23258286j]
+        //ko = 0.6905166297398233
+        let expected_zpk: ZpkFormatFilter<f64> = ZpkFormatFilter::new(
+            vec![
+                Complex::new(1., 0.),
+                Complex::new(1., 0.),
+                Complex::new(1., 0.),
+                Complex::new(1., 0.),
+            ],
+            vec![
+                Complex::new(0.86788666, -0.23258286),
+                Complex::new(0.76382075, -0.08478723),
+                Complex::new(0.76382075, 0.08478723),
+                Complex::new(0.86788666, 0.23258286),
+            ],
+            0.6905166297398233,
+        );
+        let filter = iirfilter_dyn::<f64>(
+            4,
+            vec![90.],
+            None,
+            None,
+            Some(FilterBandType::Highpass),
+            Some(FilterType::Butterworth),
+            Some(false),
+            Some(FilterOutputType::Zpk),
+            Some(2003.),
+        );
+
+        match filter {
+            DigitalFilter::Zpk(zpk) => {
+                assert_eq!(zpk.z.len(), expected_zpk.z.len());
+                for (a, e) in zpk.z.iter().zip(expected_zpk.z.iter()) {
+                    assert_relative_eq!(a.re, e.re, max_relative = 1e-6);
+                    assert_relative_eq!(a.im, e.im, max_relative = 1e-6);
+                }
+
+                assert_eq!(zpk.p.len(), expected_zpk.p.len());
+                for (a, e) in zpk.p.iter().zip(expected_zpk.p.iter()) {
+                    assert_relative_eq!(a.re, e.re, max_relative = 1e-6);
+                    assert_relative_eq!(a.im, e.im, max_relative = 1e-6);
+                }
+
+                assert_relative_eq!(zpk.k, expected_zpk.k, max_relative = 1e-8);
+            }
+            _ => panic!(),
+        }
+    }
+
+    #[cfg(feature = "use_std")]
+    #[test]
+    fn matches_scipy_iirfilter_butter_zpk_lowpass() {
+        //z1 = [-1. -1. -1. -1.]
+        //p1 = [0.86788666+0.23258286j 0.76382075+0.08478723j 0.76382075-0.08478723j 0.86788666-0.23258286j]
+        //k1 = 0.0002815867605254161
+        let expected_zpk: ZpkFormatFilter<f64> = ZpkFormatFilter::new(
+            vec![
+                Complex::new(-1., 0.),
+                Complex::new(-1., 0.),
+                Complex::new(-1., 0.),
+                Complex::new(-1., 0.),
+            ],
+            vec![
+                Complex::new(0.86788666, 0.23258286),
+                Complex::new(0.76382075, 0.0847872),
+                Complex::new(0.76382075, -0.08478723),
+                Complex::new(0.86788666, -0.23258286),
+            ],
+            0.0002815867605254161,
+        );
+        let filter = iirfilter_dyn::<f64>(
+            4,
+            vec![90.],
+            None,
+            None,
+            Some(FilterBandType::Lowpass),
+            Some(FilterType::Butterworth),
+            Some(false),
+            Some(FilterOutputType::Zpk),
+            Some(2003.),
+        );
+
+        match filter {
+            DigitalFilter::Zpk(zpk) => {
+                assert_eq!(zpk.z.len(), expected_zpk.z.len());
+                for (a, e) in zpk.z.iter().zip(expected_zpk.z.iter()) {
+                    assert_relative_eq!(a.re, e.re, max_relative = 1e-6);
+                    assert_relative_eq!(a.im, e.im, max_relative = 1e-6);
+                }
+
+                assert_eq!(zpk.p.len(), expected_zpk.p.len());
+                for (a, e) in zpk.p.iter().zip(expected_zpk.p.iter()) {
+                    assert_relative_eq!(a.re, e.re, max_relative = 1e-6);
+                    assert_relative_eq!(a.im, e.im, max_relative = 1e-6);
+                }
+
+                assert_relative_eq!(zpk.k, expected_zpk.k, max_relative = 1e-8);
+            }
+            _ => panic!(),
+        }
+    }
 }
