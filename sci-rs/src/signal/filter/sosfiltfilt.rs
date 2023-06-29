@@ -12,6 +12,7 @@ use super::{design::Sos, pad, sosfilt_dyn, sosfilt_zi_dyn, Pad};
 /// <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.sosfiltfilt.html#scipy.signal.sosfiltfilt>
 ///
 ///
+#[inline]
 pub fn sosfiltfilt_dyn<YI, F>(y: YI, sos: &Vec<Sos<F>>) -> Vec<F>
 where
     F: RealField + Copy + PartialEq + Scalar + Zero + One + ClosedMul + ClosedAdd + Sum + SubAssign,

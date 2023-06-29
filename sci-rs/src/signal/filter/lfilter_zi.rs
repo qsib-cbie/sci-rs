@@ -20,6 +20,7 @@ use crate::linalg::companion_dyn;
 /// <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.lfilter_zi.html#scipy.signal.lfilter_zi>
 ///
 ///
+#[inline]
 pub fn lfilter_zi_dyn<F>(b: &[F], a: &[F]) -> Vec<F>
 where
     F: RealField + Copy + PartialEq + Scalar + Zero + One + ClosedMul + ClosedAdd + Sum + SubAssign,

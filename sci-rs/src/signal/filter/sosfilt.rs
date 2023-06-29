@@ -77,22 +77,16 @@ where
     YI::Item: Borrow<F>,
 {
     let y = y.collect::<Vec<_>>();
-    let mut z: Vec<MaybeUninit<F>> = Vec::with_capacity(y.len());
-    unsafe {
-        z.set_len(y.len());
-        for i in 0..y.len() {
-            let zi = sos
-                .iter_mut()
-                .fold(*y.get_unchecked(i).borrow(), |x_cur, sos| {
-                    let x_new = sos.b[0] * x_cur + sos.zi0;
-                    sos.zi0 = sos.b[1] * x_cur - sos.a[1] * x_new + sos.zi1;
-                    sos.zi1 = sos.b[2] * x_cur - sos.a[2] * x_new;
-                    x_new
-                });
-            z.get_unchecked_mut(i).write(zi);
-        }
-        transmute::<Vec<MaybeUninit<F>>, Vec<F>>(z)
-    }
+    y.into_iter()
+        .map(|yi0| {
+            sos.iter_mut().fold(*yi0.borrow(), |x_curr, sos| {
+                let x_new = sos.b[0] * x_curr + sos.zi0;
+                sos.zi0 = sos.b[1] * x_curr - sos.a[1] * x_new + sos.zi1;
+                sos.zi1 = sos.b[2] * x_curr - sos.a[2] * x_new;
+                x_new
+            })
+        })
+        .collect::<Vec<_>>()
 }
 
 #[cfg(test)]
