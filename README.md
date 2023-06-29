@@ -11,19 +11,39 @@ Memory usage is a priority. ~~While `use_std` is a default feature, the library 
 
 ## Nightly Feature Instability
 
-**With no future fixes in sight, all nightly features will be hidden behind a maybe broken feature `unstable`. This breaks much of the const generic implementations that support `no_std` use, but at least dyn features will be available on stable.**
+https://github.com/rust-lang/rust/issues/106423 has been glaciered and there isn't anyone working on fixing const-generic-exprs right now. There isn't anyone available on that working group to mentor new people to work on them either.
 
-**https://github.com/rust-lang/rust/issues/106423 has been glaciered and there isn't anyone working on fixing const-generic-exprs right now. There isn't anyone available on that working group to mentor new people to work on them either.**
-
-**There will be some backtracking to move `sci-rs` to stable until there is a more clear path forward for Rust support.**
+Unstable feature usage with *_st interface is removed until further notice.
 
 
 ## What does work
 
-Butterworth bandpass filter design to SOS or BA. SOS filtering with sosfilt and sosfiltfilt. Statistics like standard deviation or median.
+Butterworth (low/high/band)pass filter design to SOS or BA. SOS filtering with sosfilt and sosfiltfilt. Statistics like standard deviation or median.
 
 ```rust
 use sci_rs::signal::filter::{design::*, sosfiltfilt_dyn};
+
+// MATLAB style function to generate Section order Section
+pub fn butter_filter_lowpass<F>(order: usize, lowcut: F, fs: F) -> Vec<Sos<F>>
+where
+    F: Float + RealField + Sum,
+{
+    // Design Second Order Section (SOS) filter
+    let filter = butter_dyn(
+        order,
+        [lowcut].to_vec(),
+        Some(FilterBandType::Lowpass),
+        Some(false),
+        Some(FilterOutputType::Sos),
+        Some(fs),
+    );
+    let DigitalFilter::Sos(SosFormatFilter {sos}) = filter else {
+        panic!("Failed to design filter");
+    };
+    sos
+}
+
+// Or call iirfilter directly to design
 let filter = iirfilter_dyn::<f32>(
     4,
     vec![10., 50.],
