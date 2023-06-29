@@ -50,22 +50,6 @@ impl<F: RealField + Copy> Sos<F> {
         }
     }
 
-    #[cfg(feature = "unstable")]
-    pub fn from_scipy_st<const M: usize, const N: usize>(sos: [F; M]) -> [Sos<F>; N] {
-        // TODO: Replace with stable const expressions
-        assert!(N * 6 == M);
-
-        let mut rslt = [Default::default(); N];
-        sos.iter()
-            .tuples::<(&F, &F, &F, &F, &F, &F)>()
-            .take(N)
-            .zip(rslt.iter_mut())
-            .for_each(|(ba, sos)| {
-                *sos = Sos::new([*ba.0, *ba.1, *ba.2], [*ba.3, *ba.4, *ba.5]);
-            });
-        rslt
-    }
-
     #[cfg(feature = "use_std")]
     pub fn from_scipy_dyn(order: usize, sos: Vec<F>) -> Vec<Sos<F>> {
         assert!(order * 6 == sos.len());
@@ -81,45 +65,6 @@ impl<F: RealField + Copy> Sos<F> {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[cfg(feature = "unstable")]
-    #[test]
-    fn can_use_external_filter_design() {
-        let _design_filter = r#"
-import scipy.signal as sg
-buttersos = sg.butter(4, [0.5, 100], btype='bandpass', output='sos', fs=1666)
-print(buttersos)
-        "#;
-
-        let butterworth_filter_sos = [
-            0.00474269,
-            0.00948539,
-            0.00474269,
-            1.,
-            -1.05531479,
-            0.29986557,
-            1.,
-            2.,
-            1.,
-            1.,
-            -1.32397785,
-            0.6355536,
-            1.,
-            -2.,
-            1.,
-            1.,
-            -1.99416225,
-            0.99417226,
-            1.,
-            -2.,
-            1.,
-            1.,
-            -1.99760501,
-            0.9976149,
-        ];
-        let sos: [Sos<f64>; 4] = Sos::from_scipy(butterworth_filter_sos);
-        println!("{:?}", sos);
-    }
 
     #[cfg(feature = "use_std")]
     #[test]
