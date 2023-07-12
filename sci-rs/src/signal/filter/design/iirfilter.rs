@@ -5,8 +5,8 @@ use num_traits::Float;
 
 #[cfg(feature = "alloc")]
 use super::{
-    bilinear_zpk_dyn, lp2bp_zpk_dyn, lp2hp_zpk_dyn, lp2lp_zpk_dyn, zpk2sos_dyn, DigitalFilter,
-    FilterBandType, FilterOutputType, FilterType, Sos,
+    bilinear_zpk_dyn, lp2bp_zpk_dyn, lp2bs_zpk_dyn, lp2hp_zpk_dyn, lp2lp_zpk_dyn, zpk2sos_dyn,
+    DigitalFilter, FilterBandType, FilterOutputType, FilterType, Sos,
 };
 #[cfg(feature = "alloc")]
 use crate::signal::filter::design::{zpk2tf_dyn, ZpkFormatFilter};
@@ -191,8 +191,7 @@ where
 
             let bw = warped[1] - warped[0];
             let wo = Float::sqrt(warped[0] * warped[1]);
-            // lp2bs_zpk(zpk, Some(wo), Some(bw))
-            todo!()
+            lp2bs_zpk_dyn(zpk, Some(wo), Some(bw))
         }
     };
 
