@@ -26,17 +26,63 @@ where
     YI: Iterator,
     YI::Item: Borrow<F>,
 {
-    let y = y.collect::<Vec<_>>();
-    y.into_iter()
-        .map(|yi0| {
-            sos.iter_mut().fold(*yi0.borrow(), |x_curr, sos| {
-                let x_new = sos.b[0] * x_curr + sos.zi0;
-                sos.zi0 = sos.b[1] * x_curr - sos.a[1] * x_new + sos.zi1;
-                sos.zi1 = sos.b[2] * x_curr - sos.a[2] * x_new;
-                x_new
+    match sos.len() {
+        2 => y
+            .into_iter()
+            .map(|yi0| {
+                sos[..2].iter_mut().fold(*yi0.borrow(), |x_curr, sos| {
+                    let x_new = sos.b[0] * x_curr + sos.zi0;
+                    sos.zi0 = sos.b[1] * x_curr - sos.a[1] * x_new + sos.zi1;
+                    sos.zi1 = sos.b[2] * x_curr - sos.a[2] * x_new;
+                    x_new
+                })
             })
-        })
-        .collect::<Vec<_>>()
+            .collect::<Vec<_>>(),
+        4 => y
+            .into_iter()
+            .map(|yi0| {
+                sos[..4].iter_mut().fold(*yi0.borrow(), |x_curr, sos| {
+                    let x_new = sos.b[0] * x_curr + sos.zi0;
+                    sos.zi0 = sos.b[1] * x_curr - sos.a[1] * x_new + sos.zi1;
+                    sos.zi1 = sos.b[2] * x_curr - sos.a[2] * x_new;
+                    x_new
+                })
+            })
+            .collect::<Vec<_>>(),
+        6 => y
+            .into_iter()
+            .map(|yi0| {
+                sos[..6].iter_mut().fold(*yi0.borrow(), |x_curr, sos| {
+                    let x_new = sos.b[0] * x_curr + sos.zi0;
+                    sos.zi0 = sos.b[1] * x_curr - sos.a[1] * x_new + sos.zi1;
+                    sos.zi1 = sos.b[2] * x_curr - sos.a[2] * x_new;
+                    x_new
+                })
+            })
+            .collect::<Vec<_>>(),
+        8 => y
+            .into_iter()
+            .map(|yi0| {
+                sos[..8].iter_mut().fold(*yi0.borrow(), |x_curr, sos| {
+                    let x_new = sos.b[0] * x_curr + sos.zi0;
+                    sos.zi0 = sos.b[1] * x_curr - sos.a[1] * x_new + sos.zi1;
+                    sos.zi1 = sos.b[2] * x_curr - sos.a[2] * x_new;
+                    x_new
+                })
+            })
+            .collect::<Vec<_>>(),
+        _ => y
+            .into_iter()
+            .map(|yi0| {
+                sos.iter_mut().fold(*yi0.borrow(), |x_curr, sos| {
+                    let x_new = sos.b[0] * x_curr + sos.zi0;
+                    sos.zi0 = sos.b[1] * x_curr - sos.a[1] * x_new + sos.zi1;
+                    sos.zi1 = sos.b[2] * x_curr - sos.a[2] * x_new;
+                    x_new
+                })
+            })
+            .collect::<Vec<_>>(),
+    }
 }
 
 #[cfg(test)]
