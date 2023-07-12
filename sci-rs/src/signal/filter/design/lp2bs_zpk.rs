@@ -63,7 +63,7 @@ where
 
     let degree = relative_degree_dyn(&zpk.z, &zpk.p);
 
-    // # Invert to a highpass filter with desired bandwidth
+    //Invert to a highpass filter with desired bandwidth
     let one_neg = unsafe { F::from(-1.).unwrap_unchecked() };
     let two = unsafe { F::from(2.).unwrap_unchecked() };
     let two_neg = unsafe { F::from(-2).unwrap_unchecked() };
@@ -81,20 +81,34 @@ where
 
     println!("z_hp = {:?}", z_hp);
     println!("p_hp = {:?}", p_hp);
-    // # Duplicate poles and zeros and shift from baseband to +wo and -wo
+    //Duplicate poles and zeros and shift from baseband to +wo and -wo
     let wo2 = Complex::new(Float::powi(wo, 2), F::zero());
 
-    let z_bs_t = z_hp
+    let mut z_bs_t = z_hp
         .iter()
-        .map(|zi| (*zi, (zi.powi(2) - wo2).sqrt()))
+        .map(|zi| {
+            (
+                *zi,
+                ((zi - Complex::new(F::zero(), zi.im)).powi(2) - wo2).sqrt(),
+            )
+        })
+        .collect::<Vec<(Complex<F>, Complex<F>)>>();
+
+    let z_bs_t = z_bs_t
+        .iter()
+        .map(|(zi, zi2)| (Complex::new(zi.re, zi2.im), Complex::new(zi.re, zi2.im)))
         .collect::<Vec<(Complex<F>, Complex<F>)>>();
 
     println!("z_bs_t = {:?}", z_bs_t);
 
     let mut z_bs = z_bs_t
         .iter()
-        .map(|(a, b)| a + b)
-        .chain(z_bs_t.iter().map(|(a, b)| a - b))
+        .map(|(a, b)| Complex::new(a.re, b.im))
+        .chain(
+            z_bs_t
+                .iter()
+                .map(|(a, b)| Complex::new(a.re, b.im * one_neg)),
+        )
         .collect::<Vec<Complex<F>>>();
 
     let p_bs_t = p_hp
@@ -112,18 +126,19 @@ where
 
     println!("z_bs = {:?}", z_bs);
     println!("p_bs = {:?}", p_bs);
-    // # Move any zeros that were at infinity to the center of the stopband
+    //Move any zeros that were at infinity to the center of the stopband
     z_bs.extend((0..degree).map(|_| Complex::new(F::zero(), F::one() * wo)));
     println!("z_bs = {:?}", z_bs);
     z_bs.extend((0..degree).map(|_| Complex::new(F::zero(), one_neg * wo)));
     println!("z_bs = {:?}", z_bs);
 
-    // # Cancel out gain change caused by inversion
+    //Cancel out gain change caused by inversion
+    println!("z = {:?}", zpk.z);
     let num = zpk
         .z
         .iter()
-        .map(|zi| Complex::new(two_neg, F::zero()) + *zi)
-        .fold(Complex::new(F::one(), F::zero()), |acc, zi| acc * zi);
+        .map(|zi| *zi)
+        .fold(F::one(), |acc, zi| acc * zi.re);
     let denom = zpk
         .p
         .iter()
@@ -131,7 +146,7 @@ where
         .fold(Complex::new(F::one(), F::zero()), |acc, pi| acc * pi);
     println!("num = {:?}", num);
     println!("denom = {:?}", denom);
-    let k_bs = zpk.k * (num / denom).real();
+    let k_bs = zpk.k * (num / denom.real());
 
     // return z_bs, p_bs, k_bs
     ZpkFormatFilter::new(z_bs, p_bs, k_bs)
@@ -186,100 +201,90 @@ mod tests {
             Complex::new(0.62070377, 1.48343601),
             Complex::new(0.61420466, 1.49811199),
             Complex::new(0.59977563, 1.46291801),
-            Complex::new(0.61449745, 1.46291801),
+            Complex::new(0.61449745, 1.46860336),
             Complex::new(0.61449745, -1.46860336),
-            Complex::new(0.56949063, -1.46291801),
+            Complex::new(0.59977563, -1.46291801),
         ];
         let expected_k = 6.306940631261856e-08;
         let actual_zpk: ZpkFormatFilter<f64> = lp2bs_zpk_dyn(zpk, Some(wo), Some(bw));
-        // z_hp =  [-0.6 -0.6 -0.6 -0.6] check
-        // p_hp =  [0.60699015-0.01759699j 0.61760061-0.00741633j 0.61760061+0.00741633j 0.60699015+0.01759699j]
-        // z_bs =  [-0.6-1.4832397j -0.6-1.4832397j -0.6-1.4832397j -0.6-1.4832397j -0.6+1.4832397j -0.6+1.4832397j -0.6+1.4832397j -0.6+1.4832397j]
-        // p_bs =  [0.61420466-1.49811199j 0.62070377-1.48343601j 0.62070377+1.48343601j 0.61420466+1.49811199j 0.59977563+1.46291801j 0.61449745+1.46860336j 0.61449745-1.46860336j 0.59977563-1.46291801j]
-        // z_bs =  [-0.6-1.4832397j -0.6-1.4832397j -0.6-1.4832397j -0.6-1.4832397j
-        //  -0.6+1.4832397j -0.6+1.4832397j -0.6+1.4832397j -0.6+1.4832397j]
-        // z_bs =  [-0.6-1.4832397j -0.6-1.4832397j -0.6-1.4832397j -0.6-1.4832397j
-        //  -0.6+1.4832397j -0.6+1.4832397j -0.6+1.4832397j -0.6+1.4832397j]
-        // num =  1.0
-        // denom =  (0.9212952175576733-3.469446951953614e-18j)
 
-        // assert_eq!(actual_zpk.z.len(), expected_z.len());
-        // for (a, e) in actual_zpk.z.iter().zip(expected_z.iter()) {
-        //     assert_relative_eq!(a.re, e.re, max_relative = 1e-6);
-        //     assert_relative_eq!(a.im, e.im, max_relative = 1e-6);
-        // }
+        assert_eq!(actual_zpk.z.len(), expected_z.len());
+        for (a, e) in actual_zpk.z.iter().zip(expected_z.iter()) {
+            assert_relative_eq!(a.re, e.re, max_relative = 1e-6);
+            assert_relative_eq!(a.im, e.im, max_relative = 1e-6);
+        }
 
-        // assert_eq!(actual_zpk.p.len(), expected_p.len());
-        // for (a, e) in actual_zpk.p.iter().zip(expected_p.iter()) {
-        //     assert_relative_eq!(a.re, e.re, max_relative = 1e-6);
-        //     assert_relative_eq!(a.im, e.im, max_relative = 1e-6);
-        // }
+        assert_eq!(actual_zpk.p.len(), expected_p.len());
+        for (a, e) in actual_zpk.p.iter().zip(expected_p.iter()) {
+            assert_relative_eq!(a.re, e.re, max_relative = 1e-6);
+            assert_relative_eq!(a.im, e.im, max_relative = 1e-6);
+        }
 
         assert_relative_eq!(actual_zpk.k, expected_k, max_relative = 1e-8);
     }
-    // #[cfg(feature = "use_std")]
-    // #[test]
-    // fn matches_scipy_example_bandstop_two() {
-    //     //zo = [1. 1. 1. 1.]
-    //     //po = [0.86788666-0.23258286j 0.76382075-0.08478723j 0.76382075+0.08478723j 0.86788666+0.23258286j]
-    //     //ko = 0.6905166297398233
+    #[cfg(feature = "use_std")]
+    #[test]
+    fn matches_scipy_example_bandstop_two() {
+        //zo = [1. 1. 1. 1.]
+        //po = [0.86788666-0.23258286j 0.76382075-0.08478723j 0.76382075+0.08478723j 0.86788666+0.23258286j]
+        //ko = 0.6905166297398233
 
-    //     let zpk: ZpkFormatFilter<_> = ZpkFormatFilter::new(
-    //         vec![
-    //             Complex::new(1., 1.),
-    //             Complex::new(1., 1.),
-    //             Complex::new(1., 1.),
-    //             Complex::new(1., 1.),
-    //         ],
-    //         vec![
-    //             Complex::new(0.86788666, -0.23258286),
-    //             Complex::new(0.76382075, -0.08478723),
-    //             Complex::new(0.76382075, 0.08478723),
-    //             Complex::new(0.86788666, 0.23258286),
-    //         ],
-    //         0.6905166297398233,
-    //     );
+        let zpk: ZpkFormatFilter<_> = ZpkFormatFilter::new(
+            vec![
+                Complex::new(1., 1.),
+                Complex::new(1., 1.),
+                Complex::new(1., 1.),
+                Complex::new(1., 1.),
+            ],
+            vec![
+                Complex::new(0.86788666, -0.23258286),
+                Complex::new(0.76382075, -0.08478723),
+                Complex::new(0.76382075, 0.08478723),
+                Complex::new(0.86788666, 0.23258286),
+            ],
+            0.6905166297398233,
+        );
 
-    //     let wo = 1.6;
-    //     let bw = 1.2;
-    //     // z1 = [0.6+1.4832397j 0.6+1.4832397j 0.6+1.4832397j 0.6+1.4832397j 0.6-1.4832397j 0.6-1.4832397j 0.6-1.4832397j 0.6-1.4832397j]
-    //     //p1 = [0.72053235+1.64918244j 0.82361252+1.48883633j 0.82361252-1.48883633j 0.72053235-1.64918244j 0.56949063-1.30347227j 0.728314  -1.31656612j 0.728314  +1.31656612j 0.56949063+1.30347227j]
-    //     //k1 = 1.4481908047355312
-    //     let expected_z: Vec<_> = vec![
-    //         Complex::new(0.6, 1.4832397),
-    //         Complex::new(0.6, 1.4832397),
-    //         Complex::new(0.6, 1.4832397),
-    //         Complex::new(0.6, 1.4832397),
-    //         Complex::new(0.6, -1.4832397),
-    //         Complex::new(0.6, -1.4832397),
-    //         Complex::new(0.6, -1.4832397),
-    //         Complex::new(0.6, -1.4832397),
-    //     ];
-    //     let expected_p: Vec<_> = vec![
-    //         Complex::new(0.72053235, 1.64918244),
-    //         Complex::new(0.82361252, 1.48883633),
-    //         Complex::new(0.82361252, -1.48883633),
-    //         Complex::new(0.72053235, -1.64918244),
-    //         Complex::new(0.56949063, -1.30347227),
-    //         Complex::new(0.728314, -1.31656612),
-    //         Complex::new(0.728314, 1.31656612),
-    //         Complex::new(0.56949063, 1.30347227),
-    //     ];
-    //     let expected_k = 1.4481908047355312;
-    //     let actual_zpk: ZpkFormatFilter<f64> = lp2bs_zpk_dyn(zpk, Some(wo), Some(bw));
+        let wo = 1.6;
+        let bw = 1.2;
+        // z1 = [0.6+1.4832397j 0.6+1.4832397j 0.6+1.4832397j 0.6+1.4832397j 0.6-1.4832397j 0.6-1.4832397j 0.6-1.4832397j 0.6-1.4832397j]
+        //p1 = [0.72053235+1.64918244j 0.82361252+1.48883633j 0.82361252-1.48883633j 0.72053235-1.64918244j 0.56949063-1.30347227j 0.728314  -1.31656612j 0.728314  +1.31656612j 0.56949063+1.30347227j]
+        //k1 = 1.4481908047355312
+        let expected_z: Vec<_> = vec![
+            Complex::new(0.6, 1.4832397),
+            Complex::new(0.6, 1.4832397),
+            Complex::new(0.6, 1.4832397),
+            Complex::new(0.6, 1.4832397),
+            Complex::new(0.6, -1.4832397),
+            Complex::new(0.6, -1.4832397),
+            Complex::new(0.6, -1.4832397),
+            Complex::new(0.6, -1.4832397),
+        ];
+        let expected_p: Vec<_> = vec![
+            Complex::new(0.72053235, 1.64918244),
+            Complex::new(0.82361252, 1.48883633),
+            Complex::new(0.82361252, -1.48883633),
+            Complex::new(0.72053235, -1.64918244),
+            Complex::new(0.56949063, -1.30347227),
+            Complex::new(0.728314, -1.31656612),
+            Complex::new(0.728314, 1.31656612),
+            Complex::new(0.56949063, 1.30347227),
+        ];
+        let expected_k = 1.4481908047355312;
+        let actual_zpk: ZpkFormatFilter<f64> = lp2bs_zpk_dyn(zpk, Some(wo), Some(bw));
 
-    //     assert_eq!(actual_zpk.z.len(), expected_z.len());
-    //     for (a, e) in actual_zpk.z.iter().zip(expected_z.iter()) {
-    //         assert_relative_eq!(a.re, e.re, max_relative = 1e-6);
-    //         assert_relative_eq!(a.im, e.im, max_relative = 1e-6);
-    //     }
+        assert_eq!(actual_zpk.z.len(), expected_z.len());
+        for (a, e) in actual_zpk.z.iter().zip(expected_z.iter()) {
+            assert_relative_eq!(a.re, e.re, max_relative = 1e-6);
+            assert_relative_eq!(a.im, e.im, max_relative = 1e-6);
+        }
 
-    //     assert_eq!(actual_zpk.p.len(), expected_p.len());
-    //     for (a, e) in actual_zpk.p.iter().zip(expected_p.iter()) {
-    //         assert_relative_eq!(a.re, e.re, max_relative = 1e-6);
-    //         assert_relative_eq!(a.im, e.im, max_relative = 1e-6);
-    //     }
+        assert_eq!(actual_zpk.p.len(), expected_p.len());
+        for (a, e) in actual_zpk.p.iter().zip(expected_p.iter()) {
+            assert_relative_eq!(a.re, e.re, max_relative = 1e-6);
+            assert_relative_eq!(a.im, e.im, max_relative = 1e-6);
+        }
 
-    //     assert_relative_eq!(actual_zpk.k, expected_k, max_relative = 1e-6);
-    // }
+        assert_relative_eq!(actual_zpk.k, expected_k, max_relative = 1e-6);
+    }
 }
