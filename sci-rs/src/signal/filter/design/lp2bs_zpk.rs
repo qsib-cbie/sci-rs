@@ -134,11 +134,7 @@ where
 
     //Cancel out gain change caused by inversion
     println!("z = {:?}", zpk.z);
-    let num = zpk
-        .z
-        .iter()
-        .map(|zi| *zi)
-        .fold(F::one(), |acc, zi| acc * zi.re);
+    let num = zpk.z.iter().copied().fold(F::one(), |acc, zi| acc * zi.re);
     let denom = zpk
         .p
         .iter()
