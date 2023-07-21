@@ -1,6 +1,9 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use dasp_signal::{rate, Signal};
-use sci_rs::signal::filter::{design::Sos, sosfiltfilt_dyn};
+use sci_rs::signal::filter::{
+    design::{butter_dyn, DigitalFilter, FilterBandType, FilterOutputType, Sos, SosFormatFilter},
+    sosfiltfilt_dyn,
+};
 
 /// TLDR: 4.6x faster
 
@@ -57,6 +60,35 @@ fn butter_sosfiltfilt_100x(c: &mut Criterion) {
     let sin_wave = (0..100).flat_map(|_| sin_wave.clone()).collect::<Vec<_>>();
 
     c.bench_function("sosfiltfilt_100x", |b| {
+        b.iter(|| {
+            black_box(sosfiltfilt_dyn(sin_wave.iter(), &sos));
+        });
+    });
+}
+
+fn butter_sosfiltfilt_100x_10th(c: &mut Criterion) {
+    // 10th order butterworth bandpass 10 to 50 at 1666Hz
+    let DigitalFilter::Sos(SosFormatFilter { sos }) = butter_dyn(
+        10,
+        vec![10.0, 50.0],
+        Some(FilterBandType::Bandpass),
+        Some(false),
+        Some(FilterOutputType::Sos),
+        Some(1666.),
+    ) else {
+        panic!();
+    };
+
+    // A signal with a frequency that we can recover
+    let sample_hz = 1666.;
+    let seconds = 10;
+    let mut signal = rate(sample_hz).const_hz(25.).sine();
+    let sin_wave: Vec<f64> = (0..seconds * sample_hz as usize)
+        .map(|_| signal.next())
+        .collect::<Vec<_>>();
+    let sin_wave = (0..100).flat_map(|_| sin_wave.clone()).collect::<Vec<_>>();
+
+    c.bench_function("sosfiltfilt_100x_10th", |b| {
         b.iter(|| {
             black_box(sosfiltfilt_dyn(sin_wave.iter(), &sos));
         });
@@ -203,6 +235,7 @@ criterion_group!(
     benches,
     butter_sosfiltfilt_10x,
     butter_sosfiltfilt_100x,
+    butter_sosfiltfilt_100x_10th,
     butter_sosfiltfilt_f64,
     butter_sosfiltfilt_f32
 );
