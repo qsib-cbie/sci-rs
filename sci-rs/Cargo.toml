@@ -22,7 +22,7 @@ plot = ['gnuplot']
 
 [dependencies]
 num-traits = "0.2.15"
-itertools = { version = "0.10.3", default-features = false }
+itertools = { version = "0.11.0", default-features = false }
 nalgebra = { version = "0.32.2", default-features = false }
 ndarray = { version = "0.15.6", default-features = false }
 gnuplot = { version = "0.0.37", optional = true }
