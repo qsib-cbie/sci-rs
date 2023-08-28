@@ -1,14 +1,16 @@
 use core::{borrow::Borrow, iter::Sum, ops::Add};
 use itertools::Itertools;
-use num_traits::Float;
+use num_traits::{Float, Num, NumCast};
 
 // Quick select finds the `i`th smallest element with 2N comparisons
 #[cfg(feature = "use_std")]
-fn quickselect<B, F>(y: &Vec<B>, k: usize) -> F
+fn quickselect<B, T>(y: &Vec<B>, k: usize) -> T
 where
-    B: Borrow<F>,
-    F: Float,
+    B: Borrow<T>,
+    T: Num + NumCast + PartialOrd + Copy,
 {
+    use num_traits::{Num, NumCast};
+
     let n = y.len();
     if n == 1 {
         return *y[0].borrow();
@@ -50,6 +52,9 @@ where
 /// let y: [f64; 5] = [1.,2.,3.,4.,5.];
 /// assert_relative_eq!(3f64, median(y.iter()).0);
 ///
+/// let y: [i32; 5] = [1,2,3,4,5];
+/// assert_eq!(3, median(y.iter()).0);
+///
 /// let y: [f64; 4] = [1.,2.,3.,4.];
 /// assert_relative_eq!(2.5f64, median(y.iter()).0);
 ///
@@ -65,16 +70,21 @@ where
 /// let y: &[f32] = &[1.];
 /// assert_eq!((1f32, 1), median(y.iter()));
 ///
+/// let y: [i64; 4] = [1,2,3,4];
+/// assert_eq!(2i64, median(y.iter()).0);
+///
 /// ```
 ///
 #[cfg(feature = "use_std")]
-pub fn median<YI, F>(y: YI) -> (F, usize)
+pub fn median<YI, T>(y: YI) -> (T, usize)
 where
-    F: Float + Default,
+    T: Num + NumCast + PartialOrd + Copy + Default,
     YI: Iterator,
-    YI::Item: Borrow<F>,
+    YI::Item: Borrow<T>,
 {
     // Materialize the values in the iterator in order to run O(n) quick select
+
+    use num_traits::NumCast;
     let y = y.collect::<Vec<_>>();
     let n = y.len();
 
@@ -86,7 +96,7 @@ where
         (quickselect(&y, n / 2), n)
     } else {
         (
-            (quickselect(&y, n / 2 - 1) + quickselect(&y, n / 2)) / F::from(2.).unwrap(),
+            (quickselect(&y, n / 2 - 1) + quickselect(&y, n / 2)) / T::from(2).unwrap(),
             n,
         )
     }
@@ -101,9 +111,11 @@ where
 /// use approx::assert_relative_eq;
 /// use sci_rs::stats::mean;
 ///
-/// // Flat signal perfectly correlates with itself
 /// let y: [f64; 5] = [1.,2.,3.,4.,5.];
 /// assert_relative_eq!(3f64, mean(y.iter()).0);
+///
+/// let y: [i64; 5] = [1,2,3,4,5];
+/// assert_eq!(3i64, mean(y.iter()).0);
 ///
 /// let y: &[f32] = &[];
 /// assert_eq!((0f32, 0), mean(y.iter()));
@@ -112,7 +124,7 @@ where
 ///
 pub fn mean<YI, F>(y: YI) -> (F, usize)
 where
-    F: Float + Default + Add,
+    F: Num + NumCast + Default + Copy + Add,
     YI: Iterator,
     YI::Item: Borrow<F>,
 {
