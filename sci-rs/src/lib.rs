@@ -12,11 +12,15 @@
 //! production.
 //!
 //! Where allocation is not necessary, this crate will support algorithms
-//! that do not require runtime allocation. `use_std` is a default feature
+//! that do not require runtime allocation. `alloc` is a default feature
 //! that is required to compile in some algorithms.
 //!
 
 #![allow(unused)]
+#![cfg_attr(not(feature = "std"), no_std)]
+
+#[cfg(feature = "alloc")]
+extern crate alloc;
 
 pub mod linalg;
 pub mod signal;

@@ -2,7 +2,10 @@ use core::{f64::consts::PI, ops::Mul};
 use nalgebra::{Complex, ComplexField, RealField};
 use num_traits::Float;
 
-#[cfg(feature = "use_std")]
+#[cfg(feature = "alloc")]
+use alloc::vec::Vec;
+
+#[cfg(feature = "alloc")]
 use super::{
     relative_degree::relative_degree_dyn, FilterBandType, FilterOutputType, FilterType, Sos,
     ZpkFormatFilter,
@@ -68,7 +71,7 @@ use super::{
 /// >>> plt.grid(True)
 /// """
 ///
-#[cfg(feature = "use_std")]
+#[cfg(feature = "alloc")]
 pub fn bilinear_zpk_dyn<F>(zpk: ZpkFormatFilter<F>, fs: F) -> ZpkFormatFilter<F>
 where
     F: RealField + Float,
@@ -114,7 +117,7 @@ mod tests {
 
     use super::*;
 
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "alloc")]
     #[test]
     fn matches_scipy_iirfilter_butter() {
         // butter(4, [10, 50], btype='bandpass', output='sos', fs=1666)

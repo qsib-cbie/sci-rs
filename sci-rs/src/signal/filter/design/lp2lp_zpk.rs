@@ -2,11 +2,14 @@ use core::{f64::consts::PI, ops::Mul};
 use nalgebra::{Complex, ComplexField, RealField};
 use num_traits::Float;
 
-#[cfg(feature = "use_std")]
+#[cfg(feature = "alloc")]
 use super::{
     relative_degree::relative_degree_dyn, FilterBandType, FilterOutputType, FilterType, Sos,
     ZpkFormatFilter,
 };
+
+#[cfg(feature = "alloc")]
+use alloc::vec::Vec;
 
 /// Transform a lowpass filter prototype to a different frequency.
 /// Return an analog low-pass filter with cutoff frequency `wo`
@@ -41,7 +44,7 @@ use super::{
 /// .. math:: s \rightarrow \frac{s}{\omega_0}
 /// .. versionadded:: 1.1.0
 
-#[cfg(feature = "use_std")]
+#[cfg(feature = "alloc")]
 pub fn lp2lp_zpk_dyn<F>(zpk: ZpkFormatFilter<F>, wo: Option<F>) -> ZpkFormatFilter<F>
 where
     F: RealField + Float,
@@ -76,7 +79,7 @@ mod tests {
 
     use super::*;
 
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "alloc")]
     #[test]
     fn matches_scipy_example_lowpass() {
         // signal.butter(4, 10, btype='lowpass', output='sos', fs=1666)

@@ -3,14 +3,19 @@ use core::{cmp::Ordering, f64::consts::PI, iter::Sum, ops::Mul};
 use nalgebra::{Complex, ComplexField, RealField};
 use num_traits::{Float, Zero};
 
-#[cfg(feature = "use_std")]
+#[cfg(feature = "alloc")]
 use crate::signal::filter::design::cplx::cplxreal_dyn;
 
-#[cfg(feature = "use_std")]
+#[cfg(feature = "alloc")]
 use super::{
     zpk2tf_dyn, BaFormatFilter, FilterBandType, FilterOutputType, FilterType, Sos, SosFormatFilter,
     ZpkFormatFilter,
 };
+
+#[cfg(feature = "alloc")]
+use alloc::vec::Vec;
+#[cfg(feature = "alloc")]
+use alloc::vec;
 
 pub enum ZpkPairing {
     Minimal,
@@ -36,7 +41,7 @@ enum WhichNearestComplex {
 ///
 ///
 
-#[cfg(feature = "use_std")]
+#[cfg(feature = "alloc")]
 pub fn zpk2sos_dyn<F>(
     order: usize,
     zpk: ZpkFormatFilter<F>,
@@ -244,7 +249,7 @@ where
 }
 
 /// """Get the next closest real or complex element based on distance"""
-#[cfg(feature = "use_std")]
+#[cfg(feature = "alloc")]
 fn nearest_real_complex_idx_dyn<F>(
     fro: &[Complex<F>],
     to: Complex<F>,
@@ -273,7 +278,7 @@ where
 }
 
 /// """Create one second-order section from up to two zeros and poles"""
-#[cfg(feature = "use_std")]
+#[cfg(feature = "alloc")]
 fn single_zpksos_dyn<F>(z: Vec<Complex<F>>, p: Vec<Complex<F>>, k: F) -> Sos<F>
 where
     F: Float + RealField,

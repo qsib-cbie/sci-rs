@@ -2,7 +2,10 @@ use core::{cmp::Ordering, f64::consts::PI, ops::Mul};
 use nalgebra::{Complex, ComplexField, RealField};
 use num_traits::Float;
 
-#[cfg(feature = "use_std")]
+#[cfg(feature = "alloc")]
+use alloc::vec::Vec;
+
+#[cfg(feature = "alloc")]
 use super::{
     relative_degree::relative_degree_dyn, FilterBandType, FilterOutputType, FilterType, Sos,
     ZpkFormatFilter,
@@ -48,7 +51,7 @@ use super::{
 /// _cplxpair
 /// """
 
-#[cfg(feature = "use_std")]
+#[cfg(feature = "alloc")]
 pub fn cplxreal_dyn<F>(z: Vec<Complex<F>>, tol: Option<F>) -> (Vec<Complex<F>>, Vec<Complex<F>>)
 where
     F: RealField + Float,
@@ -165,7 +168,7 @@ where
     (zc, zr)
 }
 
-#[cfg(feature = "use_std")]
+#[cfg(feature = "alloc")]
 pub fn sort_cplx_dyn<F: ComplexField>(x: &mut [F]) {
     x.sort_unstable_by(|a, b| {
         match a
@@ -191,7 +194,7 @@ mod tests {
 
     use super::*;
 
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "alloc")]
     #[test]
     fn matches_scipy_example() {
         let z: Vec<_> = vec![

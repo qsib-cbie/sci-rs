@@ -1,10 +1,13 @@
-#![cfg(feature = "use_std")]
+#![cfg(feature = "alloc")]
 
 use core::{borrow::Borrow, cmp::min, iter::Sum, ops::SubAssign};
 use nalgebra::{ClosedAdd, ClosedMul, DVector, RealField, Scalar};
 use num_traits::{Float, One, Zero};
 
 use super::{design::Sos, pad, sosfilt_dyn, sosfilt_zi_dyn, Pad};
+
+#[cfg(feature = "alloc")]
+use alloc::vec::Vec;
 
 ///
 /// A forward-backward digital filter using cascaded second-order sections
@@ -58,8 +61,6 @@ where
 #[cfg(test)]
 mod tests {
     use dasp_signal::{rate, Signal};
-    #[cfg(feature = "plot")]
-    use gnuplot::Figure;
 
     use super::*;
 
@@ -107,24 +108,6 @@ mod tests {
         let bp_wave = sosfiltfilt_dyn(sin_wave.iter(), &sos);
         println!("{:?}", bp_wave);
         assert_eq!(sin_wave.len(), bp_wave.len());
-
-        #[cfg(feature = "plot")]
-        {
-            let mut fig = Figure::new();
-            fig.axes2d().lines(
-                bp_wave
-                    .iter()
-                    .take(400)
-                    .enumerate()
-                    .map(|(i, _)| i)
-                    .collect::<Vec<_>>(),
-                bp_wave.iter().take(400).collect::<Vec<_>>(),
-                &[],
-            );
-
-            fig.set_pre_commands("set term dumb 100 30");
-            fig.show().unwrap();
-        }
 
         println!("{:?}", &bp_wave[..10]);
         println!("{:?}", &sin_wave[..10]);
@@ -174,24 +157,6 @@ mod tests {
         let bp_wave = sosfiltfilt_dyn(sin_wave.iter(), &sos);
         assert_eq!(sin_wave.len(), bp_wave.len());
         println!("{:?}", bp_wave);
-
-        #[cfg(feature = "plot")]
-        {
-            let mut fig = Figure::new();
-            fig.axes2d().lines(
-                bp_wave
-                    .iter()
-                    .take(400)
-                    .enumerate()
-                    .map(|(i, _)| i)
-                    .collect::<Vec<_>>(),
-                bp_wave.iter().take(400).collect::<Vec<_>>(),
-                &[],
-            );
-
-            fig.set_pre_commands("set term dumb 100 30");
-            fig.show().unwrap();
-        }
 
         println!("{:?}", &bp_wave[..10]);
         println!("{:?}", &sin_wave[..10]);

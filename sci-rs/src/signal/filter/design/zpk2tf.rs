@@ -5,13 +5,19 @@ use nalgebra::{
 };
 use num_traits::{Float, Zero};
 
-#[cfg(feature = "use_std")]
+#[cfg(feature = "alloc")]
 use super::{cplx::sort_cplx_dyn, BaFormatFilter};
-#[cfg(feature = "use_std")]
+#[cfg(feature = "alloc")]
 use crate::signal::filter::design::cplx::cplxreal_dyn;
 
-#[cfg(feature = "use_std")]
+#[cfg(feature = "alloc")]
 use super::{FilterBandType, FilterOutputType, FilterType, Sos, SosFormatFilter, ZpkFormatFilter};
+
+#[cfg(feature = "alloc")]
+use alloc::vec::Vec;
+#[cfg(feature = "alloc")]
+use alloc::vec;
+
 
 ///
 /// """
@@ -36,7 +42,7 @@ use super::{FilterBandType, FilterOutputType, FilterType, Sos, SosFormatFilter, 
 /// """
 ///
 
-#[cfg(feature = "use_std")]
+#[cfg(feature = "alloc")]
 pub fn zpk2tf_dyn<C, F>(order: usize, z: &Vec<C>, p: &Vec<C>, k: F) -> BaFormatFilter<F>
 where
     C: ComplexField<RealField = F>,
@@ -92,7 +98,7 @@ where
     BaFormatFilter { b, a }
 }
 
-#[cfg(feature = "use_std")]
+#[cfg(feature = "alloc")]
 pub fn poly_dyn<F>(z: &Vec<F>) -> Vec<F>
 where
     F: ComplexField,
@@ -143,7 +149,7 @@ mod tests {
 
     use super::*;
 
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "alloc")]
     #[test]
     fn matches_scipy_poly() {
         let mut a: Vec<Complex<f64>> = Vec::new();

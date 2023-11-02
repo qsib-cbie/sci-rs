@@ -1,4 +1,4 @@
-#![cfg(feature = "use_std")]
+#![cfg(feature = "alloc")]
 
 use core::{iter::Sum, ops::SubAssign};
 use nalgebra::{ClosedAdd, ClosedMul, RealField, Scalar};
@@ -7,6 +7,9 @@ use num_traits::{Float, One, Zero};
 use crate::signal::filter::lfilter_zi_dyn;
 
 use super::design::Sos;
+
+#[cfg(feature = "alloc")]
+use alloc::vec::Vec;
 
 ///
 /// Construct initial conditions for sosfilt for step response steady-state.

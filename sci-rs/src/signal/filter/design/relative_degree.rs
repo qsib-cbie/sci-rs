@@ -1,6 +1,9 @@
 use nalgebra::Complex;
 
-#[cfg(feature = "use_std")]
+#[cfg(feature = "alloc")]
+use alloc::vec::Vec;
+
+#[cfg(feature = "alloc")]
 pub fn relative_degree_dyn<F>(zeros: &Vec<Complex<F>>, poles: &Vec<Complex<F>>) -> usize {
     let degree = poles.len() as isize - zeros.len() as isize;
     if degree < 0 {

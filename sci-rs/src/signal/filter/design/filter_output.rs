@@ -2,20 +2,23 @@ use nalgebra::{Complex, RealField};
 
 use super::Sos;
 
+#[cfg(feature = "alloc")]
+use alloc::vec::Vec;
+
 pub enum FilterOutputType {
     Ba,
     Zpk,
     Sos,
 }
 
-#[cfg(feature = "use_std")]
+#[cfg(feature = "alloc")]
 #[derive(Debug)]
 pub struct BaFormatFilter<F: RealField> {
     pub b: Vec<F>,
     pub a: Vec<F>,
 }
 
-#[cfg(feature = "use_std")]
+#[cfg(feature = "alloc")]
 #[derive(Debug)]
 pub struct ZpkFormatFilter<F: RealField + Copy> {
     pub z: Vec<Complex<F>>,
@@ -23,13 +26,13 @@ pub struct ZpkFormatFilter<F: RealField + Copy> {
     pub k: F,
 }
 
-#[cfg(feature = "use_std")]
+#[cfg(feature = "alloc")]
 #[derive(Debug)]
 pub struct SosFormatFilter<F: RealField + Copy> {
     pub sos: Vec<Sos<F>>,
 }
 
-#[cfg(feature = "use_std")]
+#[cfg(feature = "alloc")]
 #[derive(Debug)]
 pub enum DigitalFilter<F: RealField + Copy + Sized> {
     Ba(BaFormatFilter<F>),
@@ -37,7 +40,7 @@ pub enum DigitalFilter<F: RealField + Copy + Sized> {
     Sos(SosFormatFilter<F>),
 }
 
-#[cfg(feature = "use_std")]
+#[cfg(feature = "alloc")]
 impl<F: RealField + Copy> ZpkFormatFilter<F> {
     pub fn new(z: Vec<Complex<F>>, p: Vec<Complex<F>>, k: F) -> Self {
         ZpkFormatFilter { z, p, k }
@@ -48,7 +51,7 @@ impl<F: RealField + Copy> ZpkFormatFilter<F> {
 mod tests {
     use super::*;
 
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "alloc")]
     #[test]
     fn can_create_digital_filter() {
         let single_side = DigitalFilter::<f32>::Sos(SosFormatFilter { sos: Vec::new() });

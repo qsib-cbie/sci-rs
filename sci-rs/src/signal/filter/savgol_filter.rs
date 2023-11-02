@@ -1,3 +1,4 @@
+use core::iter::Sum;
 use core::{
     borrow::Borrow,
     mem::{transmute, MaybeUninit},
@@ -5,7 +6,12 @@ use core::{
 use nalgebra as na;
 use nalgebra::RealField;
 use num_traits::Float;
-use std::iter::Sum;
+
+#[cfg(feature = "alloc")]
+use alloc::vec::Vec;
+#[cfg(feature = "alloc")]
+use alloc::vec;
+
 
 ///
 /// Savitzky-Golay filtering

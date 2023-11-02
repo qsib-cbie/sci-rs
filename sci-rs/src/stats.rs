@@ -2,8 +2,11 @@ use core::{borrow::Borrow, iter::Sum, ops::Add};
 use itertools::Itertools;
 use num_traits::{Float, Num, NumCast};
 
+#[cfg(feature = "alloc")]
+use alloc::vec::Vec;
+
 // Quick select finds the `i`th smallest element with 2N comparisons
-#[cfg(feature = "use_std")]
+#[cfg(feature = "alloc")]
 fn quickselect<B, T>(y: &Vec<B>, k: usize) -> T
 where
     B: Borrow<T>,
@@ -75,7 +78,7 @@ where
 ///
 /// ```
 ///
-#[cfg(feature = "use_std")]
+#[cfg(feature = "alloc")]
 pub fn median<YI, T>(y: YI) -> (T, usize)
 where
     T: Num + NumCast + PartialOrd + Copy + Default,
@@ -286,8 +289,6 @@ where
 #[cfg(test)]
 mod tests {
     use approx::assert_relative_eq;
-    #[cfg(feature = "plot")]
-    use gnuplot::{Figure, PlotOption::Caption};
     use std::f64::consts::PI;
     use std::vec::Vec;
 
@@ -323,22 +324,6 @@ mod tests {
             .map(|i| autocorr(sin_wave.iter().map(|f| *f as f32), i))
             .collect::<Vec<_>>();
         println!("correlations = {:?}", correlations);
-
-        #[cfg(feature = "plot")]
-        {
-            let mut fig = Figure::new();
-            fig.axes2d().lines(
-                correlations
-                    .iter()
-                    .enumerate()
-                    .map(|(i, _)| i)
-                    .collect::<Vec<_>>(),
-                correlations,
-                &[Caption("Sin Wave Autocorrelation")],
-            );
-            fig.set_pre_commands("set term dumb 100 30");
-            fig.show().unwrap();
-        }
     }
 
     #[test]

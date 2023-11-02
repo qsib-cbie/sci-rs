@@ -5,7 +5,7 @@ use ::core::{
 use nalgebra::{allocator::Allocator, *};
 use num_traits::{One, Zero};
 
-#[cfg(feature = "use_std")]
+#[cfg(feature = "alloc")]
 pub fn companion_dyn<T, B, I>(itr: I, m: usize) -> OMatrix<T, Dyn, Dyn>
 where
     T: Scalar + One + Zero + Div<Output = T> + Neg<Output = T> + Copy,

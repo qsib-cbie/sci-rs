@@ -2,13 +2,16 @@ use core::{f64::consts::PI, ops::Mul};
 use nalgebra::{Complex, ComplexField, RealField};
 use num_traits::Float;
 
-#[cfg(feature = "use_std")]
+#[cfg(feature = "alloc")]
 use super::{
     relative_degree::relative_degree_dyn, FilterBandType, FilterOutputType, FilterType, Sos,
     ZpkFormatFilter,
 };
 
-#[cfg(feature = "use_std")]
+#[cfg(feature = "alloc")]
+use alloc::vec::Vec;
+
+#[cfg(feature = "alloc")]
 ///Transform a lowpass filter prototype to a highpass filter.
 ///
 ///Return an analog high-pass filter with cutoff frequency `wo`
@@ -121,7 +124,7 @@ mod tests {
 
     use super::*;
 
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "alloc")]
     #[test]
     fn matches_scipy_example_highpass() {
         //zo = [1. 1. 1. 1.]
@@ -172,7 +175,7 @@ mod tests {
 
         assert_relative_eq!(actual_zpk.k, expected_k, max_relative = 1e-8);
     }
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "alloc")]
     #[test]
     fn matches_scipy_example_highpass_two() {
         //zo = [1. 1. 1. 1.]

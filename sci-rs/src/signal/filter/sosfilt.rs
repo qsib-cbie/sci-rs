@@ -6,11 +6,15 @@ use nalgebra::RealField;
 use num_traits::Float;
 
 use super::design::Sos;
+
+#[cfg(feature = "alloc")]
+use alloc::vec::Vec;
+
 ///
 /// A series of Second Order Sections may be used to
 /// filter a stream of inputs with a normalization factor
 ///
-#[cfg(feature = "use_std")]
+#[cfg(feature = "alloc")]
 #[inline]
 ///
 /// Second Order Sections filter an iterator
@@ -23,7 +27,7 @@ use super::design::Sos;
 pub fn sosfilt_dyn<YI, F>(y: YI, sos: &mut [Sos<F>]) -> Vec<F>
 where
     F: RealField + Copy,
-    YI: Iterator,
+    YI: IntoIterator,
     YI::Item: Borrow<F>,
 {
     match sos.len() {
@@ -161,28 +165,57 @@ where
             .collect::<Vec<_>>(),
         _ => y
             .into_iter()
-            .map(|yi0| {
-                sos.iter_mut().fold(*yi0.borrow(), |x_curr, sos| {
-                    let x_new = sos.b[0] * x_curr + sos.zi0;
-                    sos.zi0 = sos.b[1] * x_curr - sos.a[1] * x_new + sos.zi1;
-                    sos.zi1 = sos.b[2] * x_curr - sos.a[2] * x_new;
-                    x_new
-                })
-            })
+            .map(|yi0| sosfilt_item(*yi0.borrow(), sos))
             .collect::<Vec<_>>(),
     }
 }
 
+///
+/// Apply the cascaded Biquad filter represented by `sos` to the input `y`
+/// representing a single sample. This avoids allocating at the cost of not
+/// being able to specialize the filter length.
+///
+/// This is nearly always slower for long iterators than `sosfilt_dyn` due to
+/// the overhead of the `sos` slice iteration and lack of pipelining.
+///
+pub fn sosfilt_st<'it, YI, F>(y: YI, sos: &'it mut [Sos<F>]) -> impl Iterator<Item = F> + 'it
+where
+    F: RealField + Copy,
+    YI: IntoIterator + 'it,
+    YI::Item: Borrow<F>,
+{
+    y.into_iter().map(|yi0| sosfilt_item(*yi0.borrow(), sos))
+}
+
+///
+/// Apply the cascaded Biquad filter represented by `sos` to the input `y`
+/// representing a single sample. This may be useful if the filter is being
+/// applied to a single sample at a time as data is discretely sampled.
+///
+/// This is nearly always slower than `sosfilt_dyn` due to the overhead of
+/// the `sos` slice iteration and lack of pipelining.
+///
+#[inline(always)]
+pub fn sosfilt_item<F, B>(y: B, sos: &mut [Sos<F>]) -> F
+where
+    F: RealField + Copy,
+    B: Borrow<F>,
+{
+    sos.iter_mut().fold(*y.borrow(), |x_curr, sos| {
+        let x_new = sos.b[0] * x_curr + sos.zi0;
+        sos.zi0 = sos.b[1] * x_curr - sos.a[1] * x_new + sos.zi1;
+        sos.zi1 = sos.b[2] * x_curr - sos.a[2] * x_new;
+        x_new
+    })
+}
+
 #[cfg(test)]
 mod tests {
+    use super::*;
     use approx::assert_relative_eq;
     use dasp_signal::{rate, Signal};
-    #[cfg(feature = "plot")]
-    use gnuplot::Figure;
 
-    use super::*;
-
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "alloc")]
     #[test]
     fn can_sosfilt() {
         // 4th order butterworth bandpass 10 to 50 at 1666Hz
@@ -224,38 +257,28 @@ mod tests {
             .collect::<Vec<_>>();
         println!("{:?}", &sin_wave);
 
+        let mut sos_item = sos.clone();
+        let mut bp_item_wave = Vec::new();
+        for yi0 in sin_wave.iter() {
+            bp_item_wave.push(sosfilt_item(*yi0, &mut sos_item));
+        }
         let mut sos_st = sos.clone();
-        let bp_wave = sosfilt_dyn(sin_wave.iter(), &mut sos_st);
+        let bp_wave = sosfilt_st(sin_wave.iter(), &mut sos_st).collect::<Vec<_>>();
         let mut sos_dyn = sos;
         let bp_dyn_wave = sosfilt_dyn(sin_wave.iter(), &mut sos_dyn);
+        for (a, b) in bp_item_wave.iter().zip(bp_wave.iter()) {
+            assert_relative_eq!(*a, *b);
+        }
         for (a, b) in bp_wave.iter().zip(bp_dyn_wave.iter()) {
             assert_relative_eq!(*a, *b);
         }
         // println!("{:?}", bp_wave);
 
-        #[cfg(feature = "plot")]
-        {
-            let mut fig = Figure::new();
-            fig.axes2d().lines(
-                bp_wave
-                    .iter()
-                    .take(400)
-                    .enumerate()
-                    .map(|(i, _)| i)
-                    .collect::<Vec<_>>(),
-                bp_wave.iter().take(400).collect::<Vec<_>>(),
-                &[],
-            );
-
-            fig.set_pre_commands("set term dumb 100 30");
-            fig.show().unwrap();
-        }
-
         println!("{:?}", &bp_wave[..10]);
         println!("{:?}", &sin_wave[..10]);
     }
 
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "alloc")]
     #[test]
     fn can_resume_sosfilt() {
         // 4th order butterworth bandpass 10 to 50 at 1666Hz

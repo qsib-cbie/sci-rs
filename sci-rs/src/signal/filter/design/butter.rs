@@ -3,7 +3,10 @@ use core::iter::Sum;
 use nalgebra::RealField;
 use num_traits::Float;
 
-#[cfg(feature = "use_std")]
+#[cfg(feature = "alloc")]
+use alloc::vec::Vec;
+
+#[cfg(feature = "alloc")]
 use super::{iirfilter_dyn, DigitalFilter, FilterBandType, FilterOutputType, FilterType, Sos};
 ///
 /// Butterworth digital and analog filter design.
@@ -13,7 +16,7 @@ use super::{iirfilter_dyn, DigitalFilter, FilterBandType, FilterOutputType, Filt
 ///
 /// <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.butter.html>
 ///
-#[cfg(feature = "use_std")]
+#[cfg(feature = "alloc")]
 pub fn butter_dyn<F>(
     order: usize,
     wn: Vec<F>,
@@ -50,7 +53,7 @@ mod tests {
 
     use super::*;
 
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "alloc")]
     #[test]
     fn matches_scipy_iirfilter_butter_zpk() {
         let expected_zpk: ZpkFormatFilter<f64> = ZpkFormatFilter::new(
@@ -105,7 +108,7 @@ mod tests {
         }
     }
 
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "alloc")]
     #[test]
     fn matches_scipy_iirfilter_butter_sos() {
         let filter = butter_dyn::<f64>(
@@ -156,7 +159,7 @@ mod tests {
         }
     }
 
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "alloc")]
     #[test]
     fn matches_scipy_iirfilter_butter_ba() {
         let filter = butter_dyn::<f64>(

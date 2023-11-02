@@ -6,20 +6,20 @@ mod sosfilt;
 pub use ext::*;
 pub use sosfilt::*;
 
-#[cfg(feature = "use_std")]
+#[cfg(feature = "alloc")]
 mod lfilter_zi;
-#[cfg(feature = "use_std")]
+#[cfg(feature = "alloc")]
 mod savgol_filter;
-#[cfg(feature = "use_std")]
+#[cfg(feature = "alloc")]
 mod sosfilt_zi;
-#[cfg(feature = "use_std")]
+#[cfg(feature = "alloc")]
 mod sosfiltfilt;
 
-#[cfg(feature = "use_std")]
+#[cfg(feature = "alloc")]
 pub use lfilter_zi::*;
-#[cfg(feature = "use_std")]
+#[cfg(feature = "alloc")]
 pub use savgol_filter::*;
-#[cfg(feature = "use_std")]
+#[cfg(feature = "alloc")]
 pub use sosfilt_zi::*;
-#[cfg(feature = "use_std")]
+#[cfg(feature = "alloc")]
 pub use sosfiltfilt::*;

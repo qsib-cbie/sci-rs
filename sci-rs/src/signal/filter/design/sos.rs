@@ -2,6 +2,9 @@ use itertools::Itertools;
 use nalgebra::RealField;
 use num_traits::Float;
 
+#[cfg(feature = "alloc")]
+use alloc::vec::Vec;
+
 ///
 /// Second Order Section Representation
 /// of a digital filter transfer function
@@ -50,7 +53,7 @@ impl<F: RealField + Copy> Sos<F> {
         }
     }
 
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "alloc")]
     pub fn from_scipy_dyn(order: usize, sos: Vec<F>) -> Vec<Sos<F>> {
         assert!(order * 6 == sos.len());
 
@@ -66,7 +69,7 @@ impl<F: RealField + Copy> Sos<F> {
 mod tests {
     use super::*;
 
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "alloc")]
     #[test]
     fn can_use_external_filter_design() {
         let _design_filter = r#"

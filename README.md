@@ -7,7 +7,7 @@
 Pure Rust translation of scipy for reliable cross-platform and cross-tier behavior. See the sibling repo, https://github.com/qsib-cbie/sciprs, for pythonic interaction with this library. `sci-rs` will prefer idiomatic Rust with feature parity to the scipy interface when possible.
 
 
-Memory usage is a priority. ~~While `use_std` is a default feature, the library will prefer implementations that do not require runtime allocations, unless noted otherwise.~~
+Memory usage is a priority. ~~While `alloc` is a default feature, the library will prefer implementations that do not require runtime allocations, unless noted otherwise.~~
 
 ## Nightly Feature Instability
 
@@ -95,7 +95,7 @@ let filtered_data: nalgebra::DVector<f64> = sciprs! {
 };
 ```
 
-## Build 
+## Build
 
 ~~Install the nightly toolchain, `rustup toolchain install nightly`, `rust-toolchain.toml` asks for configures the toolchain choice.~~
 
@@ -131,71 +131,6 @@ To compare functionality between sci-rs, sciprs, and scipy, some tests include v
 ## Test
 
 For correctness, results from scipy are directly compared with sciprs output. At the moment, this requires manual scripting and testing. A local python virtualenv is recommended for development of this crate.
-
-### Gnuplot
-
-Tests may be used to explore, so `gnuplot` is a required dev dependency. You can find more info at http://www.gnuplot.info
-
-* macOS
-    * `brew install gnuplot`
-* linux
-    * `apt install gnuplot`
-
-
-Use `println!("x = {:?}", x);` to print out floating point data in a format that is copy-pastable into python:
-
-```python
-sin_wave = [0.0, 0.5877852522924731, 0.9510565162951535, 0.9510565162951536, 0.5877852522924732, 1.2246467991473532e-16, -0.587785252292473, -0.9510565162951535, -0.9510565162951536, -0.5877852522924734]
-```
-
-Use `gnuplot` to plot your data directly in the terminal or in a separate window
-```rust
-let mut fig = Figure::new();
-fig.axes2d().lines(
-    correlations
-        .iter()
-        .enumerate()
-        .map(|(i, _)| i)
-        .collect::<Vec<_>>(),
-    correlations,
-    &[Caption("Sin Wave")],
-);
-// Comment out the dumb terminal setting to make a test interactive!
-fig.set_pre_commands("set term dumb 100 40");
-fig.show().unwrap();
-```
-
-
-```
-    1 +-----------------------------------------------------------------------------------+  
-        |                 ************                                                      |
-        |               **            **                                   Sin Wave ******* |
-    0.8 |+           ***                **                                                 +|
-        |          **                     **                                                |
-    0.6 |+       **                         **                                             +|
-        |       *                             *                                             |
-        |      *                               **                                           |
-    0.4 |+    *                                  *                                         +|
-        |   **                                    *                                         |
-    0.2 |+ *                                       *                                       +|
-        | *                                         **                                      |
-        |*                                            *                                     |
-    0 |+                                             *                                   +|  
-        |                                               *                                   |
-        |                                                *                                  |
--0.2 |+                                                *                                +|   
-        |                                                  **                               |
--0.4 |+                                                   *                             +|   
-        |                                                     *                             |
-        |                                                      *                            |
--0.6 |+                                                      **                         *|   
-        |                                                         **                     ** |
--0.8 |+                                                          **                 **  +|   
-        |                                                             **             **     |
-        |                                                               *************       |
-    -1 +-----------------------------------------------------------------------------------+ 
-        0        1         2        3        4         5        6        7         8        9
-```
 
 ### Maturin + Scipy + Sciprs + Numpy + Matplotlib
 

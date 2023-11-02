@@ -1,6 +1,6 @@
 [package]
 name = "sci-rs"
-version = "0.2.9"
+version = "0.3.0"
 edition = "2021"
 authors = ["Jacob Trueb <jtrueb@northwestern.edu>"]
 description = "Rust library behind sciprs like scipy"
@@ -16,17 +16,16 @@ categories = ["science"]
 all-features = true
 
 [features]
-default = ['use_std']
-use_std = ['nalgebra/std', 'nalgebra/macros', 'rustfft']
-plot = ['gnuplot']
+default = ['alloc']
+alloc = ['nalgebra/alloc', 'nalgebra/libm']
+std = ['nalgebra/std', 'nalgebra/macros', 'rustfft', 'alloc']
 
 [dependencies]
-num-traits = "0.2.15"
+num-traits = { version = "0.2.15", default-features = false }
 itertools = { version = "0.11.0", default-features = false }
 nalgebra = { version = "0.32.2", default-features = false }
 ndarray = { version = "0.15.6", default-features = false }
-lstsq = {version = "0.5.0", default-features = false }
-gnuplot = { version = "0.0.37", optional = true }
+lstsq = { version = "0.5.0", default-features = false }
 rustfft = { version = "6.1.0", features = ["neon"], optional = true }
 
 [dev-dependencies]
@@ -34,7 +33,6 @@ approx = "0.5.1"
 dasp_signal = { version = "0.11.0" }
 criterion = { version = "0.4", features = ["html_reports"] }
 rand = "0.8.4"
-# dhat = "0.3.0"
 
 [[bench]]
 name = "sosfilt"

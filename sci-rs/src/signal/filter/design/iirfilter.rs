@@ -3,13 +3,16 @@ use core::{f64::consts::PI, iter::Sum, ops::Mul};
 use nalgebra::{Complex, ComplexField, RealField};
 use num_traits::Float;
 
-#[cfg(feature = "use_std")]
+#[cfg(feature = "alloc")]
 use super::{
     bilinear_zpk_dyn, lp2bp_zpk_dyn, lp2hp_zpk_dyn, lp2lp_zpk_dyn, zpk2sos_dyn, DigitalFilter,
     FilterBandType, FilterOutputType, FilterType, Sos,
 };
-#[cfg(feature = "use_std")]
+#[cfg(feature = "alloc")]
 use crate::signal::filter::design::{zpk2tf_dyn, ZpkFormatFilter};
+
+#[cfg(feature = "alloc")]
+use alloc::vec::Vec;
 
 ///
 ///
@@ -38,7 +41,7 @@ use crate::signal::filter::design::{zpk2tf_dyn, ZpkFormatFilter};
 /// iirdesign : General filter design using passband and stopband spec
 ///
 #[allow(clippy::too_many_arguments)]
-#[cfg(feature = "use_std")]
+#[cfg(feature = "alloc")]
 #[allow(clippy::too_many_arguments)]
 pub fn iirfilter_dyn<F>(
     order: usize,
@@ -218,7 +221,7 @@ where
 /// butter : Filter design function using this prototype
 ///
 /// """
-#[cfg(feature = "use_std")]
+#[cfg(feature = "alloc")]
 fn buttap_dyn<F>(order: usize) -> ZpkFormatFilter<F>
 where
     F: Float + RealField + Mul<Output = F>,
@@ -243,7 +246,7 @@ mod tests {
 
     use super::*;
 
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "alloc")]
     #[test]
     fn matches_scipy_buttap() {
         let p: [Complex<f64>; 4] = [
@@ -259,7 +262,7 @@ mod tests {
         }
     }
 
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "alloc")]
     #[test]
     fn matches_scipy_iirfilter_butter_zpk() {
         let expected_zpk: ZpkFormatFilter<f64> = ZpkFormatFilter::new(
@@ -317,7 +320,7 @@ mod tests {
         }
     }
 
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "alloc")]
     #[test]
     fn matches_scipy_iirfilter_butter_sos() {
         let filter = iirfilter_dyn::<f64>(
@@ -371,7 +374,7 @@ mod tests {
         }
     }
 
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "alloc")]
     #[test]
     fn matches_scipy_iirfilter_butter_ba() {
         let filter = iirfilter_dyn::<f64>(
@@ -429,7 +432,7 @@ mod tests {
         }
     }
 
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "alloc")]
     #[test]
     fn matches_scipy_iirfilter_butter_zpk_highpass() {
         //zo = [1. 1. 1. 1.]
@@ -482,7 +485,7 @@ mod tests {
         }
     }
 
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "alloc")]
     #[test]
     fn matches_scipy_iirfilter_butter_zpk_lowpass() {
         //z1 = [-1. -1. -1. -1.]
