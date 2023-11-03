@@ -209,6 +209,74 @@ where
     })
 }
 
+type Sos32 = Sos<f32>;
+
+#[inline(always)]
+fn biquad_fold(yi: f32, sos: &mut Sos32) -> f32 {
+    let x = sos.b[0] * yi + sos.zi0;
+    sos.zi0 = sos.b[1] * yi - sos.a[1] * x + sos.zi1;
+    sos.zi1 = sos.b[2] * yi - sos.a[2] * x;
+    x
+}
+
+fn _sosfilt32(y: &[f32], sos: &mut [Sos32], z: &mut [f32]) {
+    if y.len() != z.len() {
+        panic!();
+    }
+    const TILE: usize = 4;
+    match (sos.len(), y.len() % 4 == 0) {
+        (2, true) => {
+            let rem = y.len() % TILE;
+            y.chunks_exact(TILE)
+                .zip(z.chunks_exact_mut(TILE))
+                .for_each(|c| {
+                    for (yi, zi) in c.0.iter().zip(c.1.iter_mut()) {
+                        for s in sos.iter_mut() {
+                            *zi = biquad_fold(*yi, s);
+                        }
+                    }
+                });
+            let idx = y.len() - rem;
+            _sosfilt32(&y[idx..], sos, &mut z[idx..]);
+        }
+        (4, true) => {
+            const TILE: usize = 2;
+            let rem = y.len() % TILE;
+            y.chunks_exact(TILE)
+                .zip(z.chunks_exact_mut(TILE))
+                .for_each(|c| {
+                    for (yi, zi) in c.0.iter().zip(c.1.iter_mut()) {
+                        for s in sos.iter_mut() {
+                            *zi = biquad_fold(*yi, s);
+                        }
+                    }
+                });
+            let idx = y.len() - rem;
+            _sosfilt32(&y[idx..], sos, &mut z[idx..]);
+        }
+        _ => {
+            for (yi, zi) in y.iter().zip(z.iter_mut()) {
+                for s in sos.iter_mut() {
+                    *zi = biquad_fold(*yi, s);
+                }
+            }
+        }
+    }
+}
+
+///
+/// A specialized cascaded Biquad filter for 32-bit floating point samples
+///
+/// Including acceleratored
+///  * Single-sided 4th and 8th order filters
+///     * Example: 4th or 8th order lowpass Butterworth
+///  * Double-sided 4th order filters are accelerated
+///     * Example: 4th order bandpass Butterworth
+///
+pub fn sosfilt_fast32_st(y: &[f32], sos: &mut [Sos32], z: &mut [f32]) {
+    _sosfilt32(y, sos, z);
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

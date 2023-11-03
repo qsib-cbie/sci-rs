@@ -1,5 +1,8 @@
 {
     "editor.formatOnSave": true,
+    "rust-analyzer.cargo.features": [
+        "std"
+    ],
     "rust-analyzer.diagnostics.disabled": [
         "mismatched-arg-count"
     ]
