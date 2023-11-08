@@ -22,6 +22,9 @@
 #[cfg(feature = "alloc")]
 extern crate alloc;
 
+/// Re-export nalgebra for convenience and to avoid version conflicts
+pub use nalgebra as na;
+
 pub mod linalg;
 pub mod signal;
 pub mod stats;

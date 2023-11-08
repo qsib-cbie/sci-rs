@@ -5,5 +5,8 @@
     ],
     "rust-analyzer.diagnostics.disabled": [
         "mismatched-arg-count"
+    ],
+    "rust-analyzer.linkedProjects": [
+        "./sci-rs-test/Cargo.toml"
     ]
 }

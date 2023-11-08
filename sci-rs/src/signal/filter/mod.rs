@@ -1,3 +1,6 @@
+pub use kalmanfilt::gh as gh_filter;
+pub use kalmanfilt::kalman::kalman_filter;
+
 pub mod design;
 
 mod ext;

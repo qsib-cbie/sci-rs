@@ -1,0 +1,8 @@
+[package]
+name = "sci-rs-test"
+version = "0.0.0"
+edition = "2021"
+authors = ["Jacob Trueb <jtrueb@northwestern.edu>"]
+
+[dependencies]
+sci-rs = { path = "../sci-rs" }
