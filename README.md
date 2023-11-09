@@ -20,6 +20,8 @@ Memory usage is a priority. While `alloc` is a default feature, the library will
 * IIR sosfilt, sosfiltfilt
 * GH, GHK filtering (alpha-beta, alpha-beta-gamma)
 * Kalman filtering
+* Gaussian filter design and filtering
+* Savitsky-Golay design and filtering
 * Resampling (using Fourier-method)
 
 

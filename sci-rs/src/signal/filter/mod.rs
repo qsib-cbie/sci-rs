@@ -4,8 +4,14 @@
 pub use kalmanfilt::gh as gh_filter;
 
 ///
-/// Multivariate
+/// Multivariate or Univariant Kalman filters
+///
 pub use kalmanfilt::kalman::kalman_filter;
+
+///
+/// 1D Gaussian filters
+///
+pub use gaussfilt as gaussian_filter;
 
 /// Digital IIR/FIR filter design
 pub mod design;
