@@ -122,7 +122,7 @@ Until the project matures, we will aim to support the most recent stable version
 
 Some unstable features like `const-generic-exprs` would enable more non-allocating support but are unreliable. https://github.com/rust-lang/rust/issues/106423 has been broken on nightly for over a year.
 
-Unstable feature usage with `*_st`` interface is removed until further notice.
+Unstable feature usage with `*_st` interface is removed until further notice.
 
 ## Future Goals
 
@@ -130,7 +130,7 @@ Unstable feature usage with `*_st`` interface is removed until further notice.
 
 Here is an example of python that uses sosfiltfilt to bandpass a numpy array
 
-```python3
+```python
 import numpy as np
 # from scipy.signal import butter, sosfiltfilt
 from sciprs.signal import butter, sosfiltfilt
