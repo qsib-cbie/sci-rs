@@ -71,6 +71,51 @@ let filtered: Vec<f32> = sosfiltfilt_dyn(data, &sos.sos);
 
 For correctness, tests use hardcoded magic numbers from scipy. At the moment, this requires manual scripting and testing. A local python virtualenv is recommended for development of this crate.
 
+## Contributing
+
+Please compare your changes for correctness against SciPy if implementing or correcting a new feature.
+
+Generating plots and adding plots to PRs can help accelerate debugging and approval.
+
+Here is a quick plotting script
+
+```python
+import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
+import numpy as np
+
+# Some data from scipy
+a = np.arange(10)
+# Some data from sci-rs
+b = np.arange(10) * 2
+
+# A plot with two rows
+fig = plt.figure(figsize=(10, 10))
+gs = gridspec.GridSpec(2, 1)
+ax = fig.add_subplot(gs[0, 0])
+
+# A plot with titles and labels
+ax.plot(a, label="Series a")
+ax.plot(b, label="Series b")
+ax.set_title('Filter Comparison')
+ax.set_ylabel('Magnitude (a.u.)')
+ax.set_xlabel('Time (s)')
+ax.legend()
+
+# Another plot with titles and labels using the same axis
+ax = fig.add_subplot(gs[1, 0], sharex=ax)
+ax.plot(a - b, label = "Series Delta")
+ax.set_ylabel('Magnitude Difference (a.u.)')
+ax.set_xlabel('Time (s)')
+ax.legend()
+
+# Manually inspect the data and grab screenshot
+plt.tight_layout()
+plt.show()
+```
+
+![Example Plot](./images/example-plot.png)
+
 ## MSRV
 
 Until the project matures, we will aim to support the most recent stable version of Rust.
