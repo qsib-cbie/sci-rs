@@ -1,15 +1,15 @@
 [package]
 name = "sci-rs"
-version = "0.3.2"
+version = "0.3.3"
 edition = "2021"
 authors = ["Jacob Trueb <jtrueb@northwestern.edu>"]
-description = "Rust library behind sciprs like scipy"
+description = "Rust scientific analysis library similar to SciPy"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/qsib-cbie/sci-rs.git"
-homepage = "https://qsib-cbie.github.io/sci-rs"
+homepage = "https://github.com/qsib-cbie/sci-rs.git"
 readme = "../README.md"
-keywords = ["scipy", "sciprs", "python", "filter", "dsp"]
-categories = ["science"]
+keywords = ["scipy", "dsp", "signal", "filter", "design"]
+categories = ["science", "mathematics", "no-std", "embedded"]
 
 
 [package.metadata.docs.rs]
