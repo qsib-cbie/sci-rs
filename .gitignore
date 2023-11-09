@@ -1,7 +1,15 @@
 /target
 /Cargo.lock
 tmp
+
 *.json
+*.json.gz
+*.csv
+*.csv.gz
+*.parquet
 *.svg
+*.png
+
 .DS_Store
+
 venv
