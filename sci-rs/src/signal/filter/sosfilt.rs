@@ -223,6 +223,9 @@ fn _sosfilt32(y: &[f32], sos: &mut [Sos32], z: &mut [f32]) {
     if y.len() != z.len() {
         panic!();
     }
+    if y.len() == 0 {
+        return;
+    }
     const TILE: usize = 4;
     match (sos.len(), y.len() % 4 == 0) {
         (2, true) => {

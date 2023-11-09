@@ -1,7 +1,7 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use dasp_signal::{rate, Signal};
 use sci_rs::signal::filter::design::Sos;
-use sci_rs::signal::filter::sosfilt_dyn;
+use sci_rs::signal::filter::{sosfilt_dyn, sosfilt_fast32_st};
 
 // TLDR: 8.5x faster
 // sosfilt_st is as fast as sosfilt_dyn
@@ -47,7 +47,7 @@ fn butter_sosfilt_100x_dyn(c: &mut Criterion) {
         -1.978497311228862,
         0.9799894886973378,
     ];
-    let sos = Sos::from_scipy_dyn(4, filter.to_vec());
+    let mut sos = Sos::from_scipy_dyn(4, filter.to_vec());
 
     // A signal with a frequency that we can recover
     let sample_hz = 1666.;
@@ -60,7 +60,6 @@ fn butter_sosfilt_100x_dyn(c: &mut Criterion) {
 
     c.bench_function("sosfilt_100x_dyn", |b| {
         b.iter(|| {
-            let mut sos = sos.clone();
             black_box(sosfilt_dyn(sin_wave.iter(), &mut sos));
         });
     });
@@ -94,7 +93,7 @@ fn butter_sosfilt_f64(c: &mut Criterion) {
         -1.978497311228862,
         0.9799894886973378,
     ];
-    let sos = Sos::from_scipy_dyn(4, filter.to_vec());
+    let mut sos = Sos::from_scipy_dyn(4, filter.to_vec());
 
     // A signal with a frequency that we can recover
     let sample_hz = 1666.;
@@ -106,7 +105,6 @@ fn butter_sosfilt_f64(c: &mut Criterion) {
 
     c.bench_function("sosfilt_f64", |b| {
         b.iter(|| {
-            let mut sos = sos.clone();
             black_box(sosfilt_dyn(sin_wave.iter(), &mut sos));
         });
     });
@@ -140,7 +138,7 @@ fn butter_sosfilt_f32(c: &mut Criterion) {
         -1.978_497_3,
         0.979_989_47,
     ];
-    let sos = Sos::from_scipy_dyn(4, filter.to_vec());
+    let mut sos = Sos::from_scipy_dyn(4, filter.to_vec());
 
     // A signal with a frequency that we can recover
     let sample_hz = 1666.;
@@ -152,8 +150,63 @@ fn butter_sosfilt_f32(c: &mut Criterion) {
 
     c.bench_function("sosfilt_f32", |b| {
         b.iter(|| {
-            let mut sos = sos.clone();
             black_box(sosfilt_dyn(sin_wave.iter(), &mut sos));
+        });
+    });
+}
+
+///
+/// 4th order Butterworth Bandpass Sosfilt 10 seconds of 1666Hz sine wave
+/// 2x faster than sosfilt_dyn due to tiling and cpu pipelining
+///
+/// ```
+/// sosfilt_f32             time:   [139.41 µs 139.71 µs 140.04 µs]
+/// sosfilt_fast32_st       time:   [72.609 µs 72.675 µs 72.749 µs]
+/// ```
+///
+///
+fn butter_sosfilt_fast32_st(c: &mut Criterion) {
+    // 4th order butterworth bandpass 10 to 50 at 1666Hz
+    let filter: [f32; 24] = [
+        2.677_576_738_259_783_5e-5,
+        5.355_153_476_519_567e-5,
+        2.677_576_738_259_783_5e-5,
+        1.0,
+        -1.7991202154617734,
+        0.8162578614819005,
+        1.0,
+        2.0,
+        1.0,
+        1.0,
+        -1.8774769894419825,
+        0.9094302413068086,
+        1.0,
+        -2.0,
+        1.0,
+        1.0,
+        -1.9237959892866103,
+        0.9263794671616161,
+        1.0,
+        -2.0,
+        1.0,
+        1.0,
+        -1.978497311228862,
+        0.9799894886973378,
+    ];
+    let mut sos = Sos::from_scipy_dyn(4, filter.to_vec());
+
+    // A signal with a frequency that we can recover
+    let sample_hz = 1666.;
+    let seconds = 10;
+    let mut signal = rate(sample_hz).const_hz(25.).sine();
+    let sin_wave: Vec<f32> = (0..seconds * sample_hz as usize)
+        .map(|_| signal.next() as f32)
+        .collect::<Vec<_>>();
+    let mut buf = vec![0.0; sin_wave.len()];
+
+    c.bench_function("sosfilt_fast32_st", |b| {
+        b.iter(|| {
+            black_box(sosfilt_fast32_st(&sin_wave, &mut sos, &mut buf));
         });
     });
 }
@@ -162,6 +215,7 @@ criterion_group!(
     benches,
     butter_sosfilt_100x_dyn,
     butter_sosfilt_f64,
-    butter_sosfilt_f32
+    butter_sosfilt_f32,
+    butter_sosfilt_fast32_st,
 );
 criterion_main!(benches);

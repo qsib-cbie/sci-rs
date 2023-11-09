@@ -29,6 +29,8 @@ jobs:
       run: cargo build --verbose --all-features
     - name: Run tests
       run: cargo test --verbose --all-features
+    - name: Run benchmarks
+      run: cargo bench --verbose --all-features
     - name: Run doctests
       if: success() || failure()
       run: cargo test --doc
