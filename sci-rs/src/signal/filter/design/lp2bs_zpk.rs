@@ -2,64 +2,62 @@ use core::{f64::consts::PI, ops::Mul};
 use nalgebra::{Complex, ComplexField, RealField};
 use num_traits::Float;
 
-#[cfg(feature = "use_std")]
+#[cfg(feature = "alloc")]
 use super::{
     relative_degree::relative_degree_dyn, FilterBandType, FilterOutputType, FilterType, Sos,
     ZpkFormatFilter,
 };
 
-#[cfg(feature = "use_std")]
-///Transform a lowpass filter prototype to a bandstop filter.
+#[cfg(feature = "alloc")]
+/// Transform a lowpass filter prototype to a bandstop filter.
 ///
-///Return an analog band-stop filter with center frequency `wo` and
-///stopband width `bw` from an analog low-pass filter prototype with unity
-///cutoff frequency, using zeros, poles, and gain ('zpk') representation.
+/// Return an analog band-stop filter with center frequency `wo` and
+/// stopband width `bw` from an analog low-pass filter prototype with unity
+/// cutoff frequency, using zeros, poles, and gain ('zpk') representation.
 ///
-///Parameters
-///----------
-///z : array_like
-///    Zeros of the analog filter transfer function.
-///p : array_like
-///    Poles of the analog filter transfer function.
-///k : float
-///    System gain of the analog filter transfer function.
-///wo : float
-///    Desired stopband center, as angular frequency (e.g., rad/s).
-///    Defaults to no change.
-///bw : float
-///   Desired stopband width, as angular frequency (e.g., rad/s).
-///    Defaults to 1.
+/// Parameters
+/// ----------
+/// z : array_like
+///     Zeros of the analog filter transfer function.
+/// p : array_like
+///     Poles of the analog filter transfer function.
+/// k : float
+///     System gain of the analog filter transfer function.
+/// wo : float
+///     Desired stopband center, as angular frequency (e.g., rad/s).
+///     Defaults to no change.
+/// bw : float
+///    Desired stopband width, as angular frequency (e.g., rad/s).
+///     Defaults to 1.
 ///
-///Returns
-///-------
-///z : ndarray
-///    Zeros of the transformed band-stop filter transfer function.
-///p : ndarray
-///    Poles of the transformed band-stop filter transfer function.
-///k : float
-///    System gain of the transformed band-stop filter.
+/// Returns
+/// -------
+/// z : ndarray
+///     Zeros of the transformed band-stop filter transfer function.
+/// p : ndarray
+///     Poles of the transformed band-stop filter transfer function.
+/// k : float
+///     System gain of the transformed band-stop filter.
 ///
-///See Also
-///--------
-///lp2lp_zpk, lp2hp_zpk, lp2bp_zpk, bilinear
-///lp2bs
+/// See Also
+/// --------
+/// lp2lp_zpk, lp2hp_zpk, lp2bp_zpk, bilinear
+/// lp2bs
 ///
-///Notes
-///-----
-///This is derived from the s-plane substitution
+/// Notes
+/// -----
+/// This is derived from the s-plane substitution
 ///
-//... math:: s \rightarrow \frac{s \cdot \mathrm{BW}}{s^2 + {\omega_0}^2}
+//. .. math:: s \rightarrow \frac{s \cdot \mathrm{BW}}{s^2 + {\omega_0}^2}
 ///
-///This is the "wideband" transformation, producing a stopband with
-///geometric (log frequency) symmetry about `wo`.
+/// This is the "wideband" transformation, producing a stopband with
+/// geometric (log frequency) symmetry about `wo`.
 pub fn lp2bs_zpk_dyn<F>(zpk: ZpkFormatFilter<F>, wo: Option<F>, bw: Option<F>) -> ZpkFormatFilter<F>
 where
     F: RealField + Float,
 {
-    let wo = wo.unwrap_or_else(F::one); // Avoid int wraparound
-    let bw = bw.unwrap_or_else(F::one); // Avoid int wraparound
-
-    // degree = _relative_degree(z, p)
+    let wo = wo.unwrap_or_else(F::one);
+    let bw = bw.unwrap_or_else(F::one);
 
     let degree = relative_degree_dyn(&zpk.z, &zpk.p);
 
@@ -79,8 +77,6 @@ where
         .map(|zi| (Complex::new(F::zero(), bw / two) / *zi) * Complex::new(F::zero(), one_neg))
         .collect();
 
-    println!("z_hp = {:?}", z_hp);
-    println!("p_hp = {:?}", p_hp);
     //Duplicate poles and zeros and shift from baseband to +wo and -wo
     let wo2 = Complex::new(Float::powi(wo, 2), F::zero());
 
@@ -99,8 +95,6 @@ where
         .map(|(zi, zi2)| (Complex::new(zi.re, zi2.im), Complex::new(zi.re, zi2.im)))
         .collect::<Vec<(Complex<F>, Complex<F>)>>();
 
-    println!("z_bs_t = {:?}", z_bs_t);
-
     let mut z_bs = z_bs_t
         .iter()
         .map(|(a, b)| Complex::new(a.re, b.im))
@@ -116,35 +110,25 @@ where
         .map(|zi| (*zi, (zi.powi(2) - wo2).sqrt()))
         .collect::<Vec<(Complex<F>, Complex<F>)>>();
 
-    println!("p_bs_t = {:?}", p_bs_t);
-
     let p_bs = p_bs_t
         .iter()
         .map(|(a, b)| a + b)
         .chain(p_bs_t.iter().map(|(a, b)| a - b))
         .collect::<Vec<Complex<F>>>();
 
-    println!("z_bs = {:?}", z_bs);
-    println!("p_bs = {:?}", p_bs);
     //Move any zeros that were at infinity to the center of the stopband
     z_bs.extend((0..degree).map(|_| Complex::new(F::zero(), F::one() * wo)));
-    println!("z_bs = {:?}", z_bs);
     z_bs.extend((0..degree).map(|_| Complex::new(F::zero(), one_neg * wo)));
-    println!("z_bs = {:?}", z_bs);
 
     //Cancel out gain change caused by inversion
-    println!("z = {:?}", zpk.z);
     let num = zpk.z.iter().copied().fold(F::one(), |acc, zi| acc * zi.re);
     let denom = zpk
         .p
         .iter()
         .map(|pi| Complex::new(one_neg, F::zero()) * *pi)
         .fold(Complex::new(F::one(), F::zero()), |acc, pi| acc * pi);
-    println!("num = {:?}", num);
-    println!("denom = {:?}", denom);
     let k_bs = zpk.k * (num / denom.real());
 
-    // return z_bs, p_bs, k_bs
     ZpkFormatFilter::new(z_bs, p_bs, k_bs)
 }
 
@@ -154,12 +138,9 @@ mod tests {
 
     use super::*;
 
-    #[cfg(feature = "use_std")]
+    #[cfg(feature = "alloc")]
     #[test]
     fn matches_scipy_example_bandstop() {
-        // zo = [-1. -1. -1. -1.]
-        //po = [0.98765384+0.02863265j 0.97136157+0.01166439j 0.97136157-0.01166439j 0.98765384-0.02863265j]
-        //ko = 5.8105542410017214e-08
         let zpk: ZpkFormatFilter<_> = ZpkFormatFilter::new(
             vec![
                 Complex::new(-1., -1.),
@@ -178,9 +159,6 @@ mod tests {
 
         let wo = 1.6;
         let bw = 1.2;
-        // z1 = [-0.6-1.4832397j -0.6-1.4832397j -0.6-1.4832397j -0.6-1.4832397j -0.6+1.4832397j -0.6+1.4832397j -0.6+1.4832397j -0.6+1.4832397j]
-        //p1 = [0.61420466-1.49811199j 0.62070377-1.48343601j 0.62070377+1.48343601j 0.61420466+1.49811199j 0.59977563+1.46291801j 0.61449745+1.46860336j 0.61449745-1.46860336j 0.59977563-1.46291801j]
-        //k1 = 6.306940631261856e-08
         let expected_z: Vec<_> = vec![
             Complex::new(-0.6, -1.4832397),
             Complex::new(-0.6, -1.4832397),
@@ -218,13 +196,10 @@ mod tests {
 
         assert_relative_eq!(actual_zpk.k, expected_k, max_relative = 1e-8);
     }
-    #[cfg(feature = "use_std")]
+
+    #[cfg(feature = "alloc")]
     #[test]
     fn matches_scipy_example_bandstop_two() {
-        //zo = [1. 1. 1. 1.]
-        //po = [0.86788666-0.23258286j 0.76382075-0.08478723j 0.76382075+0.08478723j 0.86788666+0.23258286j]
-        //ko = 0.6905166297398233
-
         let zpk: ZpkFormatFilter<_> = ZpkFormatFilter::new(
             vec![
                 Complex::new(1., 1.),
@@ -243,9 +218,6 @@ mod tests {
 
         let wo = 1.6;
         let bw = 1.2;
-        // z1 = [0.6+1.4832397j 0.6+1.4832397j 0.6+1.4832397j 0.6+1.4832397j 0.6-1.4832397j 0.6-1.4832397j 0.6-1.4832397j 0.6-1.4832397j]
-        //p1 = [0.72053235+1.64918244j 0.82361252+1.48883633j 0.82361252-1.48883633j 0.72053235-1.64918244j 0.56949063-1.30347227j 0.728314  -1.31656612j 0.728314  +1.31656612j 0.56949063+1.30347227j]
-        //k1 = 1.4481908047355312
         let expected_z: Vec<_> = vec![
             Complex::new(0.6, 1.4832397),
             Complex::new(0.6, 1.4832397),
