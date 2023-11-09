@@ -8,10 +8,9 @@ use nalgebra::RealField;
 use num_traits::Float;
 
 #[cfg(feature = "alloc")]
-use alloc::vec::Vec;
-#[cfg(feature = "alloc")]
 use alloc::vec;
-
+#[cfg(feature = "alloc")]
+use alloc::vec::Vec;
 
 ///
 /// Savitzky-Golay filtering

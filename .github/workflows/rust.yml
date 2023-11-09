@@ -39,6 +39,9 @@ jobs:
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         args: -- -D warnings
+    - name: Run fmt
+      if: success() || failure()
+      run: cargo fmt --all -- --check
     - name: Upload test results
       if: always()
       uses: actions/upload-artifact@v2

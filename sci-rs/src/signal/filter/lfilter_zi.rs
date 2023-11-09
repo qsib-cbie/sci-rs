@@ -5,10 +5,9 @@ use num_traits::{Float, One, Zero};
 use crate::linalg::companion_dyn;
 
 #[cfg(feature = "alloc")]
-use alloc::vec::Vec;
-#[cfg(feature = "alloc")]
 use alloc::vec;
-
+#[cfg(feature = "alloc")]
+use alloc::vec::Vec;
 
 ///
 /// Construct initial conditions for lfilter for step response steady-state.
