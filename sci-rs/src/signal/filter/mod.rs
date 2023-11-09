@@ -1,6 +1,13 @@
+///
+/// GH (alpha-beta), GHK (alpha-beta-gamma) filters
+///
 pub use kalmanfilt::gh as gh_filter;
+
+///
+/// Multivariate
 pub use kalmanfilt::kalman::kalman_filter;
 
+/// Digital IIR/FIR filter design
 pub mod design;
 
 mod ext;

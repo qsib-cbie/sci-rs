@@ -18,6 +18,7 @@
 
 #![allow(unused)]
 #![cfg_attr(not(feature = "std"), no_std)]
+#![deny(missing_docs)]
 
 #[cfg(feature = "alloc")]
 extern crate alloc;
@@ -25,6 +26,11 @@ extern crate alloc;
 /// Re-export nalgebra for convenience and to avoid version conflicts
 pub use nalgebra as na;
 
+/// Linear algebra
 pub mod linalg;
+
+/// Digital signal processing
 pub mod signal;
+
+/// Statistics
 pub mod stats;

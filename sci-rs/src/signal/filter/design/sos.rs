@@ -20,10 +20,9 @@ use alloc::vec::Vec;
 ///
 #[derive(Debug, Copy, Clone)]
 pub struct Sos<F: RealField + Copy> {
-    ///
-    /// Transfer coefficients
-    ///
+    /// Transfer coefficients numerator
     pub b: [F; 3],
+    /// Transfer coefficients denominator
     pub a: [F; 3],
 
     ///
@@ -45,6 +44,11 @@ impl<F: RealField + Copy> Default for Sos<F> {
 }
 
 impl<F: RealField + Copy> Sos<F> {
+    /// Create a Second Order Section Biquad
+    /// with the coefficients `b` and `a`. The
+    /// coefficients need not be negated as they should match
+    /// SciPy's output. Some other libraries like CMSIS DSP
+    /// negate some coefficients in `a`.
     pub fn new(b: [F; 3], a: [F; 3]) -> Sos<F> {
         Sos::<F> {
             b,
@@ -53,6 +57,8 @@ impl<F: RealField + Copy> Sos<F> {
         }
     }
 
+    /// Create a Second Order Section Biquad directly
+    /// from a vector floats from scipy
     #[cfg(feature = "alloc")]
     pub fn from_scipy_dyn(order: usize, sos: Vec<F>) -> Vec<Sos<F>> {
         assert!(order * 6 == sos.len());

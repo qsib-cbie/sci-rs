@@ -14,10 +14,9 @@ use crate::signal::filter::design::cplx::cplxreal_dyn;
 use super::{FilterBandType, FilterOutputType, FilterType, Sos, SosFormatFilter, ZpkFormatFilter};
 
 #[cfg(feature = "alloc")]
-use alloc::vec::Vec;
-#[cfg(feature = "alloc")]
 use alloc::vec;
-
+#[cfg(feature = "alloc")]
+use alloc::vec::Vec;
 
 ///
 /// """
@@ -41,7 +40,6 @@ use alloc::vec;
 ///
 /// """
 ///
-
 #[cfg(feature = "alloc")]
 pub fn zpk2tf_dyn<C, F>(order: usize, z: &Vec<C>, p: &Vec<C>, k: F) -> BaFormatFilter<F>
 where
@@ -98,6 +96,7 @@ where
     BaFormatFilter { b, a }
 }
 
+/// Zeros to polynomial transfer function representation
 #[cfg(feature = "alloc")]
 pub fn poly_dyn<F>(z: &Vec<F>) -> Vec<F>
 where

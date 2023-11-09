@@ -3,13 +3,26 @@ use core::ops::Sub;
 use nalgebra::{allocator::Allocator, DefaultAllocator, Dim, Dyn, OMatrix, Scalar};
 use num_traits::{One, Zero};
 
+///
+/// Pad types.
+///
 pub enum Pad {
+    /// No padding.
     None,
+
+    /// Even extension of the first and last values.
     Even,
+
+    /// Odd extension of the first and last values.
     Odd,
+
+    /// Repeat of first and last values.
     Constant,
 }
 
+///
+/// Pad an array.
+///
 pub fn pad<T, M, N>(
     padtype: Pad,
     mut padlen: Option<usize>,
@@ -78,6 +91,9 @@ where
     }
 }
 
+///
+/// Pad an array with odd extension.
+///
 pub fn odd_ext_dyn<T, M, N>(x: OMatrix<T, M, N>, n: usize, axis: usize) -> OMatrix<T, Dyn, Dyn>
 where
     T: Scalar + Copy + Zero + One + Sub<Output = T>,

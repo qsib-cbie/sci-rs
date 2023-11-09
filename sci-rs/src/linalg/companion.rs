@@ -5,6 +5,9 @@ use ::core::{
 use nalgebra::{allocator::Allocator, *};
 use num_traits::{One, Zero};
 
+///
+/// Create a companion matrix.
+///
 #[cfg(feature = "alloc")]
 pub fn companion_dyn<T, B, I>(itr: I, m: usize) -> OMatrix<T, Dyn, Dyn>
 where

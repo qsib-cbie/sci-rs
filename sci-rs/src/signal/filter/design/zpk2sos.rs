@@ -17,13 +17,18 @@ use alloc::vec;
 #[cfg(feature = "alloc")]
 use alloc::vec::Vec;
 
+///
+/// Choice of zeros/poles pairing for the zpk2sos conversion
+///
+/// Matches scipy.signal.zpk2sos pairing
+///
 pub enum ZpkPairing {
+    /// Default
     Minimal,
+    /// Nearest
     Nearest,
-    KeepOdd,
 }
 
-// who named this stuff?
 enum WhichNearestComplex {
     Real,
     Complex,
