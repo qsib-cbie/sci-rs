@@ -13,9 +13,9 @@ use super::{
 };
 
 #[cfg(feature = "alloc")]
-use alloc::vec::Vec;
-#[cfg(feature = "alloc")]
 use alloc::vec;
+#[cfg(feature = "alloc")]
+use alloc::vec::Vec;
 
 pub enum ZpkPairing {
     Minimal,
@@ -122,9 +122,9 @@ where
     // Ensure we have complex conjugate pairs
     // (note that _cplxreal only gives us one element of each complex pair):
     let (zc, zr) = cplxreal_dyn(z, None);
-    let z: Vec<Complex<F>> = zc.into_iter().chain(zr.into_iter()).collect::<Vec<_>>();
+    let z: Vec<Complex<F>> = zc.into_iter().chain(zr).collect::<Vec<_>>();
     let (pc, pr) = cplxreal_dyn(p, None);
-    let p: Vec<Complex<F>> = pc.into_iter().chain(pr.into_iter()).collect::<Vec<_>>();
+    let p: Vec<Complex<F>> = pc.into_iter().chain(pr).collect::<Vec<_>>();
     let k = zpk.k;
 
     let idx_worst = if !analog {
