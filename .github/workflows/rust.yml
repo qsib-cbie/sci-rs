@@ -21,12 +21,14 @@ jobs:
       uses: dtolnay/rust-toolchain@stable
       with:
         components: clippy
-    - name: Build no_std
+    - name: Build no features
       run: cargo build --verbose --no-default-features
     - name: Build alloc
-      run: cargo build --verbose
+      run: cargo build --verbose --features alloc
+    - name: Build all features
+      run: cargo build --verbose --all-features
     - name: Run tests
-      run: cargo test --verbose
+      run: cargo test --verbose --all-features
     - name: Run doctests
       if: success() || failure()
       run: cargo test --doc
