@@ -160,8 +160,8 @@ fn butter_sosfilt_f32(c: &mut Criterion) {
 /// 2x faster than sosfilt_dyn due to tiling and cpu pipelining
 ///
 /// ```
-/// sosfilt_f32             time:   [139.41 µs 139.71 µs 140.04 µs]
-/// sosfilt_fast32_st4       time:   [72.609 µs 72.675 µs 72.749 µs]
+/// sosfilt_f32             time:   [139.61 µs 139.86 µs 140.16 µs]
+/// sosfilt_fast32_st4       time:   [78.412 µs 79.758 µs 81.399 µs]
 /// ```
 ///
 ///
@@ -217,12 +217,12 @@ fn butter_sosfilt_fast32_st4(c: &mut Criterion) {
 ///
 /// ```
 /// // with tiling specialization
-/// sosfilt_fast32_st4       time:   [72.609 µs 72.675 µs 72.749 µs]
-/// sosfilt_fast32_st8       time:   [99.402 µs 99.664 µs 99.987 µs]
+/// sosfilt_fast32_st4       time:   [78.412 µs 79.758 µs 81.399 µs]
+/// sosfilt_fast32_st8       time:   [133.39 µs 133.73 µs 134.08 µs]
 ///
 /// // without tiling specialization
-/// sosfilt_fast32_st8      time:   [505.34 µs 506.28 µs 507.21 µs]
-///    change: [+405.54% +407.41% +409.10%] (p = 0.00 < 0.05)
+/// sosfilt_fast32_st8      time:   [536.05 µs 537.17 µs 538.31 µs]
+///    change: [+300.64% +301.99% +303.35%] (p = 0.00 < 0.05)
 ///    Performance has regressed.
 /// ```
 ///
