@@ -161,11 +161,11 @@ fn butter_sosfilt_f32(c: &mut Criterion) {
 ///
 /// ```
 /// sosfilt_f32             time:   [139.41 µs 139.71 µs 140.04 µs]
-/// sosfilt_fast32_st       time:   [72.609 µs 72.675 µs 72.749 µs]
+/// sosfilt_fast32_st4       time:   [72.609 µs 72.675 µs 72.749 µs]
 /// ```
 ///
 ///
-fn butter_sosfilt_fast32_st(c: &mut Criterion) {
+fn butter_sosfilt_fast32_st4(c: &mut Criterion) {
     // 4th order butterworth bandpass 10 to 50 at 1666Hz
     let filter: [f32; 24] = [
         2.677_576_738_259_783_5e-5,
@@ -204,7 +204,93 @@ fn butter_sosfilt_fast32_st(c: &mut Criterion) {
         .collect::<Vec<_>>();
     let mut buf = vec![0.0; sin_wave.len()];
 
-    c.bench_function("sosfilt_fast32_st", |b| {
+    c.bench_function("sosfilt_fast32_st4", |b| {
+        b.iter(|| {
+            black_box(sosfilt_fast32_st(&sin_wave, &mut sos, &mut buf));
+        });
+    });
+}
+
+///
+/// 4th vs 8th order Butterworth Bandpass Sosfilt 10 seconds of 1666Hz sine wave
+/// 2x faster due to tiling and cpu pipelining
+///
+/// ```
+/// // with tiling specialization
+/// sosfilt_fast32_st4       time:   [72.609 µs 72.675 µs 72.749 µs]
+/// sosfilt_fast32_st8       time:   [99.402 µs 99.664 µs 99.987 µs]
+///
+/// // without tiling specialization
+/// sosfilt_fast32_st8      time:   [505.34 µs 506.28 µs 507.21 µs]
+///    change: [+405.54% +407.41% +409.10%] (p = 0.00 < 0.05)
+///    Performance has regressed.
+/// ```
+///
+///
+fn butter_sosfilt_fast32_st8(c: &mut Criterion) {
+    // 8th order butterworth bandpass 10 to 50 at 1666HzA
+    let filter: [f32; 48] = [
+        7.223657016655901e-10,
+        1.4447314033311803e-09,
+        7.223657016655901e-10,
+        1.0,
+        -1.8117367715812775,
+        0.82390242865626,
+        1.0,
+        2.0,
+        1.0,
+        1.0,
+        -1.8027320089797896,
+        0.8243217191895463,
+        1.0,
+        2.0,
+        1.0,
+        1.0,
+        -1.8436432946399057,
+        0.8727119112095707,
+        1.0,
+        2.0,
+        1.0,
+        1.0,
+        -1.898284650388357,
+        0.9018968456559892,
+        1.0,
+        -2.0,
+        1.0,
+        1.0,
+        -1.9415418844285526,
+        0.943617934088245,
+        1.0,
+        -2.0,
+        1.0,
+        1.0,
+        -1.918327282768592,
+        0.9524499384015938,
+        1.0,
+        -2.0,
+        1.0,
+        1.0,
+        -1.967653721895735,
+        0.9692546426434141,
+        1.0,
+        -2.0,
+        1.0,
+        1.0,
+        -1.9886761584321624,
+        0.9901117398066808,
+    ];
+    let mut sos = Sos::from_scipy_dyn(8, filter.to_vec());
+
+    // A signal with a frequency that we can recover
+    let sample_hz = 1666.;
+    let seconds = 10;
+    let mut signal = rate(sample_hz).const_hz(25.).sine();
+    let sin_wave: Vec<f32> = (0..seconds * sample_hz as usize)
+        .map(|_| signal.next() as f32)
+        .collect::<Vec<_>>();
+    let mut buf = vec![0.0; sin_wave.len()];
+
+    c.bench_function("sosfilt_fast32_st8", |b| {
         b.iter(|| {
             black_box(sosfilt_fast32_st(&sin_wave, &mut sos, &mut buf));
         });
@@ -216,6 +302,7 @@ criterion_group!(
     butter_sosfilt_100x_dyn,
     butter_sosfilt_f64,
     butter_sosfilt_f32,
-    butter_sosfilt_fast32_st,
+    butter_sosfilt_fast32_st4,
+    butter_sosfilt_fast32_st8,
 );
 criterion_main!(benches);
