@@ -43,7 +43,7 @@ use alloc::vec::Vec;
 #[cfg(feature = "alloc")]
 pub fn zpk2tf_dyn<C, F>(order: usize, z: &Vec<C>, p: &Vec<C>, k: F) -> BaFormatFilter<F>
 where
-    C: ComplexField<RealField = F>,
+    C: ComplexField<RealField = F> + Copy,
     F: Float + RealField,
 {
     // not possible to have length of shape > 1, but handled in zpk2tf python code
@@ -59,13 +59,13 @@ where
         let mut x = x;
         let mut pos_roots = y
             .iter()
+            .filter(|i| i.imaginary() > <C as ComplexField>::RealField::zero())
             .cloned()
-            .filter(|i| i.clone().imaginary() > <C as ComplexField>::RealField::zero())
             .collect::<Vec<_>>();
         let mut neg_roots = y
             .iter()
+            .filter(|i| i.imaginary() < <C as ComplexField>::RealField::zero())
             .cloned()
-            .filter(|i| i.clone().imaginary() < <C as ComplexField>::RealField::zero())
             .map(|i| i.conjugate())
             .collect::<Vec<_>>();
         if pos_roots.len() == neg_roots.len() {
