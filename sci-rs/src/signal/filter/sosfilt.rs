@@ -1,3 +1,4 @@
+use az::CheckedCast;
 use core::{
     borrow::Borrow,
     mem::{transmute, MaybeUninit},
@@ -5,7 +6,7 @@ use core::{
 use nalgebra::RealField;
 use num_traits::Float;
 
-use super::design::Sos;
+use super::design::{Sos, SosQ28, Q15, Q28};
 
 #[cfg(feature = "alloc")]
 use alloc::vec::Vec;
@@ -219,6 +220,14 @@ fn biquad_fold(yi: f32, sos: &mut Sos32) -> f32 {
     x
 }
 
+#[inline(always)]
+fn biquad_fold_q28(yi: Q28, sos: &mut SosQ28) -> Q28 {
+    let x = sos.b[0] * yi + sos.zi0;
+    sos.zi0 = sos.b[1] * yi - sos.a[1] * x + sos.zi1;
+    sos.zi1 = sos.b[2] * yi - sos.a[2] * x;
+    x
+}
+
 fn _sosfilt32(y: &[f32], sos: &mut [Sos32], z: &mut [f32]) {
     if y.len() != z.len() {
         panic!();
@@ -289,7 +298,7 @@ fn _sosfilt32(y: &[f32], sos: &mut [Sos32], z: &mut [f32]) {
 ///
 /// A specialized cascaded Biquad filter for 32-bit floating point samples
 ///
-/// Including acceleratored
+/// Including accelerated
 ///  * Single-sided 4th and 8th order filters
 ///     * Example: 4th or 8th order lowpass Butterworth
 ///  * Double-sided 4th order filters are accelerated
@@ -297,6 +306,100 @@ fn _sosfilt32(y: &[f32], sos: &mut [Sos32], z: &mut [f32]) {
 ///
 pub fn sosfilt_fast32_st(y: &[f32], sos: &mut [Sos32], z: &mut [f32]) {
     _sosfilt32(y, sos, z);
+}
+
+///
+/// A specialized cascaded Biquad filter for 16-bit signed integer samples
+/// filtered with Q8.24 fixed point coefficients and state.
+///
+/// Quantization scaling is performed on Q28 before conversion to Q15
+///
+pub fn sosfilt_q28_st(y: &[Q15], sos: &mut [SosQ28], z: &mut [Q15]) {
+    _sosfilt_q28(y, sos, z);
+}
+
+fn _sosfilt_q28(y: &[Q15], sos: &mut [SosQ28], z: &mut [Q15]) {
+    if y.len() != z.len() {
+        panic!();
+    }
+    if y.is_empty() {
+        return;
+    }
+
+    const TILE: usize = 4;
+    match (sos.len(), y.len() % 4 == 0) {
+        (2, true) => {
+            let rem = y.len() % TILE;
+            y.chunks_exact(TILE)
+                .zip(z.chunks_exact_mut(TILE))
+                .for_each(|c| {
+                    for (yi, zi) in c.0.iter().zip(c.1.iter_mut()) {
+                        // Scale to Q8.24
+                        let mut zq = Q28::from(*yi);
+                        for s in sos.iter_mut() {
+                            zq = biquad_fold_q28(zq, s);
+                        }
+                        // Scale back to Q15
+                        zq = zq.clamp(Q15::MIN.into(), Q15::MAX.into());
+                        *zi = unsafe { zq.checked_cast().unwrap_unchecked() };
+                    }
+                });
+            let idx = y.len() - rem;
+            _sosfilt_q28(&y[idx..], sos, &mut z[idx..]);
+        }
+        (4, true) => {
+            const TILE: usize = 2;
+            let rem = y.len() % TILE;
+            y.chunks_exact(TILE)
+                .zip(z.chunks_exact_mut(TILE))
+                .for_each(|c| {
+                    for (yi, zi) in c.0.iter().zip(c.1.iter_mut()) {
+                        // Scale to Q8.24
+                        let mut zq = Q28::from(*yi);
+                        for s in sos.iter_mut() {
+                            zq = biquad_fold_q28(zq, s);
+                        }
+                        // Scale back to Q15
+                        zq = zq.clamp(Q15::MIN.into(), Q15::MAX.into());
+                        *zi = unsafe { zq.checked_cast().unwrap_unchecked() };
+                    }
+                });
+            let idx = y.len() - rem;
+            _sosfilt_q28(&y[idx..], sos, &mut z[idx..]);
+        }
+        (8, true) => {
+            const TILE: usize = 2;
+            let rem = y.len() % TILE;
+            y.chunks_exact(TILE)
+                .zip(z.chunks_exact_mut(TILE))
+                .for_each(|c| {
+                    for (yi, zi) in c.0.iter().zip(c.1.iter_mut()) {
+                        // Scale to Q8.24
+                        let mut zq = Q28::from(*yi);
+                        for s in sos.iter_mut() {
+                            zq = biquad_fold_q28(zq, s);
+                        }
+                        // Scale back to Q15
+                        zq = zq.clamp(Q15::MIN.into(), Q15::MAX.into());
+                        *zi = unsafe { zq.checked_cast().unwrap_unchecked() };
+                    }
+                });
+            let idx = y.len() - rem;
+            _sosfilt_q28(&y[idx..], sos, &mut z[idx..]);
+        }
+        _ => {
+            for (yi, zi) in y.iter().zip(z.iter_mut()) {
+                // Scale to Q8.24
+                let mut zq = Q28::from(*yi);
+                for s in sos.iter_mut() {
+                    zq = biquad_fold_q28(zq, s);
+                }
+                // Scale back to Q15
+                zq = zq.clamp(Q15::MIN.into(), Q15::MAX.into());
+                *zi = unsafe { zq.checked_cast().unwrap_unchecked() };
+            }
+        }
+    }
 }
 
 #[cfg(test)]
@@ -421,5 +524,92 @@ mod tests {
         for (a, b) in bp_wave.iter().zip(bp_st2_wave.iter()) {
             assert_relative_eq!(*a, *b);
         }
+    }
+
+    #[cfg(feature = "alloc")]
+    #[test]
+    fn can_sosfilt_q28() {
+        // 4th order butterworth bandpass 10 to 50 at 1666Hz
+
+        use az::Cast;
+        let filter: [f64; 24] = [
+            2.677_576_738_259_783_5e-5,
+            5.355_153_476_519_567e-5,
+            2.677_576_738_259_783_5e-5,
+            1.0,
+            -1.7991202154617734,
+            0.8162578614819005,
+            1.0,
+            2.0,
+            1.0,
+            1.0,
+            -1.8774769894419825,
+            0.9094302413068086,
+            1.0,
+            -2.0,
+            1.0,
+            1.0,
+            -1.9237959892866103,
+            0.9263794671616161,
+            1.0,
+            -2.0,
+            1.0,
+            1.0,
+            -1.978497311228862,
+            0.9799894886973378,
+        ];
+        let mut sos = Sos::from_scipy_dyn(4, filter.to_vec());
+        assert_eq!(sos.len(), 4);
+
+        /// Convert the filter coefficients to Q8.24 fixed point
+        println!("{:?}", sos);
+        let mut sos_q28 = SosQ28::from_sos(&sos);
+        println!("{:?}", sos_q28);
+
+        // A signal with a frequency that we can recover
+        let sample_hz = 1666.;
+        let seconds = 0.1;
+        let mut signal = rate(sample_hz).const_hz(25.).sine();
+        let sin_wave: Vec<f64> = (0..(seconds * sample_hz) as usize)
+            .map(|_| signal.next())
+            .collect::<Vec<_>>();
+        // println!("{:?}", &sin_wave);
+
+        let mut sos_item = sos_q28.clone();
+        let mut sos_st = sos.clone();
+
+        let sin_wave16 = sin_wave
+            .iter()
+            .map(|yi| {
+                // let i = (*yi * (1 << 15) as f64) as i16;
+                // let q = Q15::from_bits(i);
+                let q = Q15::from_num(*yi);
+                println!("{} -> {:?}", yi, q);
+                q
+            })
+            .collect::<Vec<_>>();
+        let mut bp_q28_wave = vec![Q15::ZERO; sin_wave.len()];
+        sosfilt_q28_st(&sin_wave16, &mut sos_q28, &mut bp_q28_wave);
+
+        let mut sos_dyn = sos;
+        let bp_dyn_wave = sosfilt_dyn(sin_wave.iter(), &mut sos_dyn);
+
+        println!("{:?}", &sin_wave[..10]);
+        println!("{:?}", &bp_dyn_wave[..10]);
+        println!("{:?}", &bp_q28_wave[..10]);
+        println!("[{:?},{:?},{:?}]", bp_q28_wave, bp_dyn_wave, sin_wave);
+
+        for (a, b) in bp_q28_wave.iter().zip(bp_dyn_wave.iter()) {
+            let left = Cast::<f64>::cast(*a);
+            if *b > 1.0 || *b < -1.0 {
+                println!("{} ~= {}", left, b);
+                continue;
+            }
+            let right = Q15::from_num(*b).to_num::<f64>();
+            println!("{} ~= {}", left, right);
+            assert!(right > 1.0 || right < -1.0 || (left - right).abs() < 1e-3);
+        }
+        // println!("{:?}", bp_wave);
+        // println!("{:?}", sin_wave);
     }
 }
