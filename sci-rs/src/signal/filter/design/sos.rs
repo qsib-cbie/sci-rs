@@ -2,12 +2,6 @@ use itertools::Itertools;
 use nalgebra::RealField;
 use num_traits::Float;
 
-use fixed::{
-    traits::{FromFixed, ToFixed},
-    types::extra::{U15, U28},
-    FixedI16, FixedI32,
-};
-
 #[cfg(feature = "alloc")]
 use alloc::vec::Vec;
 
@@ -74,72 +68,6 @@ impl<F: RealField + Copy> Sos<F> {
             .take(order)
             .map(|ba| Sos::new([*ba.0, *ba.1, *ba.2], [*ba.3, *ba.4, *ba.5]))
             .collect()
-    }
-}
-
-///
-/// A fixed point Q4.24 number representing
-/// a 32 bit signed integer with 24 fractional bits
-///
-/// [-1, 1) is represented by [-2^24, 2^24)
-///
-pub type Q28 = FixedI32<U28>;
-
-///
-/// A fixed point Q1.15 number representing
-/// a 16 bit signed integer with 15 fractional bits
-/// [-1, 1) is represented by [-2^15, 2^15)
-///
-pub type Q15 = FixedI16<U15>;
-
-///
-/// A second order section of Q8.24 fixed point coefficients and state
-///
-#[derive(Debug, Copy, Clone)]
-pub struct SosQ28 {
-    /// Transfer coefficients numerator
-    pub b: [Q28; 3],
-    /// Transfer coefficients denominator
-    pub a: [Q28; 3],
-
-    ///
-    /// Filter Delay Values
-    ///
-    pub(crate) zi0: Q28,
-    pub(crate) zi1: Q28,
-}
-
-impl SosQ28 {
-    ///
-    /// Convert a floating point Sos to a fixed point Sos
-    /// with Q8.24 coefficients and state
-    ///
-    /// The coefficients must be scaled within the range of
-    /// [-1, 1) to fit within the Q8.24 fixed point format
-    ///
-    #[cfg(feature = "alloc")]
-    pub fn from_sos<F>(sos: &::alloc::vec::Vec<Sos<F>>) -> ::alloc::vec::Vec<SosQ28>
-    where
-        F: ToFixed + RealField + Copy,
-    {
-        let sections = sos
-            .iter()
-            .map(|sos| SosQ28 {
-                b: [
-                    Q28::from_num((sos.b[0])),
-                    Q28::from_num((sos.b[1])),
-                    Q28::from_num((sos.b[2])),
-                ],
-                a: [
-                    Q28::from_num((sos.a[0])),
-                    Q28::from_num((sos.a[1])),
-                    Q28::from_num((sos.a[2])),
-                ],
-                zi0: Q28::ZERO,
-                zi1: Q28::ZERO,
-            })
-            .collect();
-        sections
     }
 }
 
