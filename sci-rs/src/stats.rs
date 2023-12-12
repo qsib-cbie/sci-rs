@@ -231,6 +231,73 @@ where
 }
 
 ///
+/// Unscaled tiled autocorrelation of signal `y` with itself into `x`.
+///
+/// This skips variance normalization and only computes lags in `SKIP..SKIP+x.len()`
+///
+/// The autocorrelation is not normalized by 1/y.len() or variance. The variance of the signal
+/// is returned. The returned variance may be used to normalize lags of interest after the fact.
+///
+/// <https://www.itl.nist.gov/div898/handbook/eda/section3/autocopl.htm>
+///
+pub fn autocorr_fast32<const N: usize, const M: usize, const SKIP: usize>(
+    y: &mut [f32; N],
+    x: &mut [f32; M],
+) -> f32 {
+    assert!(N >= M + SKIP);
+
+    // Subtract the mean
+    let sum = y.iter().sum::<f32>();
+    let avg = sum / y.len() as f32;
+    y.iter_mut().for_each(|yi| *yi = (*yi - avg));
+
+    // Compute the variance of the signal
+    let var = y.iter().map(|yi| yi * yi).sum::<f32>() / y.len() as f32;
+
+    // Compute the autocorrelation for lag 1 to lag n
+    let lag_skip = y.len() - x.len();
+    for (h, xi) in (SKIP..y.len()).zip(x.iter_mut()) {
+        let left = &y[..y.len() - h];
+        let right = &y[h..];
+        const TILE: usize = 4;
+        let left = left.chunks_exact(TILE);
+        let right = right.chunks_exact(TILE);
+        *xi = left
+            .remainder()
+            .iter()
+            .zip(right.remainder().iter())
+            .map(|(a, b)| a * b)
+            .sum::<f32>();
+        *xi = left
+            .zip(right)
+            .map(|(left, right)| {
+                left.iter()
+                    .zip(right.iter())
+                    .map(|(a, b)| a * b)
+                    .sum::<f32>()
+            })
+            .sum();
+    }
+
+    var
+}
+
+///
+/// Root Mean Square (RMS) of signal `y`.
+///
+/// It is assumed that the mean of the signal is zero.
+///
+pub fn rms_fast32<const N: usize>(y: &[f32; N]) -> f32 {
+    const TILE: usize = 4;
+    let tiles = y.chunks_exact(TILE);
+    let sum = tiles.remainder().iter().map(|yi| yi * yi).sum::<f32>()
+        + tiles
+            .map(|yi| yi.iter().map(|yi| yi * yi).sum::<f32>())
+            .sum::<f32>();
+    (sum / y.len() as f32).sqrt()
+}
+
+///
 /// Produce an iterator yielding the lag difference, yi1 - yi0,
 ///
 /// <https://www.itl.nist.gov/div898/handbook/eda/section3/lagplot.htm>
