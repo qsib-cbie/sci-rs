@@ -1,6 +1,6 @@
 [package]
 name = "sci-rs"
-version = "0.3.5"
+version = "0.3.6"
 edition = "2021"
 authors = ["Jacob Trueb <jtrueb@northwestern.edu>"]
 description = "Rust scientific analysis library similar to SciPy"
