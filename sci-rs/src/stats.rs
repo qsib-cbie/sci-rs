@@ -249,7 +249,7 @@ pub fn autocorr_fast32<const N: usize, const M: usize, const SKIP: usize>(
     // Subtract the mean
     let sum = y.iter().sum::<f32>();
     let avg = sum / y.len() as f32;
-    y.iter_mut().for_each(|yi| *yi = (*yi - avg));
+    y.iter_mut().for_each(|yi| *yi -= avg);
 
     // Compute the variance of the signal
     let var = y.iter().map(|yi| yi * yi).sum::<f32>() / y.len() as f32;
