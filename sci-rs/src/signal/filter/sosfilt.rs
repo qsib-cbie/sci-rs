@@ -227,7 +227,7 @@ fn _sosfilt32(y: &[f32], sos: &mut [Sos32], z: &mut [f32]) {
         return;
     }
     const TILE: usize = 4;
-    match (sos.len(), y.len() % 4 == 0) {
+    match (sos.len(), y.len() % TILE == 0) {
         (2, true) => {
             let rem = y.len() % TILE;
             y.chunks_exact(TILE)
@@ -244,7 +244,6 @@ fn _sosfilt32(y: &[f32], sos: &mut [Sos32], z: &mut [f32]) {
             _sosfilt32(&y[idx..], sos, &mut z[idx..]);
         }
         (4, true) => {
-            const TILE: usize = 2;
             let rem = y.len() % TILE;
             y.chunks_exact(TILE)
                 .zip(z.chunks_exact_mut(TILE))
@@ -260,7 +259,6 @@ fn _sosfilt32(y: &[f32], sos: &mut [Sos32], z: &mut [f32]) {
             _sosfilt32(&y[idx..], sos, &mut z[idx..]);
         }
         (8, true) => {
-            const TILE: usize = 2;
             let rem = y.len() % TILE;
             y.chunks_exact(TILE)
                 .zip(z.chunks_exact_mut(TILE))
@@ -286,6 +284,71 @@ fn _sosfilt32(y: &[f32], sos: &mut [Sos32], z: &mut [f32]) {
     }
 }
 
+fn _sosfilt_isize_32<I: Copy + Into<isize>>(y: &[I], sos: &mut [Sos32], z: &mut [f32]) {
+    if y.len() != z.len() {
+        panic!();
+    }
+    if y.is_empty() {
+        return;
+    }
+    const TILE: usize = 4;
+    match (sos.len(), y.len() % TILE == 0) {
+        (2, true) => {
+            let rem = y.len() % TILE;
+            y.chunks_exact(TILE)
+                .zip(z.chunks_exact_mut(TILE))
+                .for_each(|c| {
+                    for (yi, zi) in c.0.iter().zip(c.1.iter_mut()) {
+                        *zi = Into::<isize>::into(*yi) as f32;
+                        for s in sos.iter_mut() {
+                            *zi = biquad_fold(*zi, s);
+                        }
+                    }
+                });
+            let idx = y.len() - rem;
+            _sosfilt_isize_32(&y[idx..], sos, &mut z[idx..]);
+        }
+        (4, true) => {
+            let rem = y.len() % TILE;
+            y.chunks_exact(TILE)
+                .zip(z.chunks_exact_mut(TILE))
+                .for_each(|c| {
+                    for (yi, zi) in c.0.iter().zip(c.1.iter_mut()) {
+                        *zi = Into::<isize>::into(*yi) as f32;
+                        for s in sos.iter_mut() {
+                            *zi = biquad_fold(*zi, s);
+                        }
+                    }
+                });
+            let idx = y.len() - rem;
+            _sosfilt_isize_32(&y[idx..], sos, &mut z[idx..]);
+        }
+        (8, true) => {
+            let rem = y.len() % TILE;
+            y.chunks_exact(TILE)
+                .zip(z.chunks_exact_mut(TILE))
+                .for_each(|c| {
+                    for (yi, zi) in c.0.iter().zip(c.1.iter_mut()) {
+                        *zi = Into::<isize>::into(*yi) as f32;
+                        for s in sos.iter_mut() {
+                            *zi = biquad_fold(*zi, s);
+                        }
+                    }
+                });
+            let idx = y.len() - rem;
+            _sosfilt_isize_32(&y[idx..], sos, &mut z[idx..]);
+        }
+        _ => {
+            for (yi, zi) in y.iter().zip(z.iter_mut()) {
+                *zi = Into::<isize>::into(*yi) as f32;
+                for s in sos.iter_mut() {
+                    *zi = biquad_fold(*zi, s);
+                }
+            }
+        }
+    }
+}
+
 ///
 /// A specialized cascaded Biquad filter for 32-bit floating point samples
 ///
@@ -297,6 +360,24 @@ fn _sosfilt32(y: &[f32], sos: &mut [Sos32], z: &mut [f32]) {
 ///
 pub fn sosfilt_fast32_st(y: &[f32], sos: &mut [Sos32], z: &mut [f32]) {
     _sosfilt32(y, sos, z);
+}
+
+///
+/// A specialized cascaded Biquad filter for signed samples
+/// filtered as 32-bit floating point samples. Samples implement
+/// Into<isize> to convert to a signed integer for speed on native bitwidths.
+///
+/// Including acceleratored
+///  * Single-sided 4th and 8th order filters
+///     * Example: 4th or 8th order lowpass Butterworth
+///  * Double-sided 4th order filters are accelerated
+///     * Example: 4th order bandpass Butterworth
+///
+pub fn sosfilt_ifast32_st<I>(y: &[I], sos: &mut [Sos32], z: &mut [f32])
+where
+    I: Into<isize> + Copy,
+{
+    _sosfilt_isize_32(y, sos, z);
 }
 
 #[cfg(test)]
