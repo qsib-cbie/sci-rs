@@ -353,6 +353,36 @@ where
     sum.sqrt()
 }
 
+///
+/// Compute the z score of each value in the sample, relative to the sample mean and standard deviation.
+///
+/// # Arguments
+///
+/// * `y` - An array of floating point values
+///
+/// # Examples
+///
+/// ```
+/// use sci_rs::stats::zscore;
+///
+/// let y: [f32; 5] = [1.,2.,3.,4.,5.];
+/// let z : Vec<f32> = zscore(y.iter()).collect::<Vec<_>>();
+/// let answer: [f32; 5] = [-1.4142135, -0.70710677, 0.,  0.70710677,  1.4142135];
+/// for i in 0..5 {
+///     assert_eq!(answer[i], z[i]);
+/// }
+/// ```
+pub fn zscore<YI, F>(y: YI) -> impl Iterator<Item = F>
+where
+    F: Float + Default + Copy + Add + Sum,
+    YI: Iterator + Clone,
+    YI::Item: Borrow<F>,
+{
+    let mean = mean(y.clone()).0;
+    let standard_deviation = stdev(y.clone()).0;
+    y.map(move |yi| ((*yi.borrow() - mean) / standard_deviation))
+}
+
 #[cfg(test)]
 mod tests {
     use approx::assert_relative_eq;
