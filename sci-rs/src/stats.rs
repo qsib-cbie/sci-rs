@@ -356,6 +356,8 @@ where
 ///
 /// Compute the z score of each value in the sample, relative to the sample mean and standard deviation.
 ///
+/// <https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.zscore.html>
+///
 /// # Arguments
 ///
 /// * `y` - An array of floating point values
@@ -364,12 +366,21 @@ where
 ///
 /// ```
 /// use sci_rs::stats::zscore;
+/// use approx::assert_relative_eq;
 ///
 /// let y: [f32; 5] = [1.,2.,3.,4.,5.];
 /// let z : Vec<f32> = zscore(y.iter()).collect::<Vec<_>>();
 /// let answer: [f32; 5] = [-1.4142135, -0.70710677, 0.,  0.70710677,  1.4142135];
 /// for i in 0..5 {
-///     assert_eq!(answer[i], z[i]);
+///     assert_relative_eq!(answer[i], z[i], epsilon = 1e-6);
+/// }
+///
+/// // Example from scipy docs
+/// let a: [f32; 10] = [ 0.7972,  0.0767,  0.4383,  0.7866,  0.8091, 0.1954,  0.6307,  0.6599,  0.1065,  0.0508];
+/// let z : Vec<f32> = zscore(a.iter()).collect::<Vec<_>>();
+/// let answer: [f32; 10] =[ 1.12724554, -1.2469956 , -0.05542642,  1.09231569,  1.16645923, -0.8558472 ,  0.57858329,  0.67480514, -1.14879659, -1.33234306];
+/// for i in 0..10 {
+///    assert_relative_eq!(answer[i], z[i], epsilon = 1e-6);
 /// }
 /// ```
 pub fn zscore<YI, F>(y: YI) -> impl Iterator<Item = F>
@@ -385,7 +396,8 @@ where
 
 ///
 /// Compute the modified Z-score of each value in the sample, relative to the sample median over the mean absolute deviation.
-/// https://www.itl.nist.gov/div898/handbook/eda/section3/eda35h.htm
+///
+/// <https://www.itl.nist.gov/div898/handbook/eda/section3/eda35h.htm>
 ///
 /// # Arguments
 ///
@@ -395,12 +407,13 @@ where
 ///
 /// ```
 /// use sci_rs::stats::mod_zscore;
+/// use approx::assert_relative_eq;
 ///
 /// let y: [f32; 5] = [1.,2.,3.,4.,5.];
 /// let z : Vec<f32> = mod_zscore(y.iter()).collect::<Vec<_>>();
 /// let answer: [f32; 5] = [-1.349, -0.6745, 0.,  0.6745,  1.349];
 /// for i in 0..5 {
-///     assert_eq!(answer[i], z[i]);
+///     assert_relative_eq!(answer[i], z[i], epsilon = 1e-5);
 /// }
 /// ```
 pub fn mod_zscore<YI, F>(y: YI) -> impl Iterator<Item = F>
@@ -426,13 +439,13 @@ where
 ///
 /// ```
 /// use sci_rs::stats::median_abs_deviation;
+/// use approx::assert_relative_eq;
 ///
 /// let y: [f64; 16] = [6., 7., 7., 8., 12., 14., 15., 16., 16., 19., 22., 24., 26., 26., 29., 46.];
 /// let z = median_abs_deviation(y.iter());
 ///
-/// assert_eq!(8., z.0);
+/// assert_relative_eq!(8., z.0);
 /// ```
-
 pub fn median_abs_deviation<YI, F>(y: YI) -> (F, usize)
 where
     F: Float + Default + Sum,
