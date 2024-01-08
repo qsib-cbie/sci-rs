@@ -12,7 +12,7 @@ Memory usage is a priority. While `alloc` is a default feature, the library will
 ## Features
 
 * stats
-  * mean, median, mode, variance, standard deviation, auto correlation
+  * mean, median, mode, variance, standard deviation, zscore, auto correlation
 * IIR filter design
   * ba, zpk, or sos format
   * Butterworth
