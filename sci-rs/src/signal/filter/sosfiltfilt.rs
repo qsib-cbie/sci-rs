@@ -16,7 +16,7 @@ use alloc::vec::Vec;
 ///
 ///
 #[inline]
-pub fn sosfiltfilt_dyn<YI, F>(y: YI, sos: &Vec<Sos<F>>) -> Vec<F>
+pub fn sosfiltfilt_dyn<YI, F>(y: YI, sos: &[Sos<F>]) -> Vec<F>
 where
     F: RealField + Copy + PartialEq + Scalar + Zero + One + ClosedMul + ClosedAdd + Sum + SubAssign,
     YI: Iterator,
@@ -32,7 +32,7 @@ where
     let x = DVector::<F>::from_vec(y);
     let (edge, ext) = pad(Pad::Odd, None, x, 0, ntaps);
 
-    let mut init_sos = sos.clone();
+    let mut init_sos = sos.to_vec();
     sosfilt_zi_dyn::<_, _, Sos<F>>(init_sos.iter_mut());
 
     let x0 = *ext.index(0);

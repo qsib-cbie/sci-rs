@@ -7,7 +7,7 @@ use alloc::vec::Vec;
 
 // Quick select finds the `i`th smallest element with 2N comparisons
 #[cfg(feature = "alloc")]
-fn quickselect<B, T>(y: &Vec<B>, k: usize) -> T
+fn quickselect<B, T>(y: &[B], k: usize) -> T
 where
     B: Borrow<T>,
     T: Num + NumCast + PartialOrd + Copy,
