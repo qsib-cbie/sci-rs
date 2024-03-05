@@ -258,7 +258,37 @@ fn _sosfilt32(y: &[f32], sos: &mut [Sos32], z: &mut [f32]) {
             let idx = y.len() - rem;
             _sosfilt32(&y[idx..], sos, &mut z[idx..]);
         }
+        (6, true) => {
+            let rem = y.len() % TILE;
+            y.chunks_exact(TILE)
+                .zip(z.chunks_exact_mut(TILE))
+                .for_each(|c| {
+                    for (yi, zi) in c.0.iter().zip(c.1.iter_mut()) {
+                        *zi = *yi;
+                        for s in sos.iter_mut() {
+                            *zi = biquad_fold(*zi, s);
+                        }
+                    }
+                });
+            let idx = y.len() - rem;
+            _sosfilt32(&y[idx..], sos, &mut z[idx..]);
+        }
         (8, true) => {
+            let rem = y.len() % TILE;
+            y.chunks_exact(TILE)
+                .zip(z.chunks_exact_mut(TILE))
+                .for_each(|c| {
+                    for (yi, zi) in c.0.iter().zip(c.1.iter_mut()) {
+                        *zi = *yi;
+                        for s in sos.iter_mut() {
+                            *zi = biquad_fold(*zi, s);
+                        }
+                    }
+                });
+            let idx = y.len() - rem;
+            _sosfilt32(&y[idx..], sos, &mut z[idx..]);
+        }
+        (10, true) => {
             let rem = y.len() % TILE;
             y.chunks_exact(TILE)
                 .zip(z.chunks_exact_mut(TILE))
@@ -323,7 +353,37 @@ fn _sosfilt_isize_32<I: Copy + Into<isize>>(y: &[I], sos: &mut [Sos32], z: &mut 
             let idx = y.len() - rem;
             _sosfilt_isize_32(&y[idx..], sos, &mut z[idx..]);
         }
+        (6, true) => {
+            let rem = y.len() % TILE;
+            y.chunks_exact(TILE)
+                .zip(z.chunks_exact_mut(TILE))
+                .for_each(|c| {
+                    for (yi, zi) in c.0.iter().zip(c.1.iter_mut()) {
+                        *zi = Into::<isize>::into(*yi) as f32;
+                        for s in sos.iter_mut() {
+                            *zi = biquad_fold(*zi, s);
+                        }
+                    }
+                });
+            let idx = y.len() - rem;
+            _sosfilt_isize_32(&y[idx..], sos, &mut z[idx..]);
+        }
         (8, true) => {
+            let rem = y.len() % TILE;
+            y.chunks_exact(TILE)
+                .zip(z.chunks_exact_mut(TILE))
+                .for_each(|c| {
+                    for (yi, zi) in c.0.iter().zip(c.1.iter_mut()) {
+                        *zi = Into::<isize>::into(*yi) as f32;
+                        for s in sos.iter_mut() {
+                            *zi = biquad_fold(*zi, s);
+                        }
+                    }
+                });
+            let idx = y.len() - rem;
+            _sosfilt_isize_32(&y[idx..], sos, &mut z[idx..]);
+        }
+        (10, true) => {
             let rem = y.len() % TILE;
             y.chunks_exact(TILE)
                 .zip(z.chunks_exact_mut(TILE))
