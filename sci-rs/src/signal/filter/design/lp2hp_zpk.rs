@@ -226,4 +226,63 @@ mod tests {
 
         assert_relative_eq!(actual_zpk.k, expected_k, max_relative = 1e-6);
     }
+
+    #[cfg(feature = "alloc")]
+    #[test]
+    fn matches_scipy_example_highpass_three() {
+        // >>> butter(5,[2],btype='hp',output='zpk',fs=600)
+        // [] [-0.30901699+0.95105652j -0.80901699+0.58778525j -1.        -0.j
+        //  -0.80901699-0.58778525j -0.30901699-0.95105652j] 1 [0.04188943]
+        // [0. 0. 0. 0. 0.] [-0.01294455-0.03983922j -0.03388926-0.02462199j -0.04188943-0.j
+        //  -0.03388926+0.02462199j -0.01294455+0.03983922j] 1.0
+        // (array([1., 1., 1., 1., 1.]), array([0.99335214-0.01978936j, 0.98312384-0.01210456j,
+        //        0.97927235+0.j        , 0.98312384+0.01210456j,
+        //        0.99335214+0.01978936j]), 0.9666790028093929)
+
+        let input_zpk: ZpkFormatFilter<_> = ZpkFormatFilter::new(
+            vec![],
+            vec![
+                Complex::new(-0.30901699, 0.95105652),
+                Complex::new(-0.80901699, 0.58778525),
+                Complex::new(-1., 0.),
+                Complex::new(-0.80901699, -0.58778525),
+                Complex::new(-0.30901699, -0.95105652),
+            ],
+            1.,
+        );
+        let wo = Some(0.04188943);
+
+        let expected_zpk: ZpkFormatFilter<_> = ZpkFormatFilter::new(
+            vec![
+                Complex::new(0., 0.),
+                Complex::new(0., 0.),
+                Complex::new(0., 0.),
+                Complex::new(0., 0.),
+                Complex::new(0., 0.),
+            ],
+            vec![
+                Complex::new(-0.01294455, -0.03983922),
+                Complex::new(-0.03388926, -0.02462199),
+                Complex::new(-0.04188943, 0.),
+                Complex::new(-0.03388926, 0.02462199),
+                Complex::new(-0.01294455, 0.03983922),
+            ],
+            1.0,
+        );
+        let actual_zpk: ZpkFormatFilter<f64> = lp2hp_zpk_dyn(input_zpk, wo);
+
+        assert_eq!(actual_zpk.z.len(), expected_zpk.z.len());
+        for (a, e) in actual_zpk.z.iter().zip(expected_zpk.z.iter()) {
+            assert_relative_eq!(a.re, e.re, max_relative = 1e-6);
+            assert_relative_eq!(a.im, e.im, max_relative = 1e-6);
+        }
+
+        assert_eq!(actual_zpk.p.len(), expected_zpk.p.len());
+        for (a, e) in actual_zpk.p.iter().zip(expected_zpk.p.iter()) {
+            assert_relative_eq!(a.re, e.re, max_relative = 1e-6);
+            assert_relative_eq!(a.im, e.im, max_relative = 1e-6);
+        }
+
+        assert_relative_eq!(actual_zpk.k, expected_zpk.k, max_relative = 1e-6);
+    }
 }
