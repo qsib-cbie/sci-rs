@@ -161,6 +161,47 @@ mod tests {
 
     #[cfg(feature = "alloc")]
     #[test]
+    fn matches_scipy_iirfilter_butter_sos_highpass() {
+        let filter = butter_dyn::<f64>(
+            5,
+            vec![2.],
+            Some(FilterBandType::Highpass),
+            Some(false),
+            Some(FilterOutputType::Sos),
+            Some(600.),
+        );
+        // >>> butter(5,[2],btype='hp',output='sos',fs=600)
+        // array([[ 0.966679  , -0.966679  ,  0.        ,  1.        , -0.97927235, 0.        ],
+        //        [ 1.        , -2.        ,  1.        ,  1.        , -1.96624768, 0.966679  ],
+        //        [ 1.        , -2.        ,  1.        ,  1.        , -1.98670428, 0.9871401 ]])
+        match filter {
+            DigitalFilter::Sos(sos) => {
+                // println!("{:?}", sos);
+
+                let expected_sos = [
+                    Sos::new([0.966679, -0.966679, 0.], [1., -0.97927235, 0.]),
+                    Sos::new([1., -2., 1.], [1., -1.96624768, 0.966679]),
+                    Sos::new([1., -2., 1.], [1., -1.98670428, 0.9871401]),
+                ];
+
+                assert_eq!(expected_sos.len(), sos.sos.len());
+                for i in 0..sos.sos.len() {
+                    let actual = sos.sos[i];
+                    let expected = expected_sos[i];
+                    assert_relative_eq!(actual.b[0], expected.b[0], max_relative = 1e-7);
+                    assert_relative_eq!(actual.b[1], expected.b[1], max_relative = 1e-7);
+                    assert_relative_eq!(actual.b[2], expected.b[2], max_relative = 1e-7);
+                    assert_relative_eq!(actual.a[0], expected.a[0], max_relative = 1e-7);
+                    assert_relative_eq!(actual.a[1], expected.a[1], max_relative = 1e-7);
+                    assert_relative_eq!(actual.a[2], expected.a[2], max_relative = 1e-7);
+                }
+            }
+            _ => panic!(),
+        }
+    }
+
+    #[cfg(feature = "alloc")]
+    #[test]
     fn matches_scipy_iirfilter_butter_ba() {
         let filter = butter_dyn::<f64>(
             4,
