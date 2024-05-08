@@ -168,7 +168,7 @@ where
         let p1 = p.remove(p1_idx);
 
         // Pair that pole with a zero
-        if p1.im.is_zero() && p.iter().map(|pi| pi.re).sum::<F>().is_zero() {
+        if p1.im.is_zero() && p.iter().filter(|pi| pi.im.is_zero()).count() == 0 {
             // Special case (1): last remaining real pole
             let sos_si = if matches!(pairing, ZpkPairing::Minimal) {
                 let z1_idx = nearest_real_complex_idx_dyn(&z, p1, WhichNearestComplex::Real);
