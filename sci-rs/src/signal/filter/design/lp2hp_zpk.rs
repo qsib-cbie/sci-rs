@@ -110,7 +110,7 @@ where
     let denom = zpk
         .p
         .iter()
-        .map(|pi| Complex::new(F::one(), F::zero()) * *pi)
+        .map(|pi| Complex::new(one_neg, F::zero()) * *pi)
         .fold(Complex::new(F::one(), F::zero()), |acc, pi| acc * pi);
     let k_hp = zpk.k * (num / denom).real();
 

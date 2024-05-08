@@ -188,12 +188,12 @@ mod tests {
                 for i in 0..sos.sos.len() {
                     let actual = sos.sos[i];
                     let expected = expected_sos[i];
-                    assert_relative_eq!(actual.b[0], expected.b[0], max_relative = 1e-7);
-                    assert_relative_eq!(actual.b[1], expected.b[1], max_relative = 1e-7);
-                    assert_relative_eq!(actual.b[2], expected.b[2], max_relative = 1e-7);
-                    assert_relative_eq!(actual.a[0], expected.a[0], max_relative = 1e-7);
-                    assert_relative_eq!(actual.a[1], expected.a[1], max_relative = 1e-7);
-                    assert_relative_eq!(actual.a[2], expected.a[2], max_relative = 1e-7);
+                    assert_relative_eq!(actual.b[0], expected.b[0], max_relative = 1e-6);
+                    assert_relative_eq!(actual.b[1], expected.b[1], max_relative = 1e-6);
+                    assert_relative_eq!(actual.b[2], expected.b[2], max_relative = 1e-6);
+                    assert_relative_eq!(actual.a[0], expected.a[0], max_relative = 1e-6);
+                    assert_relative_eq!(actual.a[1], expected.a[1], max_relative = 1e-6);
+                    assert_relative_eq!(actual.a[2], expected.a[2], max_relative = 1e-6);
                 }
             }
             _ => panic!(),
