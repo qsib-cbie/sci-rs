@@ -69,6 +69,11 @@ impl<F: RealField + Copy> Sos<F> {
             .map(|ba| Sos::new([*ba.0, *ba.1, *ba.2], [*ba.3, *ba.4, *ba.5]))
             .collect()
     }
+
+    /// Accessing the filter delay values
+    pub fn zi(&self) -> (F, F) {
+        (self.zi0, self.zi1)
+    }
 }
 
 #[cfg(test)]
