@@ -25,11 +25,10 @@ pub struct Sos<F: RealField + Copy> {
     /// Transfer coefficients denominator
     pub a: [F; 3],
 
-    ///
-    /// Filter Delay Values
-    ///
-    pub(crate) zi0: F,
-    pub(crate) zi1: F,
+    /// Filter delay value
+    pub zi0: F,
+    /// Filter delay value
+    pub zi1: F,
 }
 
 impl<F: RealField + Copy> Default for Sos<F> {
