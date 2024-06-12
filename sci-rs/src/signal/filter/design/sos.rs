@@ -25,11 +25,10 @@ pub struct Sos<F: RealField + Copy> {
     /// Transfer coefficients denominator
     pub a: [F; 3],
 
-    ///
-    /// Filter Delay Values
-    ///
-    pub(crate) zi0: F,
-    pub(crate) zi1: F,
+    /// Filter delay value
+    pub zi0: F,
+    /// Filter delay value
+    pub zi1: F,
 }
 
 impl<F: RealField + Copy> Default for Sos<F> {
@@ -68,11 +67,6 @@ impl<F: RealField + Copy> Sos<F> {
             .take(order)
             .map(|ba| Sos::new([*ba.0, *ba.1, *ba.2], [*ba.3, *ba.4, *ba.5]))
             .collect()
-    }
-
-    /// Accessing the filter delay values
-    pub fn zi(&self) -> (F, F) {
-        (self.zi0, self.zi1)
     }
 }
 
