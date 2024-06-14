@@ -1,5 +1,3 @@
-#![cfg(feature = "alloc")]
-
 use core::{borrow::Borrow, cmp::min, iter::Sum, ops::SubAssign};
 use nalgebra::{ClosedAdd, ClosedMul, DVector, RealField, Scalar};
 use num_traits::{Float, One, Zero};
