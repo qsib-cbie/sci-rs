@@ -1,7 +1,4 @@
-use core::{
-    borrow::Borrow,
-    mem::{transmute, transmute_copy, MaybeUninit},
-};
+use core::{borrow::Borrow, mem::MaybeUninit};
 use nalgebra::RealField;
 use num_traits::Float;
 
@@ -506,7 +503,7 @@ pub fn sosfilt_ifast32_n_st<const SECTIONS: usize, const CHANNELS: usize, I: Cop
         }
     }
     // todo: use array_assume_init once stabilized
-    let mut ctx: [FoldContext<'_>; CHANNELS] = unsafe { transmute_copy(&ctx) };
+    let mut ctx: [FoldContext<'_>; CHANNELS] = ctx.map(|c| unsafe { c.assume_init() });
 
     for i in 0..len {
         for j in 0..CHANNELS {
