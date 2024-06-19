@@ -1,7 +1,9 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use dasp_signal::{rate, Signal};
 use sci_rs::signal::filter::design::Sos;
-use sci_rs::signal::filter::{sosfilt_dyn, sosfilt_fast32_st};
+use sci_rs::signal::filter::{
+    sosfilt_dyn, sosfilt_fast32_st, sosfilt_ifast32_st, FilterChannel, SosfiltIsize32N,
+};
 
 // TLDR: 8.5x faster
 // sosfilt_st is as fast as sosfilt_dyn
@@ -297,6 +299,113 @@ fn butter_sosfilt_fast32_st8(c: &mut Criterion) {
     });
 }
 
+///
+/// Simulate filtering x, y, and z data from an accelerometer with a 4th order lowpass filter
+///
+/// ```
+/// // with tiling specialization
+/// sosfilt_fast32_st4       time:   [78.412 µs 79.758 µs 81.399 µs]
+/// sosfilt_fast32_st8       time:   [133.39 µs 133.73 µs 134.08 µs]
+///
+/// // without tiling specialization
+/// sosfilt_fast32_st8      time:   [536.05 µs 537.17 µs 538.31 µs]
+///    change: [+300.64% +301.99% +303.35%] (p = 0.00 < 0.05)
+///    Performance has regressed.
+/// ```
+///
+///
+fn butter_sosfilt_ifast32_multi3_st4(c: &mut Criterion) {
+    // 4th order butterworth lowpass 500 for 1666Hz
+    let filter: [f32; 12] = [
+        0.1673927, 0.3347854, 0.1673927, 1.0, 0.32977713, 0.06470984, 1.0, 2.0, 1.0, 1.0,
+        0.45420102, 0.46642158,
+    ];
+
+    let sos = Sos::from_scipy_dyn(4, filter.to_vec());
+
+    // A signal with a frequency that we can recover
+    let sample_hz = 1666.;
+    let seconds = 10;
+    let mut signal = rate(sample_hz).const_hz(25.).sine();
+    let sin_wave: Vec<isize> = (0..seconds * sample_hz as usize)
+        .map(|_| {
+            // scale to i16 then store as a word
+            (signal.next() * 32767.) as isize
+        })
+        .collect::<Vec<_>>();
+    let mut buf0 = vec![0.0; sin_wave.len()];
+    let mut buf1 = vec![0.0; sin_wave.len()];
+    let mut buf2 = vec![0.0; sin_wave.len()];
+    let mut sos0 = sos.clone();
+    let mut sos1 = sos.clone();
+    let mut sos2 = sos;
+
+    c.bench_function("sosfilt_ifast32_multi3_st4", |b| {
+        b.iter(|| {
+            black_box({
+                let channels = [
+                    FilterChannel {
+                        y: &sin_wave,
+                        z: &mut buf0,
+                        sos: &mut sos0,
+                    },
+                    FilterChannel {
+                        y: &sin_wave,
+                        z: &mut buf1,
+                        sos: &mut sos1,
+                    },
+                    FilterChannel {
+                        y: &sin_wave,
+                        z: &mut buf2,
+                        sos: &mut sos2,
+                    },
+                ];
+                SosfiltIsize32N::sosfilt_isize_32_n::<2, 3>(channels);
+            });
+        });
+    });
+}
+
+///
+/// Simulate consecutive filtering x, y, and z data from an accelerometer with a 4th order lowpass filter
+///
+fn butter_sosfilt_ifast32_seq_st4(c: &mut Criterion) {
+    // 4th order butterworth lowpass 500 for 1666Hz
+    let filter: [f32; 12] = [
+        0.1673927, 0.3347854, 0.1673927, 1.0, 0.32977713, 0.06470984, 1.0, 2.0, 1.0, 1.0,
+        0.45420102, 0.46642158,
+    ];
+
+    let sos = Sos::from_scipy_dyn(4, filter.to_vec());
+    let mut filters = [sos.clone(), sos.clone(), sos];
+
+    // A signal with a frequency that we can recover
+    let sample_hz = 1666.;
+    let seconds = 10;
+    let mut signal = rate(sample_hz).const_hz(25.).sine();
+    let sin_wave: Vec<isize> = (0..seconds * sample_hz as usize)
+        .map(|_| {
+            // scale to i16 then store as a word
+            (signal.next() * 32767.) as isize
+        })
+        .collect::<Vec<_>>();
+    let mut buf = [
+        vec![0.0; sin_wave.len()],
+        vec![0.0; sin_wave.len()],
+        vec![0.0; sin_wave.len()],
+    ];
+
+    c.bench_function("sosfilt_ifast32_seq3_st4", |b| {
+        b.iter(|| {
+            black_box({
+                sosfilt_ifast32_st(&sin_wave, &mut filters[0], &mut buf[0]);
+                sosfilt_ifast32_st(&sin_wave, &mut filters[1], &mut buf[1]);
+                sosfilt_ifast32_st(&sin_wave, &mut filters[2], &mut buf[2]);
+            });
+        });
+    });
+}
+
 criterion_group!(
     benches,
     butter_sosfilt_100x_dyn,
@@ -304,5 +413,7 @@ criterion_group!(
     butter_sosfilt_f32,
     butter_sosfilt_fast32_st4,
     butter_sosfilt_fast32_st8,
+    butter_sosfilt_ifast32_multi3_st4,
+    butter_sosfilt_ifast32_seq_st4
 );
 criterion_main!(benches);

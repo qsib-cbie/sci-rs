@@ -60,7 +60,8 @@ impl<F: RealField + Copy> Sos<F> {
     /// from a vector floats from scipy
     #[cfg(feature = "alloc")]
     pub fn from_scipy_dyn(order: usize, sos: Vec<F>) -> Vec<Sos<F>> {
-        assert!(order * 6 == sos.len());
+        // If double sided, we have two sets of coefficients
+        assert!(order * 3 == sos.len() || order * 6 == sos.len());
 
         sos.iter()
             .tuples::<(&F, &F, &F, &F, &F, &F)>()

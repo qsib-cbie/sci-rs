@@ -440,6 +440,93 @@ where
     _sosfilt_isize_32(y, sos, z);
 }
 
+struct FoldContext<'a> {
+    zi: &'a mut f32,
+    sos: &'a mut [Sos32],
+}
+
+///
+/// A context for filtering a single channel of samples.
+///
+pub struct FilterChannel<'a, I: Copy + Into<isize>> {
+    /// Input words to filter
+    pub y: &'a [I],
+    /// Output samples that have passed through the filter
+    pub z: &'a mut [f32],
+    /// Current filter coefficients and state
+    pub sos: &'a mut [Sos32],
+}
+
+///
+/// Process multiple channels of samples at the same time.
+/// The compiler may optimize this by interleaving, pipelining, and SIMD'ing.
+///
+#[inline(always)]
+fn biquad_fold_n<const M: usize, const N: usize>(channels: &mut [FoldContext; N]) {
+    for j in 0..M {
+        for channel in channels.iter_mut() {
+            let sos = unsafe {
+                // each channel's sos len may be unknown to compiler
+                channel.sos.get_unchecked_mut(j)
+            };
+            let x = sos.b[0] * *channel.zi + sos.zi0;
+            sos.zi0 = sos.b[1] * *channel.zi - sos.a[1] * x + sos.zi1;
+            sos.zi1 = sos.b[2] * *channel.zi - sos.a[2] * x;
+            *channel.zi = x;
+        }
+    }
+}
+
+///
+/// A struct for filtering isizes into f32s with multiple channels at the same time
+///
+#[derive(Default)]
+pub struct SosfiltIsize32N<I: Copy + Into<isize>> {
+    _phantom: core::marker::PhantomData<I>,
+}
+
+impl<'a, I: Copy + Into<isize> + 'a> SosfiltIsize32N<I> {
+    /// filter
+    pub fn sosfilt_isize_32_n<const SECTIONS: usize, const CHANNELS: usize>(
+        channels: [FilterChannel<I>; CHANNELS],
+    ) {
+        // Ensure that the channel computatoin can be interleaved
+        let Some(len) = channels.first().map(|c| c.y.len()) else {
+            return;
+        };
+
+        if channels
+            .iter()
+            .any(|c| c.y.len() != len || c.z.len() != len)
+        {
+            panic!("Mismatched channel lengths");
+        }
+
+        if channels.iter().any(|c| c.sos.len() != SECTIONS) {
+            panic!("Mismatched filter lengths");
+        }
+
+        let mut ctx: [MaybeUninit<FoldContext<'_>>; CHANNELS] =
+            [const { MaybeUninit::uninit() }; CHANNELS];
+        for j in 0..CHANNELS {
+            ctx[j].write(FoldContext {
+                zi: unsafe { &mut *(&mut channels[j].z[0] as *mut f32) },
+                // unsound ... hand out pointers to unique slices
+                sos: unsafe { &mut *(channels[j].sos as *mut [Sos32]) },
+            });
+        }
+        let mut ctx: [FoldContext<'_>; CHANNELS] = unsafe { MaybeUninit::array_assume_init(ctx) };
+
+        for i in 0..len {
+            for j in 0..CHANNELS {
+                ctx[j].zi = unsafe { &mut *(channels[j].z.get_unchecked_mut(i) as *mut f32) };
+                *ctx[j].zi = Into::<isize>::into(unsafe { *channels[j].y.get_unchecked(i) }) as f32;
+            }
+            biquad_fold_n::<SECTIONS, CHANNELS>(&mut ctx);
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

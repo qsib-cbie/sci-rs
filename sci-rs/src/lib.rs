@@ -19,6 +19,7 @@
 #![allow(unused)]
 #![cfg_attr(not(feature = "std"), no_std)]
 #![deny(missing_docs)]
+#![feature(maybe_uninit_array_assume_init)]
 
 #[cfg(feature = "alloc")]
 extern crate alloc;
