@@ -2,7 +2,7 @@ use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use dasp_signal::{rate, Signal};
 use sci_rs::signal::filter::design::Sos;
 use sci_rs::signal::filter::{
-    sosfilt_dyn, sosfilt_fast32_st, sosfilt_ifast32_st, FilterChannel, SosfiltIsize32N,
+    sosfilt_dyn, sosfilt_fast32_st, sosfilt_ifast32_n_st, sosfilt_ifast32_st, FilterChannel,
 };
 
 // TLDR: 8.5x faster
@@ -355,7 +355,7 @@ fn butter_sosfilt_ifast32_multi4_st4(c: &mut Criterion) {
                         sos: &mut sos3,
                     },
                 ];
-                SosfiltIsize32N::sosfilt_isize_32_n::<2, 4>(channels);
+                sosfilt_ifast32_n_st::<2, 4, _>(channels);
             });
         });
     });
@@ -452,7 +452,7 @@ fn butter_sosfilt_ifast32_multi3_st4(c: &mut Criterion) {
                         sos: &mut sos2,
                     },
                 ];
-                SosfiltIsize32N::sosfilt_isize_32_n::<2, 3>(channels);
+                sosfilt_ifast32_n_st::<2, 3, _>(channels);
             });
         });
     });

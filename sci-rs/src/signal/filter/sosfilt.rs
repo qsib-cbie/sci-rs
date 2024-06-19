@@ -1,6 +1,6 @@
 use core::{
     borrow::Borrow,
-    mem::{transmute, MaybeUninit},
+    mem::{transmute, transmute_copy, MaybeUninit},
 };
 use nalgebra::RealField;
 use num_traits::Float;
@@ -474,56 +474,46 @@ fn biquad_fold_n<const M: usize, const N: usize>(channels: &mut [FoldContext; N]
         }
     }
 }
+/// Filter multiple channels at the same time. This may be faster than filtering them consecutively.
+pub fn sosfilt_ifast32_n_st<const SECTIONS: usize, const CHANNELS: usize, I: Copy + Into<isize>>(
+    channels: [FilterChannel<I>; CHANNELS],
+) {
+    // Ensure that the channel computatoin can be interleaved
+    let Some(len) = channels.first().map(|c| c.y.len()) else {
+        return;
+    };
 
-///
-/// A struct for filtering isizes into f32s with multiple channels at the same time
-///
-#[derive(Default)]
-pub struct SosfiltIsize32N<I: Copy + Into<isize>> {
-    _phantom: core::marker::PhantomData<I>,
-}
+    if channels
+        .iter()
+        .any(|c| c.y.len() != len || c.z.len() != len)
+    {
+        panic!("Mismatched channel lengths");
+    }
 
-impl<'a, I: Copy + Into<isize> + 'a> SosfiltIsize32N<I> {
-    /// Filter multiple channels at the same time. This may be faster than filtering them consecutively.
-    pub fn sosfilt_isize_32_n<const SECTIONS: usize, const CHANNELS: usize>(
-        channels: [FilterChannel<I>; CHANNELS],
-    ) {
-        // Ensure that the channel computatoin can be interleaved
-        let Some(len) = channels.first().map(|c| c.y.len()) else {
-            return;
-        };
+    if channels.iter().any(|c| c.sos.len() != SECTIONS) {
+        panic!("Mismatched filter lengths");
+    }
 
-        if channels
-            .iter()
-            .any(|c| c.y.len() != len || c.z.len() != len)
-        {
-            panic!("Mismatched channel lengths");
+    // Try to get an array (length known) without allocation
+    let mut ctx: [MaybeUninit<FoldContext<'_>>; CHANNELS] =
+        [const { MaybeUninit::uninit() }; CHANNELS];
+    unsafe {
+        for j in 0..CHANNELS {
+            ctx[j].write(FoldContext {
+                zi: unsafe { &mut *(&mut channels[j].z[0] as *mut f32) },
+                sos: unsafe { &mut *(channels[j].sos as *mut [Sos32]) },
+            });
         }
+    }
+    // todo: use array_assume_init once stabilized
+    let mut ctx: [FoldContext<'_>; CHANNELS] = unsafe { transmute_copy(&ctx) };
 
-        if channels.iter().any(|c| c.sos.len() != SECTIONS) {
-            panic!("Mismatched filter lengths");
+    for i in 0..len {
+        for j in 0..CHANNELS {
+            ctx[j].zi = unsafe { &mut *(channels[j].z.get_unchecked_mut(i) as *mut f32) };
+            *ctx[j].zi = Into::<isize>::into(unsafe { *channels[j].y.get_unchecked(i) }) as f32;
         }
-
-        // Try to get an array (length known) without allocation
-        let mut ctx: [MaybeUninit<FoldContext<'_>>; CHANNELS] =
-            [const { MaybeUninit::uninit() }; CHANNELS];
-        unsafe {
-            for j in 0..CHANNELS {
-                ctx[j].write(FoldContext {
-                    zi: unsafe { &mut *(&mut channels[j].z[0] as *mut f32) },
-                    sos: unsafe { &mut *(channels[j].sos as *mut [Sos32]) },
-                });
-            }
-        }
-        let mut ctx: [FoldContext<'_>; CHANNELS] = unsafe { MaybeUninit::array_assume_init(ctx) };
-
-        for i in 0..len {
-            for j in 0..CHANNELS {
-                ctx[j].zi = unsafe { &mut *(channels[j].z.get_unchecked_mut(i) as *mut f32) };
-                *ctx[j].zi = Into::<isize>::into(unsafe { *channels[j].y.get_unchecked(i) }) as f32;
-            }
-            biquad_fold_n::<SECTIONS, CHANNELS>(&mut ctx);
-        }
+        biquad_fold_n::<SECTIONS, CHANNELS>(&mut ctx);
     }
 }
 
