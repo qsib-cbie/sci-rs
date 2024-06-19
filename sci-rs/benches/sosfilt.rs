@@ -300,6 +300,110 @@ fn butter_sosfilt_fast32_st8(c: &mut Criterion) {
 }
 
 ///
+/// Simulate interleaved filtering alpha, x, y, and z data from an accelerometer with a 4th order lowpass filter
+///
+fn butter_sosfilt_ifast32_multi4_st4(c: &mut Criterion) {
+    // 4th order butterworth lowpass 500 for 1666Hz
+    let filter: [f32; 12] = [
+        0.1673927, 0.3347854, 0.1673927, 1.0, 0.32977713, 0.06470984, 1.0, 2.0, 1.0, 1.0,
+        0.45420102, 0.46642158,
+    ];
+
+    let sos = Sos::from_scipy_dyn(4, filter.to_vec());
+
+    // A signal with a frequency that we can recover
+    let sample_hz = 1666.;
+    let seconds = 10;
+    let mut signal = rate(sample_hz).const_hz(25.).sine();
+    let sin_wave: Vec<isize> = (0..seconds * sample_hz as usize)
+        .map(|_| {
+            // scale to i16 then store as a word
+            (signal.next() * 32767.) as isize
+        })
+        .collect::<Vec<_>>();
+    let mut buf0 = vec![0.0; sin_wave.len()];
+    let mut buf1 = vec![0.0; sin_wave.len()];
+    let mut buf2 = vec![0.0; sin_wave.len()];
+    let mut buf3 = vec![0.0; sin_wave.len()];
+    let mut sos0 = sos.clone();
+    let mut sos1 = sos.clone();
+    let mut sos2 = sos.clone();
+    let mut sos3 = sos;
+
+    c.bench_function("sosfilt_ifast32_multi4_st4", |b| {
+        b.iter(|| {
+            black_box({
+                let channels = [
+                    FilterChannel {
+                        y: &sin_wave,
+                        z: &mut buf0,
+                        sos: &mut sos0,
+                    },
+                    FilterChannel {
+                        y: &sin_wave,
+                        z: &mut buf1,
+                        sos: &mut sos1,
+                    },
+                    FilterChannel {
+                        y: &sin_wave,
+                        z: &mut buf2,
+                        sos: &mut sos2,
+                    },
+                    FilterChannel {
+                        y: &sin_wave,
+                        z: &mut buf3,
+                        sos: &mut sos3,
+                    },
+                ];
+                SosfiltIsize32N::sosfilt_isize_32_n::<2, 4>(channels);
+            });
+        });
+    });
+}
+
+///
+/// Simulate consecutive filtering alpha, x, y, and z data from an accelerometer with a 4th order lowpass filter
+///
+fn butter_sosfilt_ifast32_seq4_st4(c: &mut Criterion) {
+    // 4th order butterworth lowpass 500 for 1666Hz
+    let filter: [f32; 12] = [
+        0.1673927, 0.3347854, 0.1673927, 1.0, 0.32977713, 0.06470984, 1.0, 2.0, 1.0, 1.0,
+        0.45420102, 0.46642158,
+    ];
+
+    let sos = Sos::from_scipy_dyn(4, filter.to_vec());
+    let mut filters = [sos.clone(), sos.clone(), sos.clone(), sos];
+
+    // A signal with a frequency that we can recover
+    let sample_hz = 1666.;
+    let seconds = 10;
+    let mut signal = rate(sample_hz).const_hz(25.).sine();
+    let sin_wave: Vec<isize> = (0..seconds * sample_hz as usize)
+        .map(|_| {
+            // scale to i16 then store as a word
+            (signal.next() * 32767.) as isize
+        })
+        .collect::<Vec<_>>();
+    let mut buf = [
+        vec![0.0; sin_wave.len()],
+        vec![0.0; sin_wave.len()],
+        vec![0.0; sin_wave.len()],
+        vec![0.0; sin_wave.len()],
+    ];
+
+    c.bench_function("sosfilt_ifast32_seq4_st4", |b| {
+        b.iter(|| {
+            black_box({
+                sosfilt_ifast32_st(&sin_wave, &mut filters[0], &mut buf[0]);
+                sosfilt_ifast32_st(&sin_wave, &mut filters[1], &mut buf[1]);
+                sosfilt_ifast32_st(&sin_wave, &mut filters[2], &mut buf[2]);
+                sosfilt_ifast32_st(&sin_wave, &mut filters[3], &mut buf[3]);
+            });
+        });
+    });
+}
+
+///
 /// Simulate interleaved filtering x, y, and z data from an accelerometer with a 4th order lowpass filter
 ///
 fn butter_sosfilt_ifast32_multi3_st4(c: &mut Criterion) {
@@ -357,7 +461,7 @@ fn butter_sosfilt_ifast32_multi3_st4(c: &mut Criterion) {
 ///
 /// Simulate consecutive filtering x, y, and z data from an accelerometer with a 4th order lowpass filter
 ///
-fn butter_sosfilt_ifast32_seq_st4(c: &mut Criterion) {
+fn butter_sosfilt_ifast32_seq3_st4(c: &mut Criterion) {
     // 4th order butterworth lowpass 500 for 1666Hz
     let filter: [f32; 12] = [
         0.1673927, 0.3347854, 0.1673927, 1.0, 0.32977713, 0.06470984, 1.0, 2.0, 1.0, 1.0,
@@ -402,6 +506,8 @@ criterion_group!(
     butter_sosfilt_fast32_st4,
     butter_sosfilt_fast32_st8,
     butter_sosfilt_ifast32_multi3_st4,
-    butter_sosfilt_ifast32_seq_st4
+    butter_sosfilt_ifast32_seq3_st4,
+    butter_sosfilt_ifast32_multi4_st4,
+    butter_sosfilt_ifast32_seq4_st4
 );
 criterion_main!(benches);

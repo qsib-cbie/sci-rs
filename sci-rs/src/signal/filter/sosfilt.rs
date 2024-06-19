@@ -464,11 +464,9 @@ pub struct FilterChannel<'a, I: Copy + Into<isize>> {
 #[inline(always)]
 fn biquad_fold_n<const M: usize, const N: usize>(channels: &mut [FoldContext; N]) {
     for j in 0..M {
-        for channel in channels.iter_mut() {
-            let sos = unsafe {
-                // each channel's sos len may be unknown to compiler
-                channel.sos.get_unchecked_mut(j)
-            };
+        for k in 0..N {
+            let channel = &mut channels[k];
+            let sos = &mut channel.sos[j];
             let x = sos.b[0] * *channel.zi + sos.zi0;
             sos.zi0 = sos.b[1] * *channel.zi - sos.a[1] * x + sos.zi1;
             sos.zi1 = sos.b[2] * *channel.zi - sos.a[2] * x;
