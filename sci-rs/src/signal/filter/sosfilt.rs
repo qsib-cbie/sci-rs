@@ -486,7 +486,7 @@ pub struct SosfiltIsize32N<I: Copy + Into<isize>> {
 }
 
 impl<'a, I: Copy + Into<isize> + 'a> SosfiltIsize32N<I> {
-    /// filter
+    /// Filter multiple channels at the same time. This may be faster than filtering them consecutively.
     pub fn sosfilt_isize_32_n<const SECTIONS: usize, const CHANNELS: usize>(
         channels: [FilterChannel<I>; CHANNELS],
     ) {
@@ -506,14 +506,16 @@ impl<'a, I: Copy + Into<isize> + 'a> SosfiltIsize32N<I> {
             panic!("Mismatched filter lengths");
         }
 
+        // Try to get an array (length known) without allocation
         let mut ctx: [MaybeUninit<FoldContext<'_>>; CHANNELS] =
             [const { MaybeUninit::uninit() }; CHANNELS];
-        for j in 0..CHANNELS {
-            ctx[j].write(FoldContext {
-                zi: unsafe { &mut *(&mut channels[j].z[0] as *mut f32) },
-                // unsound ... hand out pointers to unique slices
-                sos: unsafe { &mut *(channels[j].sos as *mut [Sos32]) },
-            });
+        unsafe {
+            for j in 0..CHANNELS {
+                ctx[j].write(FoldContext {
+                    zi: unsafe { &mut *(&mut channels[j].z[0] as *mut f32) },
+                    sos: unsafe { &mut *(channels[j].sos as *mut [Sos32]) },
+                });
+            }
         }
         let mut ctx: [FoldContext<'_>; CHANNELS] = unsafe { MaybeUninit::array_assume_init(ctx) };
 

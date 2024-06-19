@@ -300,19 +300,7 @@ fn butter_sosfilt_fast32_st8(c: &mut Criterion) {
 }
 
 ///
-/// Simulate filtering x, y, and z data from an accelerometer with a 4th order lowpass filter
-///
-/// ```
-/// // with tiling specialization
-/// sosfilt_fast32_st4       time:   [78.412 µs 79.758 µs 81.399 µs]
-/// sosfilt_fast32_st8       time:   [133.39 µs 133.73 µs 134.08 µs]
-///
-/// // without tiling specialization
-/// sosfilt_fast32_st8      time:   [536.05 µs 537.17 µs 538.31 µs]
-///    change: [+300.64% +301.99% +303.35%] (p = 0.00 < 0.05)
-///    Performance has regressed.
-/// ```
-///
+/// Simulate interleaved filtering x, y, and z data from an accelerometer with a 4th order lowpass filter
 ///
 fn butter_sosfilt_ifast32_multi3_st4(c: &mut Criterion) {
     // 4th order butterworth lowpass 500 for 1666Hz
