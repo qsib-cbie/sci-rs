@@ -194,10 +194,10 @@ mod tests {
 
     use super::*;
 
-    #[cfg(feature = "alloc")]
+    #[cfg(all(feature = "alloc", feature = "std"))]
     #[test]
     fn matches_scipy_example() {
-        let z: Vec<_> = vec![
+        let z = vec![
             Complex::new(1., 0.),
             Complex::new(1., 0.),
             Complex::new(1., 0.),
@@ -209,7 +209,7 @@ mod tests {
         ];
 
         let expected_zc: Vec<Complex<f64>> = Vec::new();
-        let expected_zr: Vec<_> = vec![
+        let expected_zr = vec![
             Complex::new(1., 0.),
             Complex::new(1., 0.),
             Complex::new(1., 0.),
@@ -228,7 +228,7 @@ mod tests {
             assert_relative_eq!(e.im, a.im, max_relative = 1e-7);
         });
 
-        let z: Vec<_> = vec![
+        let z = vec![
             Complex::new(0.98924866, -0.03710237),
             Complex::new(0.96189799, -0.03364097),
             Complex::new(0.96189799, 0.03364097),
@@ -239,7 +239,7 @@ mod tests {
             Complex::new(0.93873849, -0.16792939),
         ];
 
-        let expected_zc: Vec<_> = vec![
+        let expected_zc = vec![
             Complex::new(0.89956011, 0.08396115),
             Complex::new(0.93873849, 0.16792939),
             Complex::new(0.96189799, 0.03364097),

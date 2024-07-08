@@ -16,21 +16,33 @@ jobs:
     name: Build and Test
     runs-on: ubuntu-latest
     steps:
+    # Setup
     - uses: actions/checkout@v3
     - name: Install latest stable
-      uses: dtolnay/rust-toolchain@stable
+      uses: actions-rust-lang/setup-rust-toolchain@v1
       with:
         components: clippy
+
+    # Build
     - name: Build no features
       run: cargo build --verbose --no-default-features
     - name: Build alloc
       run: cargo build --verbose --features alloc
     - name: Build all features
       run: cargo build --verbose --all-features
-    - name: Run tests
+
+    # Tests
+    - name: Run tests (no features)
+      run: cargo test --verbose --no-default-features
+    - name: Run tests (alloc, no std)
+      run: cargo test --verbose --no-default-features --features alloc
+    - name: Run tests (all features)
       run: cargo test --verbose --all-features
+
+    # Benchmarks
     - name: Run benchmarks
       run: cargo bench --verbose --all-features
+
     - name: Run doctests
       if: success() || failure()
       run: cargo test --doc

@@ -120,11 +120,10 @@ where
 
 #[cfg(test)]
 mod tests {
+    use super::*;
     use approx::assert_relative_eq;
 
-    use super::*;
-
-    #[cfg(feature = "alloc")]
+    #[cfg(all(feature = "alloc", feature = "std"))]
     #[test]
     fn matches_scipy_example_highpass() {
         //zo = [1. 1. 1. 1.]
@@ -151,8 +150,8 @@ mod tests {
         //z1 = [0.16892363 0.16892363 0.16892363 0.16892363]
         //p1 = [0.17875212+0.03151608j 0.20068502+0.20068502j 0.20068502-0.01465616j 0.17875212-0.03151608j]
         //k1 = 1.2799346870309942
-        let expected_z: Vec<_> = vec![Complex::new(0.16892363, 0.16892363); 4];
-        let expected_p: Vec<_> = vec![
+        let expected_z = vec![Complex::new(0.16892363, 0.16892363); 4];
+        let expected_p = vec![
             Complex::new(0.17875212, 0.03151608),
             Complex::new(0.20068502, 0.01465616),
             Complex::new(0.20068502, -0.01465616),
@@ -175,7 +174,8 @@ mod tests {
 
         assert_relative_eq!(actual_zpk.k, expected_k, max_relative = 1e-8);
     }
-    #[cfg(feature = "alloc")]
+
+    #[cfg(all(feature = "alloc", feature = "std"))]
     #[test]
     fn matches_scipy_example_highpass_two() {
         //zo = [1. 1. 1. 1.]
@@ -202,8 +202,8 @@ mod tests {
         //z1 = [0.1216 0.1216 0.1216 0.1216]
         //p1 = [0.13072233+0.03503196j 0.15726189+0.01745671j 0.15726189-0.01745671j 0.13072233-0.03503196j]
         //k1 = 1.4481908047355312
-        let expected_z: Vec<_> = vec![Complex::new(0.1216, 0.1216); 4];
-        let expected_p: Vec<_> = vec![
+        let expected_z = vec![Complex::new(0.1216, 0.1216); 4];
+        let expected_p = vec![
             Complex::new(0.1307223, 0.03503196),
             Complex::new(0.15726189, 0.01745671),
             Complex::new(0.15726189, -0.01745671),
@@ -227,7 +227,7 @@ mod tests {
         assert_relative_eq!(actual_zpk.k, expected_k, max_relative = 1e-6);
     }
 
-    #[cfg(feature = "alloc")]
+    #[cfg(all(feature = "alloc", feature = "std"))]
     #[test]
     fn matches_scipy_example_highpass_three() {
         // >>> butter(5,[2],btype='hp',output='zpk',fs=600)

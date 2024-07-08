@@ -261,7 +261,7 @@ mod tests {
         }
     }
 
-    #[cfg(feature = "alloc")]
+    #[cfg(all(feature = "alloc", feature = "std"))]
     #[test]
     fn matches_scipy_iirfilter_butter_zpk() {
         let expected_zpk: ZpkFormatFilter<f64> = ZpkFormatFilter::new(
@@ -319,7 +319,7 @@ mod tests {
         }
     }
 
-    #[cfg(feature = "alloc")]
+    #[cfg(all(feature = "alloc", feature = "std"))]
     #[test]
     fn matches_scipy_iirfilter_butter_sos() {
         let filter = iirfilter_dyn::<f64>(
@@ -373,7 +373,7 @@ mod tests {
         }
     }
 
-    #[cfg(feature = "alloc")]
+    #[cfg(all(feature = "alloc", feature = "std"))]
     #[test]
     fn matches_scipy_iirfilter_butter_ba() {
         let filter = iirfilter_dyn::<f64>(
@@ -431,7 +431,7 @@ mod tests {
         }
     }
 
-    #[cfg(feature = "alloc")]
+    #[cfg(all(feature = "alloc", feature = "std"))]
     #[test]
     fn matches_scipy_iirfilter_butter_zpk_highpass() {
         //zo = [1. 1. 1. 1.]
@@ -484,7 +484,7 @@ mod tests {
         }
     }
 
-    #[cfg(feature = "alloc")]
+    #[cfg(all(feature = "alloc", feature = "std"))]
     #[test]
     fn matches_scipy_iirfilter_butter_zpk_lowpass() {
         //z1 = [-1. -1. -1. -1.]

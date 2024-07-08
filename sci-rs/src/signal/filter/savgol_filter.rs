@@ -117,6 +117,7 @@ mod tests {
     use super::*;
     use approx::*;
 
+    #[cfg(feature = "std")]
     #[test]
     pub fn can_filter() {
         let v = savgol_filter_dyn((0..100).map(|i| i as f32), 11, 2);

@@ -461,12 +461,13 @@ where
 
 #[cfg(test)]
 mod tests {
-    use approx::assert_relative_eq;
-    use std::f64::consts::PI;
-    use std::vec::Vec;
-
     use super::*;
+    use approx::assert_relative_eq;
 
+    #[cfg(feature = "std")]
+    use {std::f64::consts::PI, std::vec::Vec};
+
+    #[cfg(feature = "std")]
     #[test]
     fn can_median() {
         let y: [f64; 4] = [1., 2., 3., 4.];
@@ -479,6 +480,7 @@ mod tests {
         assert_relative_eq!(3.0, median::<_, f64>(y.iter()).0);
     }
 
+    #[cfg(feature = "std")]
     #[test]
     fn can_autocorrelate() {
         // sin wave w/ multiple periods

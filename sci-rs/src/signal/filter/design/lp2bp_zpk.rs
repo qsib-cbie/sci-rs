@@ -118,11 +118,10 @@ where
 
 #[cfg(test)]
 mod tests {
+    use super::*;
     use approx::assert_relative_eq;
 
-    use super::*;
-
-    #[cfg(feature = "alloc")]
+    #[cfg(all(feature = "alloc", feature = "std"))]
     #[test]
     fn matches_scipy_example() {
         // butter(4, [10, 50], btype='bandpass', output='sos', fs=1666)
@@ -139,8 +138,8 @@ mod tests {
         let wo = 0.16892363165758506;
         let bw = 0.30282619318434084;
 
-        let expected_z: Vec<_> = vec![Complex::new(0., 0.); 4];
-        let expected_p: Vec<_> = vec![
+        let expected_z = vec![Complex::new(0., 0.); 4];
+        let expected_p = vec![
             Complex::new(-0.02022036, -0.07498294),
             Complex::new(-0.07648538, -0.06990013),
             Complex::new(-0.07648538, 0.06990013),

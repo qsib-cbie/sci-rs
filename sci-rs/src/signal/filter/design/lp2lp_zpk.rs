@@ -75,11 +75,10 @@ where
 
 #[cfg(test)]
 mod tests {
+    use super::*;
     use approx::assert_relative_eq;
 
-    use super::*;
-
-    #[cfg(feature = "alloc")]
+    #[cfg(all(feature = "alloc", feature = "std"))]
     #[test]
     fn matches_scipy_example_lowpass() {
         // signal.butter(4, 10, btype='lowpass', output='sos', fs=1666)
@@ -106,8 +105,8 @@ mod tests {
         // z1 = [-0.16892363 -0.16892363 -0.16892363 -0.16892363]
         // p1 = [0.16640246+0.00580077j 0.16312117+0.00235538j 0.16312117-0.00235538j 0.16640246-0.00580077j]
         // k1 = 1.204213960778651e-07
-        let expected_z: Vec<_> = vec![Complex::new(-0.16892363, -0.16892363); 4];
-        let expected_p: Vec<_> = vec![
+        let expected_z = vec![Complex::new(-0.16892363, -0.16892363); 4];
+        let expected_p = vec![
             Complex::new(0.16640246, 0.00580077),
             Complex::new(0.16312117, 0.00235538),
             Complex::new(0.16312117, -0.00235538),

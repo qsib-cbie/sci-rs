@@ -46,14 +46,12 @@ where
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+    use crate::signal::filter::design::ZpkFormatFilter;
     use approx::assert_relative_eq;
     use nalgebra::Complex;
 
-    use crate::signal::filter::design::ZpkFormatFilter;
-
-    use super::*;
-
-    #[cfg(feature = "alloc")]
+    #[cfg(all(feature = "alloc", feature = "std"))]
     #[test]
     fn matches_scipy_iirfilter_butter_zpk() {
         let expected_zpk: ZpkFormatFilter<f64> = ZpkFormatFilter::new(
@@ -108,7 +106,7 @@ mod tests {
         }
     }
 
-    #[cfg(feature = "alloc")]
+    #[cfg(all(feature = "alloc", feature = "std"))]
     #[test]
     fn matches_scipy_iirfilter_butter_sos() {
         let filter = butter_dyn::<f64>(
@@ -159,7 +157,7 @@ mod tests {
         }
     }
 
-    #[cfg(feature = "alloc")]
+    #[cfg(all(feature = "alloc", feature = "std"))]
     #[test]
     fn matches_scipy_iirfilter_butter_sos_highpass() {
         let filter = butter_dyn::<f64>(
@@ -200,7 +198,7 @@ mod tests {
         }
     }
 
-    #[cfg(feature = "alloc")]
+    #[cfg(all(feature = "alloc", feature = "std"))]
     #[test]
     fn matches_scipy_iirfilter_butter_ba() {
         let filter = butter_dyn::<f64>(
