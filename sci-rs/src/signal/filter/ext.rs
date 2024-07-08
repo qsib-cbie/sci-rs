@@ -228,20 +228,19 @@ where
 
 #[cfg(test)]
 mod tests {
-    use nalgebra::matrix;
-
     use super::*;
 
+    #[cfg(feature = "std")]
     #[test]
     fn scipy_example_dyn() {
         // a = np.array([[1, 2, 3, 4, 5], [0, 1, 4, 9, 16]])
-        let a = matrix!(
+        let a = nalgebra::matrix!(
             1,2,3,4,5;
             0,1,4,9,16;
         );
 
         // odd_ext(a, 1, axis = 0)
-        let scipy_rows = matrix!(
+        let scipy_rows = nalgebra::matrix!(
             2,  3 , 2, -1, -6;
             1,  2 , 3,  4,  5;
             0,  1 , 4,  9, 16;
@@ -251,21 +250,21 @@ mod tests {
         assert_eq!(scipy_rows, row_ext);
 
         // odd_ext(a, 2)
-        let scipy_cols = matrix!(
+        let scipy_cols = nalgebra::matrix!(
             -1,  0,  1,  2 , 3  ,4  ,5  ,6  ,7;
             -4, -1,  0,  1 , 4  ,9 ,16 ,23 ,28
         );
         let col_ext = odd_ext_dyn(a, 2, 1);
         assert_eq!(scipy_cols, col_ext);
 
-        let a = matrix!(
+        let a = nalgebra::matrix!(
             1,2,3,4,5;
             0,1,4,9,16;
             0,1,8,27,64;
         );
 
         // odd_ext(a, 1, axis = 0)
-        let scipy_rows = matrix!(
+        let scipy_rows = nalgebra::matrix!(
             2   ,3  ,-2 ,-19 ,-54;
             2   ,3   ,2  ,-1  ,-6;
             1   ,2   ,3   ,4   ,5;

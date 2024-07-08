@@ -38,11 +38,10 @@ where
 
 #[cfg(test)]
 mod tests {
-    use approx::assert_relative_eq;
-    use nalgebra::matrix;
-
     use super::*;
+    use approx::assert_relative_eq;
 
+    #[cfg(feature = "std")]
     #[test]
     fn scipy_example_dyn() {
         // sos = signal.butter(9, 0.125, output='sos')
@@ -85,7 +84,7 @@ mod tests {
         assert_eq!(sos.len(), 5);
 
         // zi = signal.sosfilt_zi(sos)
-        let expected_zi = matrix!(
+        let expected_zi = nalgebra::matrix!(
                 1.72292381e-06,  1.55854712e-07;
                 6.52357932e-05, -2.97332383e-05;
                 2.21320188e-03, -1.17932460e-03;

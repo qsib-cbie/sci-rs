@@ -74,7 +74,7 @@ impl<F: RealField + Copy> Sos<F> {
 mod tests {
     use super::*;
 
-    #[cfg(feature = "alloc")]
+    #[cfg(all(feature = "alloc", feature = "std"))]
     #[test]
     fn can_use_external_filter_design() {
         let _design_filter = r#"

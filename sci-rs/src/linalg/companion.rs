@@ -40,6 +40,7 @@ where
 mod tests {
     use super::*;
 
+    #[cfg(feature = "std")]
     #[test]
     fn scipy_example_dyn() {
         const M: usize = 4;

@@ -140,7 +140,7 @@ mod tests {
 
     use super::*;
 
-    #[cfg(feature = "alloc")]
+    #[cfg(all(feature = "alloc", feature = "std"))]
     #[test]
     fn matches_scipy_example_bandstop() {
         let zpk: ZpkFormatFilter<_> = ZpkFormatFilter::new(
@@ -161,7 +161,7 @@ mod tests {
 
         let wo = 1.6;
         let bw = 1.2;
-        let expected_z: Vec<_> = vec![
+        let expected_z = vec![
             Complex::new(-0.6, -1.4832397),
             Complex::new(-0.6, -1.4832397),
             Complex::new(-0.6, -1.4832397),
@@ -171,7 +171,7 @@ mod tests {
             Complex::new(-0.6, 1.4832397),
             Complex::new(-0.6, 1.4832397),
         ];
-        let expected_p: Vec<_> = vec![
+        let expected_p = vec![
             Complex::new(0.61420466, -1.49811199),
             Complex::new(0.62070377, -1.48343601),
             Complex::new(0.62070377, 1.48343601),
@@ -199,7 +199,7 @@ mod tests {
         assert_relative_eq!(actual_zpk.k, expected_k, max_relative = 1e-8);
     }
 
-    #[cfg(feature = "alloc")]
+    #[cfg(all(feature = "alloc", feature = "std"))]
     #[test]
     fn matches_scipy_example_bandstop_two() {
         let zpk: ZpkFormatFilter<_> = ZpkFormatFilter::new(
@@ -220,7 +220,7 @@ mod tests {
 
         let wo = 1.6;
         let bw = 1.2;
-        let expected_z: Vec<_> = vec![
+        let expected_z = vec![
             Complex::new(0.6, 1.4832397),
             Complex::new(0.6, 1.4832397),
             Complex::new(0.6, 1.4832397),
@@ -230,7 +230,7 @@ mod tests {
             Complex::new(0.6, -1.4832397),
             Complex::new(0.6, -1.4832397),
         ];
-        let expected_p: Vec<_> = vec![
+        let expected_p = vec![
             Complex::new(0.72053235, 1.64918244),
             Complex::new(0.82361252, 1.48883633),
             Complex::new(0.82361252, -1.48883633),

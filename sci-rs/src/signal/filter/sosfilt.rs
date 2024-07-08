@@ -446,7 +446,7 @@ mod tests {
     use approx::assert_relative_eq;
     use dasp_signal::{rate, Signal};
 
-    #[cfg(feature = "alloc")]
+    #[cfg(all(feature = "alloc", feature = "std"))]
     #[test]
     fn can_sosfilt() {
         // 4th order butterworth bandpass 10 to 50 at 1666Hz
@@ -509,7 +509,7 @@ mod tests {
         println!("{:?}", &sin_wave[..10]);
     }
 
-    #[cfg(feature = "alloc")]
+    #[cfg(all(feature = "alloc", feature = "std"))]
     #[test]
     fn can_resume_sosfilt() {
         // 4th order butterworth bandpass 10 to 50 at 1666Hz

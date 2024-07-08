@@ -112,12 +112,11 @@ where
 
 #[cfg(test)]
 mod tests {
+    use super::*;
     use approx::assert_relative_eq;
     use num_traits::Zero;
 
-    use super::*;
-
-    #[cfg(feature = "alloc")]
+    #[cfg(all(feature = "alloc", feature = "std"))]
     #[test]
     fn matches_scipy_iirfilter_butter() {
         // butter(4, [10, 50], btype='bandpass', output='sos', fs=1666)

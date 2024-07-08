@@ -58,10 +58,10 @@ where
 
 #[cfg(test)]
 mod tests {
+    use super::*;
     use dasp_signal::{rate, Signal};
 
-    use super::*;
-
+    #[cfg(feature = "std")]
     #[test]
     fn can_sosfiltfilt() {
         // 4th order butterworth bandpass 10 to 50 at 1666Hz
@@ -111,6 +111,7 @@ mod tests {
         println!("{:?}", &sin_wave[..10]);
     }
 
+    #[cfg(feature = "std")]
     #[test]
     fn can_sosfiltfilt_f32() {
         // 4th order butterworth bandpass 10 to 50 at 1666Hz
