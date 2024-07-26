@@ -28,6 +28,7 @@ pub enum BesselThomsonNorm {
 }
 
 /// Type of IIR or FIR filter
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum FilterBandType {
     /// Lowpass
     /// (single-sided)

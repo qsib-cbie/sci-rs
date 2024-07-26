@@ -6,6 +6,7 @@ use super::Sos;
 use alloc::vec::Vec;
 
 /// Digital filter representation choices
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum FilterOutputType {
     /// b/a
     Ba,
