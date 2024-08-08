@@ -88,24 +88,49 @@ mod tests {
 
     #[test]
     fn choose_negatives() {
-        for i in 0..4 {
-            assert_eq!(comb(-4, i), 0);
-            assert_eq!(comb(-3, i), 0);
-            assert_eq!(comb(-3241, i), 0);
-        }
-        for i in -4..0 {
-            assert_eq!(comb(4, i), 0);
-            assert_eq!(comb(2, i), 0);
-            assert_eq!(comb(2341, i), 0);
-            assert_eq!(comb(-2, i), 0);
-            assert_eq!(comb(-4, i), 0);
-            assert_eq!(comb(-5, i), 0);
-            assert_eq!(comb(-3241, i), 0);
+        for n in -10..-1 {
+            for m in -5..5 {
+                assert_eq!(comb(n,m), 0);
+                assert_eq!(comb(m,n), 0);
+            }
         }
     }
 
     #[test]
     fn zero_choose_zero() {
         assert_eq!(comb(0, 0), 1);
+    }
+
+
+    #[test]
+    fn choose_replacement() {
+        const REF_VALUES_5: [i32; 10] = [1, 5, 15, 35, 70, 126, 210, 330, 495, 715];
+        const REF_VALUES_7: [i32; 10] = [1, 7, 28, 84, 210, 462, 924, 1716, 3003, 5005];
+        const REF_VALUES_10: [i32; 15] = [
+            1, 10, 55, 220, 715, 2002, 5005, 11440, 24310, 48620, 92378, 167960, 293930, 497420,
+            817190,
+        ];
+        check_values(5, &REF_VALUES_5, comb_rep);
+        check_values(7, &REF_VALUES_7, comb_rep);
+        check_values(10, &REF_VALUES_10, comb_rep);
+    }
+    
+    #[test]
+    fn choose_replacement_negatives() {
+        for n in -10..-1 {
+            for m in -5..5 {
+                assert_eq!(comb_rep(n,m), 0);
+                assert_eq!(comb_rep(m,n), 0);
+            }
+        }
+    }
+    
+    #[test]
+    fn choose_zero_replacement() {
+        for i in 0..1 {
+            for j in 0..1 {
+                assert_eq!(comb_rep(i, j), i);
+            }
+        }
     }
 }
