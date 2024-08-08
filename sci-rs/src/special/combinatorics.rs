@@ -34,8 +34,9 @@ where
 
 /// Number of combinations with repetition.
 ///
-/// This is also known as a `k`-combination with repetition or `k`-multicombinations. For a more
-/// detailed explanation, see the [wiki] page.
+/// The number of combinations of `n` taken `k` at a time with repetition. This is also known as a
+/// `k`-combination with repetition or `k`-multicombinations. For a more detailed explanation, see
+/// the [wiki] page.
 ///
 /// # Examples
 /// ```
@@ -48,7 +49,7 @@ where
 /// When `n < 0` or `k < 0` or `n < k`, then `0` is returned.
 ///
 /// # References
-/// - [wiki]
+/// - [Wikipedia][wiki]
 ///
 /// [wiki]: https://en.wikipedia.org/wiki/Combination#Number_of_combinations_with_repetition
 pub fn comb_rep<Int>(n: Int, k: Int) -> Int
@@ -95,6 +96,15 @@ mod tests {
             for m in -5..5 {
                 assert_eq!(comb(n, m), 0);
                 assert_eq!(comb(m, n), 0);
+            }
+        }
+    }
+
+    #[test]
+    fn choose_greater_than() {
+        for i in 0..10 {
+            for j in 0..i {
+                assert_eq!(comb(j, i), 0);
             }
         }
     }
