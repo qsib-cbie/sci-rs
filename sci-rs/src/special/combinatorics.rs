@@ -44,6 +44,9 @@ where
 /// assert_eq!(comb_rep(10, 3), 220);
 /// ```
 ///
+/// # Notes
+/// When `n < 0` or `k < 0` or `n < k`, then `0` is returned.
+///
 /// # References
 /// - [wiki]
 ///
@@ -90,8 +93,8 @@ mod tests {
     fn choose_negatives() {
         for n in -10..-1 {
             for m in -5..5 {
-                assert_eq!(comb(n,m), 0);
-                assert_eq!(comb(m,n), 0);
+                assert_eq!(comb(n, m), 0);
+                assert_eq!(comb(m, n), 0);
             }
         }
     }
@@ -100,7 +103,6 @@ mod tests {
     fn zero_choose_zero() {
         assert_eq!(comb(0, 0), 1);
     }
-
 
     #[test]
     fn choose_replacement() {
@@ -114,17 +116,17 @@ mod tests {
         check_values(7, &REF_VALUES_7, comb_rep);
         check_values(10, &REF_VALUES_10, comb_rep);
     }
-    
+
     #[test]
     fn choose_replacement_negatives() {
         for n in -10..-1 {
             for m in -5..5 {
-                assert_eq!(comb_rep(n,m), 0);
-                assert_eq!(comb_rep(m,n), 0);
+                assert_eq!(comb_rep(n, m), 0);
+                assert_eq!(comb_rep(m, n), 0);
             }
         }
     }
-    
+
     #[test]
     fn choose_zero_replacement() {
         for i in 0..1 {
