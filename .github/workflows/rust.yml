@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     # Setup
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Install latest stable
       uses: actions-rust-lang/setup-rust-toolchain@v1
       with:
@@ -56,7 +56,7 @@ jobs:
       run: cargo fmt --all -- --check
     - name: Upload test results
       if: always()
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: nextest
         path: target/nextest/ci/junit.xml
@@ -69,7 +69,7 @@ jobs:
 
     steps:
       - name: Download Artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           path: artifacts
 
