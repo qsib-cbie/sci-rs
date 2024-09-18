@@ -255,9 +255,9 @@ mod tests {
             Complex::new(-0.38268343, -0.92387953),
         ];
         let zpk = buttap_dyn::<f64>(4);
-        for i in 0..4 {
-            assert_relative_eq!(p[i].re, zpk.p[i].re, max_relative = 1e-7);
-            assert_relative_eq!(p[i].im, zpk.p[i].im, max_relative = 1e-7);
+        for (expected, actual) in p.into_iter().zip(zpk.p) {
+            assert_relative_eq!(expected.re, actual.re, max_relative = 1e-7);
+            assert_relative_eq!(expected.im, actual.im, max_relative = 1e-7);
         }
     }
 

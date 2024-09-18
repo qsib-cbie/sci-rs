@@ -10,7 +10,6 @@ use super::{
     relative_degree::relative_degree_dyn, FilterBandType, FilterOutputType, FilterType, Sos,
     ZpkFormatFilter,
 };
-/// """
 /// Return a digital IIR filter from an analog one using a bilinear transform.
 ///
 /// Transform a set of poles and zeros from the analog s-plane to the digital
@@ -49,6 +48,7 @@ use super::{
 ///
 /// Examples
 /// --------
+/// ```ignore
 /// >>> from scipy import signal
 /// >>> import matplotlib.pyplot as plt
 ///
@@ -69,8 +69,7 @@ use super::{
 /// >>> plt.xlabel('Frequency (Hz)')
 /// >>> plt.ylabel('Magnitude (dB)')
 /// >>> plt.grid(True)
-/// """
-///
+/// ```
 #[cfg(feature = "alloc")]
 pub fn bilinear_zpk_dyn<F>(zpk: ZpkFormatFilter<F>, fs: F) -> ZpkFormatFilter<F>
 where
