@@ -19,7 +19,7 @@ use alloc::vec::Vec;
 /// output of the filter starts at the same value as the first element of
 /// the signal to be filtered.
 ///
-/// <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.lfilter_zi.html#scipy.signal.lfilter_zi>
+/// <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.sosfilt_zi.html#sosfilt-zi>
 ///
 ///
 pub fn sosfilt_zi_dyn<'a, F, I, S>(s: I)
