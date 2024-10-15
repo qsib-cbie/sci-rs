@@ -412,7 +412,7 @@ fn _sosfilt_isize_32<I: Copy + Into<isize>>(y: &[I], sos: &mut [Sos32], z: &mut 
 ///
 /// A specialized cascaded Biquad filter for 32-bit floating point samples
 ///
-/// Including acceleratored
+/// Including accelerated
 ///  * Single-sided 4th and 8th order filters
 ///     * Example: 4th or 8th order lowpass Butterworth
 ///  * Double-sided 4th order filters are accelerated
@@ -422,12 +422,11 @@ pub fn sosfilt_fast32_st(y: &[f32], sos: &mut [Sos32], z: &mut [f32]) {
     _sosfilt32(y, sos, z);
 }
 
+/// A specialized cascaded Biquad filter for signed samples filtered as 32-bit floating point
+/// samples. Samples implement `Into<isize>` to convert to a signed integer for speed on native
+/// bitwidths.
 ///
-/// A specialized cascaded Biquad filter for signed samples
-/// filtered as 32-bit floating point samples. Samples implement
-/// Into<isize> to convert to a signed integer for speed on native bitwidths.
-///
-/// Including acceleratored
+/// Including accelerated
 ///  * Single-sided 4th and 8th order filters
 ///     * Example: 4th or 8th order lowpass Butterworth
 ///  * Double-sided 4th order filters are accelerated
