@@ -428,8 +428,9 @@ where
     y.map(move |yi| ((*yi.borrow() - median) * F::from(0.6745).unwrap() / mad))
 }
 
-/// The median absolute deviation (MAD, [1]) computes the median over the absolute deviations from the median.
-/// It is a measure of dispersion similar to the standard deviation but more robust to outliers
+/// The median absolute deviation ([MAD](https://en.wikipedia.org/wiki/Median_absolute_deviation))
+/// computes the median over the absolute deviations from the median. It is a measure of dispersion
+/// similar to the standard deviation but more robust to outliers
 ///
 /// # Arguments
 ///
