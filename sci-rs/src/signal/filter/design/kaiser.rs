@@ -2,6 +2,52 @@ use core::f64::consts::PI;
 use core::ops::Mul;
 use num_traits::{real::Real, MulAdd, Pow, ToPrimitive};
 
+/// Compute the Kaiser parameter `beta`, given the attenuation `a`.
+///
+/// # Parameters
+/// * `a`: float  
+///     The desired attenuation in the stopband and maximum ripple in the passband, in dB.  This
+///     should be a *positive* number.
+///
+/// # Returns
+/// * `beta`: float  
+///     The `beta` parameter to be used in the formula for a Kaiser window.
+///
+/// # References
+/// Oppenheim, Schafer, "Discrete-Time Signal Processing", p.475-476.
+///
+/// Examples
+/// --------
+/// Suppose we want to design a lowpass filter, with 65 dB attenuation
+/// in the stop band.  The Kaiser window parameter to be used in the
+/// window method is computed by ``kaiser_beta(65.)``:
+///
+/// ```
+/// use sci_rs::signal::filter::design::kaiser_beta;
+/// assert_eq!(6.20426, kaiser_beta(65.));
+/// ```
+pub fn kaiser_beta<F>(a: F) -> F
+where
+    F: Real + MulAdd<Output = F> + Pow<F, Output = F>,
+    <F as Pow<F>>::Output: MulAdd<F, F>,
+{
+    if a > F::from(50).unwrap() {
+        F::from(0.1102).unwrap() * (a - F::from(8.7).unwrap())
+    } else if a > F::from(21).unwrap() {
+        let a = a - F::from(21).unwrap();
+
+        MulAdd::mul_add(
+            a.pow(F::from(0.4).unwrap()),
+            F::from(0.5842).unwrap(),
+            F::from(0.07886).unwrap() * a,
+        )
+    } else if a > F::from(0).unwrap() {
+        F::from(0).unwrap()
+    } else {
+        panic!("Expected a positive input.")
+    }
+}
+
 /// Compute the attenuation of a Kaiser FIR filter.
 ///
 /// Given the number of taps `N` and the transition width `width`, compute the
