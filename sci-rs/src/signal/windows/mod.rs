@@ -56,11 +56,16 @@ fn truncate<'a, W>(mut w: Vec<W>, needed: bool) -> Vec<W> {
     w
 }
 
+mod boxcar;
+pub use boxcar::Boxcar;
+
 /// todo
 // Ordering is as in accordance with
 // https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.get_window.html.
 pub enum Window {
-    // Boxcar,
+    /// Boxcar window, also known as a rectangular window or Dirichlet window; This is equivalent
+    /// to no window at all.
+    Boxcar(Boxcar),
     // Triangle,
     // Blackman,
     // Hamming,
