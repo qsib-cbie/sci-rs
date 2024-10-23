@@ -9,9 +9,9 @@ use num_traits::Float;
 
 //for testing
 #[cfg(feature = "std")]
-use std::io::Write;
-#[cfg(feature = "std")]
 use std::fs::OpenOptions;
+#[cfg(feature = "std")]
+use std::io::Write;
 
 #[cfg(feature = "alloc")]
 use alloc::vec;
@@ -26,7 +26,13 @@ use alloc::vec::Vec;
 ///
 /// Design coefficients for a Savitzky-Golay filter and convolve with data using nearest edge padding.
 ///
-pub fn savgol_filter_dyn<YI, F>(y: YI, window_length: usize, polyorder: usize, deriv: usize, delta: F) -> Vec<F>
+pub fn savgol_filter_dyn<YI, F>(
+    y: YI,
+    window_length: usize,
+    polyorder: usize,
+    deriv: usize,
+    delta: F,
+) -> Vec<F>
 where
     F: RealField + Copy + Sum,
     YI: Iterator,
@@ -42,7 +48,6 @@ where
 
     let mut fir = savgol_coeffs_dyn::<F>(window_length, polyorder, deriv, delta)
         .into_iter()
-        .map(|f| f)
         .collect::<Vec<_>>();
 
     fir.reverse();
@@ -69,8 +74,6 @@ where
     rslt
 }
 
-
-
 ///
 /// Design 1-D Savitzky-Golay filter coefficients
 ///
@@ -79,7 +82,12 @@ where
 /// This function is sensitive to f64 and f32 primitives due to use of least squares.
 /// The coefficients may go to zero for higher order polynomials and larger window lengths.
 ///
-pub fn savgol_coeffs_dyn<F>(window_length: usize, polyorder: usize, deriv: usize, delta: F) -> Vec<F>
+pub fn savgol_coeffs_dyn<F>(
+    window_length: usize,
+    polyorder: usize,
+    deriv: usize,
+    delta: F,
+) -> Vec<F>
 where
     F: RealField + Copy,
 {
@@ -101,10 +109,9 @@ where
             .collect::<Vec<_>>()
     };
 
-
     if deriv > polyorder {
         let mut ret = vec![F::zero(); window_length];
-        return ret
+        return ret;
     }
 
     // Columns are 2m+1 integer positions centered on 0
@@ -112,16 +119,17 @@ where
     // Setting up a Vandermonde matrix for solving A * coeffs = y
     #[allow(non_snake_case)]
     let A = na::DMatrix::<F>::from_fn(polyorder + 1, window_length, |i, j| pos[j].powi(i as i32));
-    let mut y = na::DVector::<F>::from_fn(
-        polyorder + 1,
-        |i, _| {
-            if i == deriv {
-                F::one()
-            } else {
-                F::zero()
-            }
-        },
-    );
+    let mut y =
+        na::DVector::<F>::from_fn(
+            polyorder + 1,
+            |i, _| {
+                if i == deriv {
+                    F::one()
+                } else {
+                    F::zero()
+                }
+            },
+        );
 
     y[deriv] = (F::from_usize(factorial(deriv)).unwrap()) / delta.powi(deriv as i32);
 
@@ -153,7 +161,10 @@ mod tests {
         let input = [2.0, 2.0, 5.0, 2.0, 1.0, 0.0, 1.0, 4.0, 9.0];
         let actual = savgol_filter_dyn(input.iter(), 5, 2, 0, 1.0);
         println!("actual = {:?}", actual);
-        let expected = [1.74285714, 3.02857143, 3.54285714, 2.85714286, 0.65714286, 0.17142857, 1.0, 4.6, 7.97142857];
+        let expected = [
+            1.74285714, 3.02857143, 3.54285714, 2.85714286, 0.65714286, 0.17142857, 1.0, 4.6,
+            7.97142857,
+        ];
         assert_eq!(actual.len(), expected.len());
         for (a, e) in actual.iter().zip(expected.iter()) {
             assert_relative_eq!(a, e, max_relative = 1e-5);
@@ -170,33 +181,110 @@ mod tests {
             assert_relative_eq!(a, e, max_relative = 1e-5);
         }
 
-        let input = (0..100).map(|i| (3*i - 2) as f64); //y = 3x - 2
+        let input = (0..100).map(|i| (3 * i - 2) as f64); //y = 3x - 2
         let actual = savgol_filter_dyn(input, 51, 5, 0, 1.0);
-        let expected = [2.45650177,   4.06008889,   5.86936071,   7.87987343,
-                        10.08430349,  12.47257185,  15.03201779,  17.74762253,
-                        20.6022825 ,  23.57713222,  26.65191695,  29.805415  ,
-                        33.01590968,  36.26171099,  39.52172696,  42.77608466,
-                        46.00680095,  49.19850285,  52.33919758,  55.4210924 ,
-                        58.44146398,  61.40357756,  64.31765571,  67.20189688,
-                        70.08354354,  73.        ,  76.        ,  79.        ,
-                        82.        ,  85.        ,  88.        ,  91.        ,
-                        94.        ,  97.        , 100.        , 103.        ,
-                        106.        , 109.        , 112.        , 115.        ,
-                        118.        , 121.        , 124.        , 127.        ,
-                        130.        , 133.        , 136.        , 139.        ,
-                        142.        , 145.        , 148.        , 151.        ,
-                        154.        , 157.        , 160.        , 163.        ,
-                        166.        , 169.        , 172.        , 175.        ,
-                        178.        , 181.        , 184.        , 187.        ,
-                        190.        , 193.        , 196.        , 199.        ,
-                        202.        , 205.        , 208.        , 211.        ,
-                        214.        , 217.        , 220.        , 222.91645647,
-                        225.79810312, 228.6823443 , 231.59642245, 234.55853602,
-                        237.5789076 , 240.66080242, 243.80149716, 246.99319905,
-                        250.22391534, 253.47827305, 256.73828901, 259.98409032,
-                        263.194585  , 266.34808305, 269.42286778, 272.3977175 ,
-                        275.25237747, 277.96798222, 280.52742816, 282.91569651,
-                        285.12012658, 287.13063929, 288.93991111, 290.54349823];
+        let expected = [
+            2.45650177,
+            4.06008889,
+            5.86936071,
+            7.87987343,
+            10.08430349,
+            12.47257185,
+            15.03201779,
+            17.74762253,
+            20.6022825,
+            23.57713222,
+            26.65191695,
+            29.805415,
+            33.01590968,
+            36.26171099,
+            39.52172696,
+            42.77608466,
+            46.00680095,
+            49.19850285,
+            52.33919758,
+            55.4210924,
+            58.44146398,
+            61.40357756,
+            64.31765571,
+            67.20189688,
+            70.08354354,
+            73.,
+            76.,
+            79.,
+            82.,
+            85.,
+            88.,
+            91.,
+            94.,
+            97.,
+            100.,
+            103.,
+            106.,
+            109.,
+            112.,
+            115.,
+            118.,
+            121.,
+            124.,
+            127.,
+            130.,
+            133.,
+            136.,
+            139.,
+            142.,
+            145.,
+            148.,
+            151.,
+            154.,
+            157.,
+            160.,
+            163.,
+            166.,
+            169.,
+            172.,
+            175.,
+            178.,
+            181.,
+            184.,
+            187.,
+            190.,
+            193.,
+            196.,
+            199.,
+            202.,
+            205.,
+            208.,
+            211.,
+            214.,
+            217.,
+            220.,
+            222.91645647,
+            225.79810312,
+            228.6823443,
+            231.59642245,
+            234.55853602,
+            237.5789076,
+            240.66080242,
+            243.80149716,
+            246.99319905,
+            250.22391534,
+            253.47827305,
+            256.73828901,
+            259.98409032,
+            263.194585,
+            266.34808305,
+            269.42286778,
+            272.3977175,
+            275.25237747,
+            277.96798222,
+            280.52742816,
+            282.91569651,
+            285.12012658,
+            287.13063929,
+            288.93991111,
+            290.54349823,
+        ];
 
         assert_eq!(actual.len(), expected.len());
         for (a, e) in actual.iter().zip(expected.iter()) {
@@ -228,17 +316,59 @@ mod tests {
         }
 
         let actual = savgol_coeffs_dyn::<f64>(51, 5, 0, 1.0);
-        let expected = [0.02784785,  0.01160327, -0.00086484, -0.00994566, -0.01601181,
-                        -0.01941934, -0.02050775, -0.01959997, -0.01700239, -0.0130048 ,
-                        -0.00788047, -0.00188609,  0.00473822,  0.01176888,  0.01899888,
-                        0.02623777,  0.03331167,  0.04006325,  0.04635174,  0.05205294,
-                        0.05705919,  0.06127943,  0.06463912,  0.0670803 ,  0.06856157,
-                        0.06905808,  0.06856157,  0.0670803 ,  0.06463912,  0.06127943,
-                        0.05705919,  0.05205294,  0.04635174,  0.04006325,  0.03331167,
-                        0.02623777,  0.01899888,  0.01176888,  0.00473822, -0.00188609,
-                        -0.00788047, -0.0130048 , -0.01700239, -0.01959997, -0.02050775,
-                        -0.01941934, -0.01601181, -0.00994566, -0.00086484,  0.01160327,
-                        0.02784785];
+        let expected = [
+            0.02784785,
+            0.01160327,
+            -0.00086484,
+            -0.00994566,
+            -0.01601181,
+            -0.01941934,
+            -0.02050775,
+            -0.01959997,
+            -0.01700239,
+            -0.0130048,
+            -0.00788047,
+            -0.00188609,
+            0.00473822,
+            0.01176888,
+            0.01899888,
+            0.02623777,
+            0.03331167,
+            0.04006325,
+            0.04635174,
+            0.05205294,
+            0.05705919,
+            0.06127943,
+            0.06463912,
+            0.0670803,
+            0.06856157,
+            0.06905808,
+            0.06856157,
+            0.0670803,
+            0.06463912,
+            0.06127943,
+            0.05705919,
+            0.05205294,
+            0.04635174,
+            0.04006325,
+            0.03331167,
+            0.02623777,
+            0.01899888,
+            0.01176888,
+            0.00473822,
+            -0.00188609,
+            -0.00788047,
+            -0.0130048,
+            -0.01700239,
+            -0.01959997,
+            -0.02050775,
+            -0.01941934,
+            -0.01601181,
+            -0.00994566,
+            -0.00086484,
+            0.01160327,
+            0.02784785,
+        ];
         assert_eq!(actual.len(), expected.len());
         for (a, e) in actual.iter().zip(expected.iter()) {
             assert_relative_eq!(a, e, max_relative = 5e-6);
@@ -275,7 +405,7 @@ mod tests {
 
         //deriv tests
         let actual = savgol_coeffs_dyn::<f64>(5, 2, 1, 1.0);
-        let expected = [ 2.0e-1,  1.0e-1,  2.07548111e-16, -1.0e-1, -2.0e-1];
+        let expected = [2.0e-1, 1.0e-1, 2.07548111e-16, -1.0e-1, -2.0e-1];
         assert_eq!(actual.len(), expected.len());
         for (a, e) in actual.iter().zip(expected.iter()) {
             assert_relative_eq!(a, e, max_relative = 1e-7);
@@ -288,7 +418,7 @@ mod tests {
             0.21560847,
             -0.21560847,
             -0.4130291,
-            0.09093915
+            0.09093915,
         ];
         assert_eq!(actual.len(), expected.len());
         for (a, e) in actual.iter().zip(expected.iter()) {
@@ -302,13 +432,12 @@ mod tests {
             -0.14285714,
             -0.14285714,
             -0.03571429,
-            0.17857143
+            0.17857143,
         ];
         assert_eq!(actual.len(), expected.len());
         for (a, e) in actual.iter().zip(expected.iter()) {
             assert_relative_eq!(a, e, max_relative = 5e-6);
         }
-
     }
 
     #[cfg(feature = "std")]
@@ -317,18 +446,20 @@ mod tests {
         //credit to https://stackoverflow.com/questions/31192956/whats-the-de-facto-way-of-reading-and-writing-files-in-rust-1-x
         //for file I/O code
         let mut f = OpenOptions::new()
-        .append(true)
-        .create(true)
-        .open("./output.txt")
-        .expect("Unable to open file");
+            .append(true)
+            .create(true)
+            .open("./output.txt")
+            .expect("Unable to open file");
 
-        let data = (0..100).map(|i| (3*i - 2) as f64); //y = 3x - 2
-        f.write_all(format!("{:?}\n", data.clone().collect::<Vec<_>>()).as_bytes()).expect("Unable to write file");
-        
+        let data = (0..100).map(|i| (3 * i - 2) as f64); //y = 3x - 2
+        f.write_all(format!("{:?}\n", data.clone().collect::<Vec<_>>()).as_bytes())
+            .expect("Unable to write file");
+
         for i in 0..3 {
             let temp = data.clone();
             let actual = savgol_filter_dyn(temp, 51, 5, i, 1.0);
-            f.write_all(format!("{:?}\n", actual).as_bytes()).expect("Unable to write file");
+            f.write_all(format!("{:?}\n", actual).as_bytes())
+                .expect("Unable to write file");
         }
     }
 }
