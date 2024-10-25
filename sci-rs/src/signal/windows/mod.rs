@@ -58,7 +58,9 @@ fn truncate<W>(mut w: Vec<W>, needed: bool) -> Vec<W> {
 }
 
 mod boxcar;
+mod triangle;
 pub use boxcar::Boxcar;
+pub use triangle::Triangle;
 
 /// todo
 // Ordering is as in accordance with
@@ -70,7 +72,8 @@ pub enum Window {
     /// [Boxcar] window, also known as a rectangular window or Dirichlet window; This is equivalent
     /// to no window at all.
     Boxcar(Boxcar),
-    // Triangle,
+    /// [Triangle] window.
+    Triangle(Triangle),
     // Blackman,
     // Hamming,
     // Hann,
