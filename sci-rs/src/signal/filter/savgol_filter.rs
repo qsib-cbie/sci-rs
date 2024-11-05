@@ -40,8 +40,6 @@ where
         panic!("window_length is too small for the polynomials order")
     }
 
-    
-
     let mut fir = savgol_coeffs_dyn::<F>(window_length, polyorder, deriv, delta)
         .into_iter()
         .collect::<Vec<_>>();
