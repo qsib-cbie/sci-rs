@@ -7,12 +7,6 @@ use nalgebra as na;
 use nalgebra::RealField;
 use num_traits::Float;
 
-//for testing
-#[cfg(feature = "std")]
-use std::fs::OpenOptions;
-#[cfg(feature = "std")]
-use std::io::Write;
-
 #[cfg(feature = "alloc")]
 use alloc::vec;
 #[cfg(feature = "alloc")]
@@ -30,8 +24,8 @@ pub fn savgol_filter_dyn<YI, F>(
     y: YI,
     window_length: usize,
     polyorder: usize,
-    deriv: usize,
-    delta: F,
+    deriv: Option<usize>,
+    delta: Option<F>,
 ) -> Vec<F>
 where
     F: RealField + Copy + Sum,
@@ -45,6 +39,8 @@ where
     if window_length < polyorder + 2 {
         panic!("window_length is too small for the polynomials order")
     }
+
+    
 
     let mut fir = savgol_coeffs_dyn::<F>(window_length, polyorder, deriv, delta)
         .into_iter()
@@ -85,8 +81,8 @@ where
 pub fn savgol_coeffs_dyn<F>(
     window_length: usize,
     polyorder: usize,
-    deriv: usize,
-    delta: F,
+    deriv: Option<usize>,
+    delta: Option<F>,
 ) -> Vec<F>
 where
     F: RealField + Copy,
@@ -109,7 +105,11 @@ where
             .collect::<Vec<_>>()
     };
 
-    if deriv > polyorder {
+    //handle the case of default args
+    let der = deriv.unwrap_or(0);
+    let del = delta.unwrap_or(F::one());
+
+    if der > polyorder {
         let mut ret = vec![F::zero(); window_length];
         return ret;
     }
@@ -123,7 +123,7 @@ where
         na::DVector::<F>::from_fn(
             polyorder + 1,
             |i, _| {
-                if i == deriv {
+                if i == der {
                     F::one()
                 } else {
                     F::zero()
@@ -131,7 +131,7 @@ where
             },
         );
 
-    y[deriv] = (F::from_usize(factorial(deriv)).unwrap()) / delta.powi(deriv as i32);
+    y[der] = (F::from_usize(factorial(der)).unwrap()) / del.powi(der as i32);
 
     // Solve the system for the Savitsky-Golay FIR coefficients
     let solve = lstsq::lstsq(&A, &y, F::from_f32(1e-9).unwrap()).unwrap();
@@ -150,16 +150,16 @@ mod tests {
     #[cfg(feature = "std")]
     #[test]
     pub fn can_filter() {
-        let v = savgol_filter_dyn((0..100).map(|i| i as f32), 11, 2, 0, 1.0);
+        let v = savgol_filter_dyn((0..100).map(|i| i as f32), 11, 2, None, None);
         println!("v = {:?}", v);
 
-        let v = savgol_filter_dyn((0..0).map(|i| i as f32), 11, 2, 0, 1.0);
+        let v = savgol_filter_dyn((0..0).map(|i| i as f32), 11, 2, None, None);
         println!("v = {:?}", v);
 
-        let actual_coeff = savgol_coeffs_dyn::<f64>(5, 2, 0, 1.0);
+        let actual_coeff = savgol_coeffs_dyn::<f64>(5, 2, Some(0), Some(1.0));
         println!("coeffs = {:?}", actual_coeff);
         let input = [2.0, 2.0, 5.0, 2.0, 1.0, 0.0, 1.0, 4.0, 9.0];
-        let actual = savgol_filter_dyn(input.iter(), 5, 2, 0, 1.0);
+        let actual = savgol_filter_dyn(input.iter(), 5, 2, None, None);
         println!("actual = {:?}", actual);
         let expected = [
             1.74285714, 3.02857143, 3.54285714, 2.85714286, 0.65714286, 0.17142857, 1.0, 4.6,
@@ -170,10 +170,10 @@ mod tests {
             assert_relative_eq!(a, e, max_relative = 1e-5);
         }
 
-        let actual_coeff = savgol_coeffs_dyn::<f64>(5, 2, 1, 1.0);
+        let actual_coeff = savgol_coeffs_dyn::<f64>(5, 2, Some(1), None);
         println!("coeffs = {:?}", actual_coeff);
         let input = [2.0, 2.0, 5.0, 2.0, 1.0, 0.0, 1.0, 4.0, 9.0];
-        let actual = savgol_filter_dyn(input.iter(), 5, 2, 1, 1.0);
+        let actual = savgol_filter_dyn(input.iter(), 5, 2, Some(1), None);
         println!("actual = {:?}", actual);
         let expected = [0.6, 0.3, -0.2, -0.8, -1.0, 0.4, 2.0, 2.6, 2.1];
         assert_eq!(actual.len(), expected.len());
@@ -182,7 +182,7 @@ mod tests {
         }
 
         let input = (0..100).map(|i| (3 * i - 2) as f64); //y = 3x - 2
-        let actual = savgol_filter_dyn(input, 51, 5, 0, 1.0);
+        let actual = savgol_filter_dyn(input, 51, 5, None, None);
         let expected = [
             2.45650177,
             4.06008889,
@@ -294,28 +294,28 @@ mod tests {
 
     #[test]
     pub fn can_coeffs() {
-        let actual = savgol_coeffs_dyn::<f32>(5, 2, 0, 1.0);
+        let actual = savgol_coeffs_dyn::<f32>(5, 2, None, None);
         let expected = [-0.08571429, 0.34285714, 0.48571429, 0.34285714, -0.08571429];
         assert_eq!(actual.len(), expected.len());
         for (a, e) in actual.iter().zip(expected.iter()) {
             assert_relative_eq!(a, e, max_relative = 1e-5);
         }
 
-        let actual = savgol_coeffs_dyn::<f64>(5, 2, 0, 1.0);
+        let actual = savgol_coeffs_dyn::<f64>(5, 2, Some(0), Some(1.0));
         let expected = [-0.08571429, 0.34285714, 0.48571429, 0.34285714, -0.08571429];
         assert_eq!(actual.len(), expected.len());
         for (a, e) in actual.iter().zip(expected.iter()) {
             assert_relative_eq!(a, e, max_relative = 1e-7);
         }
 
-        let actual = savgol_coeffs_dyn::<f64>(4, 2, 0, 1.0);
+        let actual = savgol_coeffs_dyn::<f64>(4, 2, None, None);
         let expected = [-0.0625, 0.5625, 0.5625, -0.0625];
         assert_eq!(actual.len(), expected.len());
         for (a, e) in actual.iter().zip(expected.iter()) {
             assert_relative_eq!(a, e, max_relative = 1e-7);
         }
 
-        let actual = savgol_coeffs_dyn::<f64>(51, 5, 0, 1.0);
+        let actual = savgol_coeffs_dyn::<f64>(51, 5, None, None);
         let expected = [
             0.02784785,
             0.01160327,
@@ -374,7 +374,7 @@ mod tests {
             assert_relative_eq!(a, e, max_relative = 5e-6);
         }
 
-        let actual = savgol_coeffs_dyn::<f64>(21, 8, 0, 1.0);
+        let actual = savgol_coeffs_dyn::<f64>(21, 8, None, None);
         let expected = [
             0.0125937,
             -0.04897551,
@@ -404,14 +404,14 @@ mod tests {
         }
 
         //deriv tests
-        let actual = savgol_coeffs_dyn::<f64>(5, 2, 1, 1.0);
+        let actual = savgol_coeffs_dyn::<f64>(5, 2, Some(1), Some(1.0));
         let expected = [2.0e-1, 1.0e-1, 2.07548111e-16, -1.0e-1, -2.0e-1];
         assert_eq!(actual.len(), expected.len());
         for (a, e) in actual.iter().zip(expected.iter()) {
             assert_relative_eq!(a, e, max_relative = 1e-7);
         }
 
-        let actual = savgol_coeffs_dyn::<f64>(6, 3, 1, 1.0);
+        let actual = savgol_coeffs_dyn::<f64>(6, 3, Some(1), None);
         let expected = [
             -0.09093915,
             0.4130291,
@@ -425,7 +425,7 @@ mod tests {
             assert_relative_eq!(a, e, max_relative = 1e-7);
         }
 
-        let actual = savgol_coeffs_dyn::<f64>(6, 3, 2, 1.0);
+        let actual = savgol_coeffs_dyn::<f64>(6, 3, Some(2), Some(1.0));
         let expected = [
             0.17857143,
             -0.03571429,
@@ -437,29 +437,6 @@ mod tests {
         assert_eq!(actual.len(), expected.len());
         for (a, e) in actual.iter().zip(expected.iter()) {
             assert_relative_eq!(a, e, max_relative = 5e-6);
-        }
-    }
-
-    #[cfg(feature = "std")]
-    #[test]
-    pub fn write_to_file() {
-        //credit to https://stackoverflow.com/questions/31192956/whats-the-de-facto-way-of-reading-and-writing-files-in-rust-1-x
-        //for file I/O code
-        let mut f = OpenOptions::new()
-            .append(true)
-            .create(true)
-            .open("./output.txt")
-            .expect("Unable to open file");
-
-        let data = (0..100).map(|i| (3 * i - 2) as f64); //y = 3x - 2
-        f.write_all(format!("{:?}\n", data.clone().collect::<Vec<_>>()).as_bytes())
-            .expect("Unable to write file");
-
-        for i in 0..3 {
-            let temp = data.clone();
-            let actual = savgol_filter_dyn(temp, 51, 5, i, 1.0);
-            f.write_all(format!("{:?}\n", actual).as_bytes())
-                .expect("Unable to write file");
         }
     }
 }
