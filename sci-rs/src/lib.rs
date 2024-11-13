@@ -34,3 +34,6 @@ pub mod signal;
 
 /// Statistics
 pub mod stats;
+
+/// Special math functions
+pub mod special;
