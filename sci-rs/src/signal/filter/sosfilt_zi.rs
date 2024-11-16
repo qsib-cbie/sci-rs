@@ -1,5 +1,5 @@
 use core::{iter::Sum, ops::SubAssign};
-use nalgebra::{ClosedAdd, ClosedMul, RealField, Scalar};
+use nalgebra::{RealField, Scalar};
 use num_traits::{Float, One, Zero};
 
 use crate::signal::filter::lfilter_zi_dyn;
@@ -24,7 +24,7 @@ use alloc::vec::Vec;
 ///
 pub fn sosfilt_zi_dyn<'a, F, I, S>(s: I)
 where
-    F: RealField + Copy + PartialEq + Scalar + Zero + One + ClosedMul + ClosedAdd + Sum + SubAssign,
+    F: RealField + Copy + PartialEq + Scalar + Zero + One + Sum + SubAssign,
     I: Iterator<Item = &'a mut Sos<F>>,
 {
     let mut scale = F::one();
