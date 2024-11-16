@@ -34,7 +34,7 @@ where
     T: Scalar + Copy + Zero + One + Sub<Output = T>,
     M: Dim,
     N: Dim,
-    DefaultAllocator: Allocator<T, M, N> + Allocator<T, Dyn, Dyn>,
+    DefaultAllocator: Allocator<M, N> + Allocator<Dyn, Dyn>,
 {
     if matches!(padtype, Pad::None) {
         padlen = Some(0);
@@ -61,10 +61,9 @@ where
                 nalgebra::Dyn,
                 nalgebra::Dyn,
                 <nalgebra::DefaultAllocator as nalgebra::allocator::Allocator<
-                    T,
                     nalgebra::Dyn,
                     nalgebra::Dyn,
-                >>::Buffer,
+                >>::Buffer<T>,
             >::from_iterator(x.shape().0, x.shape().1, x.into_iter().cloned()),
         );
     }
@@ -77,10 +76,9 @@ where
                 nalgebra::Dyn,
                 nalgebra::Dyn,
                 <nalgebra::DefaultAllocator as nalgebra::allocator::Allocator<
-                    T,
                     nalgebra::Dyn,
                     nalgebra::Dyn,
-                >>::Buffer,
+                >>::Buffer<T>,
             >::from_iterator(x.shape().0, x.shape().1, x.into_iter().cloned()),
         );
     }
@@ -99,7 +97,7 @@ where
     T: Scalar + Copy + Zero + One + Sub<Output = T>,
     M: Dim,
     N: Dim,
-    DefaultAllocator: Allocator<T, M, N> + Allocator<T, Dyn, Dyn>,
+    DefaultAllocator: Allocator<M, N> + Allocator<Dyn, Dyn>,
 {
     //TODO: Figure out the ndarray situation
     assert!(axis < 2);
@@ -110,10 +108,9 @@ where
             nalgebra::Dyn,
             nalgebra::Dyn,
             <nalgebra::DefaultAllocator as nalgebra::allocator::Allocator<
-                T,
                 nalgebra::Dyn,
                 nalgebra::Dyn,
-            >>::Buffer,
+            >>::Buffer<T>,
         >::from_iterator(x.shape().0, x.shape().1, x.into_iter().cloned());
     }
 
@@ -130,10 +127,9 @@ where
                 nalgebra::Dyn,
                 nalgebra::Dyn,
                 <nalgebra::DefaultAllocator as nalgebra::allocator::Allocator<
-                    T,
                     nalgebra::Dyn,
                     nalgebra::Dyn,
-                >>::Buffer,
+                >>::Buffer<T>,
             >::zeros(new_rows, new_columns);
 
             // 2 * left_end - left_ext
@@ -182,10 +178,9 @@ where
                 nalgebra::Dyn,
                 nalgebra::Dyn,
                 <nalgebra::DefaultAllocator as nalgebra::allocator::Allocator<
-                    T,
                     nalgebra::Dyn,
                     nalgebra::Dyn,
-                >>::Buffer,
+                >>::Buffer<T>,
             >::zeros(new_rows, new_columns);
 
             // 2 * left_end - left_ext

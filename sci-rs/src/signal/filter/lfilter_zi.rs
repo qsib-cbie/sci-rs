@@ -1,5 +1,5 @@
 use core::{iter::Sum, ops::SubAssign};
-use nalgebra::{ClosedAdd, ClosedMul, DMatrix, OMatrix, RealField, SMatrix, Scalar};
+use nalgebra::{DMatrix, OMatrix, RealField, SMatrix, Scalar};
 use num_traits::{Float, One, Zero};
 
 use crate::linalg::companion_dyn;
@@ -26,7 +26,7 @@ use alloc::vec::Vec;
 #[inline]
 pub fn lfilter_zi_dyn<F>(b: &[F], a: &[F]) -> Vec<F>
 where
-    F: RealField + Copy + PartialEq + Scalar + Zero + One + ClosedMul + ClosedAdd + Sum + SubAssign,
+    F: RealField + Copy + PartialEq + Scalar + Zero + One + Sum + SubAssign,
 {
     assert!(b.len() == a.len());
     let m = b.len();
