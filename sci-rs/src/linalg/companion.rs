@@ -14,7 +14,7 @@ where
     T: Scalar + One + Zero + Div<Output = T> + Neg<Output = T> + Copy,
     B: Borrow<T>,
     I: Iterator<Item = B>,
-    DefaultAllocator: Allocator<T, Dyn, Dyn>,
+    DefaultAllocator: Allocator<Dyn, Dyn>,
 {
     let mut itr = itr;
     let a0: T = *itr.next().expect("Invalid data length").borrow();
@@ -26,7 +26,7 @@ where
         T,
         Dyn,
         Dyn,
-        <DefaultAllocator as allocator::Allocator<T, Dyn, Dyn>>::Buffer,
+        <DefaultAllocator as allocator::Allocator<Dyn, Dyn>>::Buffer<T>,
     >::zeros(m - 1, m - 1);
     for (i, t) in itr {
         unsafe {
