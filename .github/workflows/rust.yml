@@ -43,6 +43,7 @@ jobs:
     - name: Run benchmarks
       run: cargo bench --verbose --all-features
 
+    # Docs and Style
     - name: Run doctests
       if: success() || failure()
       run: cargo test --doc
@@ -54,26 +55,3 @@ jobs:
     - name: Run fmt
       if: success() || failure()
       run: cargo fmt --all -- --check
-    - name: Upload test results
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: nextest
-        path: target/nextest/ci/junit.xml
-
-  report:
-    name: "Publish Test Results"
-    needs: build
-    runs-on: ubuntu-latest
-    if: always()
-
-    steps:
-      - name: Download Artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts
-
-      - name: Publish Test Results
-        uses: EnricoMi/publish-unit-test-result-action@v2
-        with:
-          junit_files: artifacts/**/*.xml
