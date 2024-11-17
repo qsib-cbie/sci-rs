@@ -17,8 +17,15 @@ all-features = true
 
 [features]
 default = ['alloc']
+
+# Allow allocating vecs, matrices, etc.
 alloc = ['nalgebra/alloc', 'nalgebra/libm', 'kalmanfilt/alloc']
+
+# Enable FFT and standard library features
 std = ['nalgebra/std', 'nalgebra/macros', 'rustfft', 'alloc']
+
+# Enable debug plotting through python system calls
+plot = ['std']
 
 [dependencies]
 num-traits = { version = "0.2.15", default-features = false }
