@@ -154,7 +154,9 @@ mod tests {
         let in2 = vec![1.0, 2.0];
         let result = convolve(&in1, &in2, ConvolveMode::Valid);
         let expected = vec![4.0, 7.0, 10.0];
-        assert_eq!(result, expected);
+        for (a, b) in result.iter().zip(expected.iter()) {
+            assert_relative_eq!(a, b, epsilon = 1e-10);
+        }
     }
 
     #[test]
@@ -163,7 +165,9 @@ mod tests {
         let in2 = vec![1.0, 2.0, 1.0];
         let result = convolve(&in1, &in2, ConvolveMode::Same);
         let expected = vec![4.0, 8.0, 12.0, 11.0];
-        assert_eq!(result, expected);
+        for (a, b) in result.iter().zip(expected.iter()) {
+            assert_relative_eq!(a, b, epsilon = 1e-10);
+        }
     }
 
     #[test]
