@@ -37,3 +37,7 @@ pub mod stats;
 
 /// Special math functions
 pub mod special;
+
+/// Debug plotting
+#[cfg(feature = "plot")]
+pub mod plot;
