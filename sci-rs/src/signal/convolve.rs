@@ -6,15 +6,17 @@ use rustfft::{FftNum, FftPlanner};
 pub enum ConvolveMode {
     /// Full convolution, output size is `in1.len() + in2.len() - 1`
     Full,
-    // Not yet implemented
-    // Valid,
-    // Same,
+    /// Valid convolution, output size is `max(in1.len(), in2.len()) - min(in1.len(), in2.len()) + 1`
+    Valid,
+    /// Same convolution, output size is `in1.len()`
+    Same,
 }
 
 /// Performs FFT-based convolution on two slices of floating point values.
 ///
-/// This is generally much faster than direct convolution for large arrays (n > ~500),
-/// but can be slower when only a few output values are needed.
+/// According to Python docs, this is generally much faster than direct convolution
+/// for large arrays (n > ~500), but can be slower when only a few output values are needed.
+/// We only implement the FFT version in Rust for now.
 ///
 /// # Arguments
 /// - `in1`: First input signal
@@ -25,48 +27,63 @@ pub enum ConvolveMode {
 /// A Vec containing the discrete linear convolution of `in1` with `in2`.
 /// For Full mode, the output length will be `in1.len() + in2.len() - 1`.
 pub fn fftconvolve<F: Float + FftNum>(in1: &[F], in2: &[F], mode: ConvolveMode) -> Vec<F> {
+    // Determine the size of the FFT (next power of 2 for zero-padding)
+    let n1 = in1.len();
+    let n2 = in2.len();
+    let n = n1 + n2 - 1;
+    let fft_size = n.next_power_of_two();
+
+    // Prepare input buffers as Complex<F> with zero-padding to fft_size
+    let mut padded_in1 = vec![Complex::zero(); fft_size];
+    let mut padded_in2 = vec![Complex::zero(); fft_size];
+
+    // Copy input data into zero-padded buffers
+    padded_in1.iter_mut().zip(in1.iter()).for_each(|(p, &v)| {
+        *p = Complex::new(v, F::zero());
+    });
+    padded_in2.iter_mut().zip(in2.iter()).for_each(|(p, &v)| {
+        *p = Complex::new(v, F::zero());
+    });
+
+    // Perform the FFT
+    let mut planner = FftPlanner::new();
+    let fft = planner.plan_fft_forward(fft_size);
+    fft.process(&mut padded_in1);
+    fft.process(&mut padded_in2);
+
+    // Multiply element-wise in the frequency domain
+    let mut result_freq: Vec<Complex<F>> = padded_in1
+        .iter()
+        .zip(&padded_in2)
+        .map(|(a, b)| a * b)
+        .collect();
+
+    // Perform the inverse FFT
+    let ifft = planner.plan_fft_inverse(fft_size);
+    ifft.process(&mut result_freq);
+
+    // Take only the real part, normalize, and truncate to the original output size (n)
+    let fft_size = F::from(fft_size).unwrap();
+    let full_convolution = result_freq
+        .iter()
+        .take(n)
+        .map(|x| x.re / fft_size)
+        .collect();
+
+    // Extract the appropriate slice based on the mode
     match mode {
-        ConvolveMode::Full => {
-            // Determine the size of the FFT (next power of 2 for zero-padding)
-            let n = in1.len() + in2.len() - 1;
-            let fft_size = n.next_power_of_two();
-
-            // Prepare input buffers as Complex<F> with zero-padding to fft_size
-            let mut padded_in1 = vec![Complex::zero(); fft_size];
-            let mut padded_in2 = vec![Complex::zero(); fft_size];
-
-            // Copy input data into zero-padded buffers
-            padded_in1.iter_mut().zip(in1.iter()).for_each(|(p, &v)| {
-                *p = Complex::new(v, F::zero());
-            });
-            padded_in2.iter_mut().zip(in2.iter()).for_each(|(p, &v)| {
-                *p = Complex::new(v, F::zero());
-            });
-
-            // Perform the FFT
-            let mut planner = FftPlanner::new();
-            let fft = planner.plan_fft_forward(fft_size);
-            fft.process(&mut padded_in1);
-            fft.process(&mut padded_in2);
-
-            // Multiply element-wise in the frequency domain
-            let mut result_freq: Vec<Complex<F>> = padded_in1
-                .iter()
-                .zip(&padded_in2)
-                .map(|(a, b)| a * b)
-                .collect();
-
-            // Perform the inverse FFT
-            let ifft = planner.plan_fft_inverse(fft_size);
-            ifft.process(&mut result_freq);
-
-            // Take only the real part, normalize, and truncate to the original output size (n)
-            let fft_size = F::from(fft_size).unwrap();
-            result_freq
-                .iter()
-                .take(n)
-                .map(|x| x.re / fft_size)
-                .collect()
+        ConvolveMode::Full => full_convolution,
+        ConvolveMode::Valid => {
+            if n1 >= n2 {
+                full_convolution[(n2 - 1)..(n1)].to_vec()
+            } else {
+                Vec::new()
+            }
+        }
+        ConvolveMode::Same => {
+            let start = (n2 - 1) / 2;
+            let end = start + n1;
+            full_convolution[start..end].to_vec()
         }
     }
 }
@@ -129,6 +146,24 @@ mod tests {
         for (a, b) in result.iter().zip(expected.iter()) {
             assert_relative_eq!(a, b, epsilon = 1e-10);
         }
+    }
+
+    #[test]
+    fn test_convolve_valid() {
+        let in1 = vec![1.0, 2.0, 3.0, 4.0];
+        let in2 = vec![1.0, 2.0];
+        let result = convolve(&in1, &in2, ConvolveMode::Valid);
+        let expected = vec![4.0, 7.0, 10.0];
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_convolve_same() {
+        let in1 = vec![1.0, 2.0, 3.0, 4.0];
+        let in2 = vec![1.0, 2.0, 1.0];
+        let result = convolve(&in1, &in2, ConvolveMode::Same);
+        let expected = vec![4.0, 8.0, 12.0, 11.0];
+        assert_eq!(result, expected);
     }
 
     #[test]
