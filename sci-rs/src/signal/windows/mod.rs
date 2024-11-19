@@ -1,5 +1,6 @@
 #[cfg(feature = "alloc")]
 use alloc::vec::Vec;
+use nalgebra::RealField;
 use num_traits::{real::Real, Float};
 
 /// Corresponding window representation for tuple-structs of [Window] variants.
@@ -58,17 +59,24 @@ fn truncate<W>(mut w: Vec<W>, needed: bool) -> Vec<W> {
 }
 
 mod boxcar;
+mod general_cosine;
 mod triangle;
 pub use boxcar::Boxcar;
+pub use general_cosine::GeneralCosine;
 pub use triangle::Triangle;
 
-/// todo
+/// This collects all structs that implement the [GetWindow] trait.  
+/// This allows for running `.get_window()` on the struct, which can then be, for example, used in
+/// Firwin.
 // Ordering is as in accordance with
 // https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.get_window.html.
 #[derive(Debug, Clone, PartialEq)]
 // Is it possible for the enums which wraps the structs to only require the generic that the struct
 // implements GetWindow?
-pub enum Window {
+pub enum Window<F>
+where
+    F: Real,
+{
     /// [Boxcar] window, also known as a rectangular window or Dirichlet window; This is equivalent
     /// to no window at all.
     Boxcar(Boxcar),
@@ -93,8 +101,9 @@ pub enum Window {
     // Kaiser, // Needs Beta
     // KaiserBesselDerived, // Needs Beta
     // Gaussian, // Needs Standard Deviation
-    // Generic weighted sum of cosine term windows.
-    // GenericCosine(GenericCosine<T>), // Needs Weighting Coefficients
+    /// [GeneralCosine] window, a generic weighted sum of cosine term windows.
+    // Needs Weighting Coefficients
+    GeneralCosine(GeneralCosine<F>),
     // GeneralGaussian, // Needs Power, Width
     // GeneralHamming, // Needs Window Coefficients.
     // Dpss, // Needs Normalized Half-Bandwidth.
