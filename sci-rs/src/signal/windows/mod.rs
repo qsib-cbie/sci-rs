@@ -58,9 +58,11 @@ fn truncate<W>(mut w: Vec<W>, needed: bool) -> Vec<W> {
     w
 }
 
+mod blackman;
 mod boxcar;
 mod general_cosine;
 mod triangle;
+pub use blackman::Blackman;
 pub use boxcar::Boxcar;
 pub use general_cosine::GeneralCosine;
 pub use triangle::Triangle;
@@ -82,7 +84,8 @@ where
     Boxcar(Boxcar),
     /// [Triangle] window.
     Triangle(Triangle),
-    // Blackman,
+    /// [Blackman] window.
+    Blackman(Blackman),
     // Hamming,
     // Hann,
     // Bartlett,
