@@ -26,6 +26,8 @@ use num_traits::{real::Real, MulAdd, Pow, ToPrimitive};
 /// use sci_rs::signal::filter::design::kaiser_beta;
 /// assert_eq!(6.20426, kaiser_beta(65.));
 /// ```
+/// # See Also
+/// [kaiser_atten], [kaiserord]
 pub fn kaiser_beta<F>(a: F) -> F
 where
     F: Real + MulAdd<Output = F> + Pow<F, Output = F>,
