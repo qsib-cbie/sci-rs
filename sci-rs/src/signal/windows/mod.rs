@@ -61,10 +61,12 @@ fn truncate<W>(mut w: Vec<W>, needed: bool) -> Vec<W> {
 mod blackman;
 mod boxcar;
 mod general_cosine;
+mod general_gaussian;
 mod triangle;
 pub use blackman::Blackman;
 pub use boxcar::Boxcar;
 pub use general_cosine::GeneralCosine;
+pub use general_gaussian::GeneralGaussian;
 pub use triangle::Triangle;
 
 /// This collects all structs that implement the [GetWindow] trait.  
@@ -107,7 +109,9 @@ where
     /// [GeneralCosine] window, a generic weighted sum of cosine term windows.
     // Needs Weighting Coefficients
     GeneralCosine(GeneralCosine<F>),
-    // GeneralGaussian, // Needs Power, Width
+    /// [GeneralGaussian] window.
+    // Needs Power, Width
+    GeneralGaussian(GeneralGaussian<F>),
     // GeneralHamming, // Needs Window Coefficients.
     // Dpss, // Needs Normalized Half-Bandwidth.
     // Chebwin, // Needs Attenuation.
