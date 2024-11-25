@@ -62,11 +62,13 @@ mod blackman;
 mod boxcar;
 mod general_cosine;
 mod general_gaussian;
+mod general_hamming;
 mod triangle;
 pub use blackman::Blackman;
 pub use boxcar::Boxcar;
 pub use general_cosine::GeneralCosine;
 pub use general_gaussian::GeneralGaussian;
+pub use general_hamming::GeneralHamming;
 pub use triangle::Triangle;
 
 /// This collects all structs that implement the [GetWindow] trait.  
@@ -112,7 +114,9 @@ where
     /// [GeneralGaussian] window.
     // Needs Power, Width
     GeneralGaussian(GeneralGaussian<F>),
-    // GeneralHamming, // Needs Window Coefficients.
+    /// [GeneralHamming] window.
+    // Needs Window Coefficients.
+    GeneralHamming(GeneralHamming<F>),
     // Dpss, // Needs Normalized Half-Bandwidth.
     // Chebwin, // Needs Attenuation.
 }
