@@ -63,12 +63,14 @@ mod boxcar;
 mod general_cosine;
 mod general_gaussian;
 mod general_hamming;
+mod hamming;
 mod triangle;
 pub use blackman::Blackman;
 pub use boxcar::Boxcar;
 pub use general_cosine::GeneralCosine;
 pub use general_gaussian::GeneralGaussian;
 pub use general_hamming::GeneralHamming;
+pub use hamming::Hamming;
 pub use triangle::Triangle;
 
 /// This collects all structs that implement the [GetWindow] trait.  
@@ -90,7 +92,8 @@ where
     Triangle(Triangle),
     /// [Blackman] window.
     Blackman(Blackman),
-    // Hamming,
+    /// [Hamming] window.
+    Hamming(Hamming),
     // Hann,
     // Bartlett,
     // Flattop,
