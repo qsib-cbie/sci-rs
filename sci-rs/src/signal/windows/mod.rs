@@ -64,6 +64,7 @@ mod general_cosine;
 mod general_gaussian;
 mod general_hamming;
 mod hamming;
+mod kaiser;
 mod triangle;
 pub use blackman::Blackman;
 pub use boxcar::Boxcar;
@@ -71,6 +72,7 @@ pub use general_cosine::GeneralCosine;
 pub use general_gaussian::GeneralGaussian;
 pub use general_hamming::GeneralHamming;
 pub use hamming::Hamming;
+pub use kaiser::Kaiser;
 pub use triangle::Triangle;
 
 /// This collects all structs that implement the [GetWindow] trait.  
@@ -107,8 +109,9 @@ where
     // Tukey,
     // Taylor,
     // Lanczos,
-    // Kaiser Window.
-    // Kaiser, // Needs Beta
+    /// [Kaiser] window.
+    // Needs Beta
+    Kaiser(Kaiser<F>),
     // KaiserBesselDerived, // Needs Beta
     // Gaussian, // Needs Standard Deviation
     /// [GeneralCosine] window, a generic weighted sum of cosine term windows.
