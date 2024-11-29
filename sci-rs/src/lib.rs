@@ -41,3 +41,6 @@ pub mod special;
 /// Debug plotting
 #[cfg(feature = "plot")]
 pub mod plot;
+
+/// Errors
+pub mod error;
