@@ -1,5 +1,5 @@
 use super::{extend, len_guard, truncate};
-use crate::special::i0;
+use crate::special::Bessel;
 use num_traits::{real::Real, Float};
 
 #[cfg(feature = "alloc")]
@@ -49,8 +49,7 @@ where
 impl<F, W> GetWindow<W> for Kaiser<F>
 where
     F: Real,
-    W: Real,
-    f64: From<W>,
+    W: Real + Bessel,
 {
     /// Return a [Kaiser] window.
     ///
@@ -189,11 +188,12 @@ where
         //     .collect();
         let w: Vec<W> = n
             .map(|ni| {
-                i0(beta
+                (beta
                     * (W::one()
                         - ((W::from(ni).unwrap() - alpha) / alpha).powf(W::from(2).unwrap()))
                     .sqrt())
-                    / i0(beta)
+                .i0()
+                    / (beta.i0())
             })
             .collect();
         truncate(w, needs_trunc)
