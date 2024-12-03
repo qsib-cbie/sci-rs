@@ -65,6 +65,7 @@ mod general_gaussian;
 mod general_hamming;
 mod hamming;
 mod kaiser;
+mod nuttall;
 mod triangle;
 pub use blackman::Blackman;
 pub use boxcar::Boxcar;
@@ -73,6 +74,7 @@ pub use general_gaussian::GeneralGaussian;
 pub use general_hamming::GeneralHamming;
 pub use hamming::Hamming;
 pub use kaiser::Kaiser;
+pub use nuttall::Nuttall;
 pub use triangle::Triangle;
 
 /// This collects all structs that implement the [GetWindow] trait.  
@@ -102,7 +104,8 @@ where
     // Parzen,
     // Bohman,
     // BlackmanHarris,
-    // Nuttall,
+    /// [Nuttall] window.
+    Nuttall(Nuttall),
     // BartHann,
     // Cosine,
     // Exponential,
