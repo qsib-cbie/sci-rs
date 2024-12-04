@@ -151,3 +151,184 @@ where
         }
     }
 }
+
+/// This provides a set of enum variants that for use in [get_window].
+#[derive(Debug, Clone, PartialEq)] // Derive eq?
+pub enum GetWindowBuilder<'a, F>
+where
+    F: Real,
+{
+    /// [Boxcar] window, also known as a rectangular window or Dirichlet window; This is equivalent
+    /// to no window at all.
+    Boxcar,
+    /// [Triangle] window.
+    Triangle,
+    /// [Blackman] window.
+    Blackman,
+    /// [Hamming] window.
+    Hamming,
+    // Hann,
+    // Bartlett,
+    // Flattop,
+    // Parzen,
+    // Bohman,
+    // BlackmanHarris,
+    /// [Nuttall] window.
+    Nuttall,
+    // BartHann,
+    // Cosine,
+    // Exponential,
+    // Tukey,
+    // Taylor,
+    // Lanczos,
+    /// [Kaiser] window.
+    Kaiser {
+        /// Shape parameter `β`, please refer to [Kaiser].
+        beta: F,
+    },
+    // KaiserBesselDerived, // Needs Beta
+    // Gaussian, // Needs Standard Deviation
+    /// [GeneralCosine] window: Generic weighted sum of cosine term windows.
+    GeneralCosine {
+        /// Weighting Coefficients `a`, please refer to [GeneralCosine].
+        weights: &'a [F],
+    },
+    /// [GeneralGaussian] window: Generalized Gaussian Shape.
+    GeneralGaussian {
+        /// Shape parameter.
+        p: F,
+        /// The standard deviation, σ.
+        width: F,
+    },
+    /// [GeneralHamming] window.
+    // Needs Window Coefficients.
+    GeneralHamming {
+        /// Window coefficient, ɑ
+        coefficient: F,
+    },
+    // Dpss, // Needs Normalized Half-Bandwidth.
+    // Chebwin, // Needs Attenuation.
+}
+
+/// Return a window of a given length and type.
+///
+/// Parameters
+/// ----------
+/// * `window`: [GetWindowBuilder]  
+///     The type of window to create. See below for more details.
+/// * `Nx`: usize  
+///     The number of samples in the window.
+/// * `fftbins`: bool, optional  
+///     If True (default), create a "periodic" window, ready to use with `ifftshift` and be
+///     multiplied by the result of an FFT (see also :func:`~scipy.fft.fftfreq`).  
+///     If False, create a "symmetric" window, for use in filter design.
+///
+/// Returns
+/// -------
+/// * `get_window` : ndarray
+///     Returns a window of length `Nx` and type `window`
+///
+/// Notes
+/// -----
+/// Window types:
+/// * [Boxcar]
+/// * [Triangle]
+/// * [Blackman]
+/// * [Hamming]
+// Hann,
+// Bartlett,
+// Flattop,
+// Parzen,
+// Bohman,
+// BlackmanHarris,
+/// * [Nuttall]
+// BartHann,
+// Cosine,
+// Exponential,
+// Tukey,
+// Taylor,
+// Lanczos,
+/// * [Kaiser] // Needs Beta
+// KaiserBesselDerived, // Needs Beta
+// Gaussian, // Needs Standard Deviation
+/// * [GeneralCosine]
+/// * [GeneralGaussian] // Needs Power, Width
+/// * [GeneralHamming] // Needs Window Coefficients.
+// Dpss, // Needs Normalized Half-Bandwidth.
+// Chebwin, // Needs Attenuation.
+///
+/// Examples
+/// -----
+/// ```
+/// use approx:: assert_abs_diff_eq;
+/// use sci_rs::signal::filter::design::{firwin_dyn, FilterBandType};
+/// use sci_rs::signal::windows::{get_window, GetWindow, GetWindowBuilder};
+///
+/// let window_struct = get_window(GetWindowBuilder::<f64>::Hamming, 3, None);
+/// let window: Vec<f64> = window_struct.get_window();
+/// let expected = vec![0.08, 0.77, 0.77];
+///
+/// fn assert_vec_eq(a: Vec<f64>, b: Vec<f64>) {
+///     for (a, b) in a.into_iter().zip(b) {
+///         assert_abs_diff_eq!(a, b, epsilon = 1e-6);
+///     }
+/// }
+///
+/// assert_vec_eq(window, expected);
+/// ```
+///
+///
+/// # References
+/// <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.windows.get_window.html>
+pub fn get_window<F>(window: GetWindowBuilder<'_, F>, nx: usize, fftbins: Option<bool>) -> Window<F>
+where
+    F: Real,
+{
+    match window {
+        GetWindowBuilder::Boxcar => Window::Boxcar(Boxcar {
+            m: nx,
+            sym: !fftbins.unwrap_or(true),
+        }),
+        GetWindowBuilder::Triangle => Window::Triangle(Triangle {
+            m: nx,
+            sym: !fftbins.unwrap_or(true),
+        }),
+        GetWindowBuilder::Blackman => Window::Blackman(Blackman {
+            m: nx,
+            sym: !fftbins.unwrap_or(true),
+        }),
+        GetWindowBuilder::Hamming => Window::Hamming(Hamming {
+            m: nx,
+            sym: !fftbins.unwrap_or(true),
+        }),
+        GetWindowBuilder::Nuttall => Window::Nuttall(Nuttall {
+            m: nx,
+            sym: !fftbins.unwrap_or(true),
+        }),
+        GetWindowBuilder::Kaiser { beta } => Window::Kaiser(Kaiser {
+            m: nx,
+            beta,
+            sym: !fftbins.unwrap_or(true),
+        }),
+        GetWindowBuilder::GeneralCosine { weights } => Window::GeneralCosine(GeneralCosine {
+            m: nx,
+            a: weights.into(),
+            sym: !fftbins.unwrap_or(true),
+        }),
+        GetWindowBuilder::GeneralGaussian { p, width } => {
+            Window::GeneralGaussian(GeneralGaussian {
+                m: nx,
+                p,
+                sigma: width,
+                sym: !fftbins.unwrap_or(true),
+            })
+        }
+        GetWindowBuilder::GeneralHamming { coefficient } => {
+            Window::GeneralHamming(GeneralHamming {
+                m: nx,
+                alpha: coefficient,
+                sym: !fftbins.unwrap_or(true),
+            })
+        }
+    }
+}
