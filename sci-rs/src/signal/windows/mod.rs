@@ -1,7 +1,9 @@
-#[cfg(feature = "alloc")]
-use alloc::vec::Vec;
+use crate::special;
 use nalgebra::RealField;
 use num_traits::{real::Real, Float};
+
+#[cfg(feature = "alloc")]
+use alloc::vec::Vec;
 
 /// Corresponding window representation for tuple-structs of [Window] variants.
 #[cfg(feature = "alloc")]
@@ -128,4 +130,24 @@ where
     GeneralHamming(GeneralHamming<F>),
     // Dpss, // Needs Normalized Half-Bandwidth.
     // Chebwin, // Needs Attenuation.
+}
+
+impl<F, W> GetWindow<W> for Window<F>
+where
+    F: Real,
+    W: Real + Float + RealField + special::Bessel,
+{
+    fn get_window(&self) -> Vec<W> {
+        match &self {
+            Window::Boxcar(x) => x.get_window(),
+            Window::Triangle(x) => x.get_window(),
+            Window::Blackman(x) => x.get_window(),
+            Window::Hamming(x) => x.get_window(),
+            Window::Nuttall(x) => x.get_window(),
+            Window::Kaiser(x) => x.get_window(),
+            Window::GeneralCosine(x) => x.get_window(),
+            Window::GeneralGaussian(x) => x.get_window(),
+            Window::GeneralHamming(x) => x.get_window(),
+        }
+    }
 }
