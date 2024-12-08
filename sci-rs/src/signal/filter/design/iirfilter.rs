@@ -42,7 +42,6 @@ use alloc::vec::Vec;
 ///
 #[allow(clippy::too_many_arguments)]
 #[cfg(feature = "alloc")]
-#[allow(clippy::too_many_arguments)]
 pub fn iirfilter_dyn<F>(
     order: usize,
     wn: Vec<F>,
