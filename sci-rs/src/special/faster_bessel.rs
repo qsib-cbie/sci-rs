@@ -5,7 +5,7 @@ use num_traits::real::Real;
 use alloc::vec::Vec;
 
 /// All [functions located in the `Faster versions of common Bessel
-/// functions.`](<https://docs.scipy.org/doc/scipy/reference/special.html#faster-versions-of-common-bessel-functions>)
+///   functions.`](<https://docs.scipy.org/doc/scipy/reference/special.html#faster-versions-of-common-bessel-functions>)
 pub trait Bessel {
     /// Modified Bessel function of order 0.
     ///

@@ -24,7 +24,7 @@ fn firwin_dyn_validate<F: Real + PartialOrd, W: Real>(
     width: &Option<F>,
     window: &Option<&impl GetWindow<W>>,
 ) -> Result<(), Error> {
-    if cutoff.len() == 0 {
+    if cutoff.is_empty() {
         return Err(Error::InvalidArg {
             arg: "cutoff".into(),
             reason: "At least one cutoff frequency must be given.".into(),
@@ -92,15 +92,12 @@ fn firwin_dyn_validate<F: Real + PartialOrd, W: Real>(
 
     // While this was silently ignored in Scipy, we make this explicit here.
     // Cannot use != on &impl GetWindow.
-    if let Some(_) = *window {
-        if *width != None {
-            return Err(Error::InvalidArg {
-                arg: "cutoff".into(),
-                reason:
-                    "Setting both window and with to something is silently ignored only in Scipy."
-                        .into(),
-            });
-        }
+    if window.is_some() && width.is_some() {
+        return Err(Error::InvalidArg {
+            arg: "cutoff".into(),
+            reason: "Setting both window and with to something is silently ignored only in Scipy."
+                .into(),
+        });
     }
 
     // This is here only because impl GetWindow on GetWindowBuilder is non-trivial to fetch numtaps
@@ -226,8 +223,8 @@ fn firwin_dyn_validate<F: Real + PartialOrd, W: Real>(
 /// array([  3.56607041e-04,   9.99286786e-01,   3.56607041e-04])
 /// ```
 /// Sci-rs:
-////  TODO: This still needs work so that its not Some(&Nuttall::new(...)) which might be mistakenly
-//// different from what's above it.
+//  TODO: This still needs work so that its not Some(&Nuttall::new(...)) which might be mistakenly
+//  different from what's above it.
 /// ```
 /// use approx::assert_abs_diff_eq;
 /// use sci_rs::signal::filter::design::{firwin_dyn, FilterBandType};
@@ -529,11 +526,11 @@ where
                     }
                 })
                 .collect();
-            return h;
+            h
         })
         .fold(vec![W::zero(); numtaps], |mut acc, x| {
             acc.iter_mut()
-                .zip(x.into_iter())
+                .zip(x)
                 .map(|(a, xi)| *a += W::from(xi).unwrap())
                 .collect::<()>();
             acc
@@ -565,7 +562,7 @@ where
         h.iter_mut().map(|hi| *hi /= s).collect::<()>();
     }
 
-    return Ok(h);
+    Ok(h)
 }
 
 #[cfg(test)]

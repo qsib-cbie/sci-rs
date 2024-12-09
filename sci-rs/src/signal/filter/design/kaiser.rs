@@ -225,7 +225,7 @@ where
     let beta = kaiser_beta(a);
     let numtaps =
         F::one() + (a - F::from(7.95).unwrap()) / (F::from(2.285).unwrap() * F::pi() * width);
-    return (Real::ceil(numtaps), beta);
+    (Real::ceil(numtaps), beta)
 }
 
 #[cfg(test)]

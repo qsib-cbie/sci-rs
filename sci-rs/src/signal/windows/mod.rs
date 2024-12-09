@@ -138,7 +138,7 @@ where
     W: Real + Float + RealField + special::Bessel,
 {
     fn get_window(&self) -> Vec<W> {
-        return match &self {
+        match &self {
             Window::Boxcar(x) => x.get_window(),
             Window::Triangle(x) => x.get_window(),
             Window::Blackman(x) => x.get_window(),
@@ -148,7 +148,7 @@ where
             Window::GeneralCosine(x) => x.get_window(),
             Window::GeneralGaussian(x) => x.get_window(),
             Window::GeneralHamming(x) => x.get_window(),
-        };
+        }
     }
 }
 
@@ -235,27 +235,27 @@ where
 /// * [Triangle]
 /// * [Blackman]
 /// * [Hamming]
-//// Hann,
-//// Bartlett,
-//// Flattop,
-//// Parzen,
-//// Bohman,
-//// BlackmanHarris,
+// Hann,
+// Bartlett,
+// Flattop,
+// Parzen,
+// Bohman,
+// BlackmanHarris,
 /// * [Nuttall]
-//// BartHann,
-//// Cosine,
-//// Exponential,
-//// Tukey,
-//// Taylor,
-//// Lanczos,
+// BartHann,
+// Cosine,
+// Exponential,
+// Tukey,
+// Taylor,
+// Lanczos,
 /// * [Kaiser] // Needs Beta
-//// KaiserBesselDerived, // Needs Beta
-//// Gaussian, // Needs Standard Deviation
+// KaiserBesselDerived, // Needs Beta
+// Gaussian, // Needs Standard Deviation
 /// * [GeneralCosine]
 /// * [GeneralGaussian] // Needs Power, Width
 /// * [GeneralHamming] // Needs Window Coefficients.
-//// Dpss, // Needs Normalized Half-Bandwidth.
-//// Chebwin, // Needs Attenuation.
+// Dpss, // Needs Normalized Half-Bandwidth.
+// Chebwin, // Needs Attenuation.
 ///
 /// Examples
 /// -----
@@ -288,7 +288,7 @@ pub fn get_window<'a, F>(
 where
     F: Real,
 {
-    return match window {
+    match window {
         GetWindowBuilder::Boxcar => Window::Boxcar(Boxcar {
             m: nx,
             sym: !fftbins.unwrap_or(true),
@@ -334,5 +334,5 @@ where
                 sym: !fftbins.unwrap_or(true),
             })
         }
-    };
+    }
 }

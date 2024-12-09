@@ -71,7 +71,7 @@ where
         }
         let (m, needs_trunc) = extend(self.m, self.sym);
 
-        let mut n: _ = (1..=((m + 1) / 2)).map(|x| W::from(x).unwrap());
+        let mut n = (1..=((m + 1) / 2)).map(|x| W::from(x).unwrap());
         let m_f: W = W::from(m).unwrap();
         let w: Vec<W> = match m % 2 {
             0 => {
@@ -91,7 +91,7 @@ where
             _ => panic!(),
         };
 
-        return truncate(w, needs_trunc); // this works even though w isn't mut?
+        truncate(w, needs_trunc)
     }
 }
 

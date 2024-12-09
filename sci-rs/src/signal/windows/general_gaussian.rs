@@ -106,7 +106,7 @@ where
             })
             .collect();
 
-        return truncate(w, needs_trunc);
+        truncate(w, needs_trunc)
     }
 }
 

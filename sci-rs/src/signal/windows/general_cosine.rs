@@ -89,7 +89,7 @@ where
         let (m, needs_trunc) = extend(self.m, self.sym);
 
         let linspace = (0..m).map(|i| W::from(i).unwrap());
-        let fac: _ = linspace.map(|i| W::two_pi() * i / W::from(m - 1).unwrap() - W::pi());
+        let fac = linspace.map(|i| W::two_pi() * i / W::from(m - 1).unwrap() - W::pi());
         let w: Vec<_> = self
             .a
             .iter()
@@ -106,7 +106,7 @@ where
             .into_iter()
             .collect();
 
-        return truncate(w, needs_trunc);
+        truncate(w, needs_trunc)
     }
 }
 
