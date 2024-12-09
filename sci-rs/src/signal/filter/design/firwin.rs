@@ -443,9 +443,8 @@ where
     let nyq = fs / F::from(2).unwrap();
     let cutoff: Vec<_> = cutoff.iter().map(|&c| c / nyq).collect();
 
-    match firwin_dyn_validate(&numtaps, &cutoff, &pass_zero, &width, &window) {
-        Ok(()) => (),
-        Err(e) => return Err(e),
+    if let Err(e) = firwin_dyn_validate(&numtaps, &cutoff, &pass_zero, &width, &window) {
+        return Err(e);
     }
 
     // Get and apply the window function.
