@@ -1,5 +1,4 @@
-use core::f64::consts::PI;
-use core::ops::Mul;
+use nalgebra::RealField;
 use num_traits::{real::Real, MulAdd, Pow, ToPrimitive};
 
 /// Compute the Kaiser parameter `beta`, given the attenuation `a`.
@@ -43,8 +42,8 @@ where
             F::from(0.5842).unwrap(),
             F::from(0.07886).unwrap() * a,
         )
-    } else if a > F::from(0).unwrap() {
-        F::from(0).unwrap()
+    } else if a > F::zero() {
+        F::zero()
     } else {
         panic!("Expected a positive input.")
     }
@@ -84,11 +83,11 @@ where
 /// [kaiserord], [kaiser_beta]
 pub fn kaiser_atten<F>(numtaps: u32, width: F) -> F
 where
-    F: Real + MulAdd<Output = F>,
+    F: Real + MulAdd<Output = F> + RealField,
 {
     MulAdd::mul_add(
         width,
-        F::from(numtaps - 1).unwrap() * F::from(2.285 * PI).unwrap(),
+        F::from(numtaps - 1).unwrap() * F::from(2.285).unwrap() * F::pi(),
         F::from(7.95).unwrap(),
     )
 }
@@ -217,16 +216,16 @@ where
 ///
 pub fn kaiserord<F>(ripple: F, width: F) -> (F, F)
 where
-    F: Real + MulAdd<Output = F> + Pow<F, Output = F>,
+    F: Real + MulAdd<Output = F> + Pow<F, Output = F> + RealField,
 {
-    let a = ripple.abs();
+    let a = Real::abs(ripple);
     if a < F::from(8).unwrap() {
         panic!("Requested maximum ripple attenuation is too small for the Kaiser formula.");
     }
     let beta = kaiser_beta(a);
     let numtaps =
-        F::from(1).unwrap() + (a - F::from(7.95).unwrap()) / (F::from(2.285 * PI).unwrap() * width);
-    (numtaps.ceil(), beta)
+        F::one() + (a - F::from(7.95).unwrap()) / (F::from(2.285).unwrap() * F::pi() * width);
+    (Real::ceil(numtaps), beta)
 }
 
 #[cfg(test)]

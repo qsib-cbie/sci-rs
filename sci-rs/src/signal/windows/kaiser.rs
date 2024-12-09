@@ -172,6 +172,7 @@ where
     /// [3]: #references
     /// [4]: #references
     /// [5]: #references
+    #[cfg(feature = "alloc")]
     fn get_window(&self) -> Vec<W> {
         if len_guard(self.m) {
             return Vec::<W>::new();

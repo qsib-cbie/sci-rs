@@ -62,9 +62,9 @@ where
         let (m, needs_trunc) = extend(self.m, self.sym);
 
         if !needs_trunc {
-            vec![W::from(1).unwrap(); m]
+            vec![W::one(); m]
         } else {
-            vec![W::from(1).unwrap(); m - 1]
+            vec![W::one(); m - 1]
         }
     }
 }

@@ -145,12 +145,8 @@ where
     /// [5]: #references
     #[cfg(feature = "alloc")]
     fn get_window(&self) -> Vec<W> {
-        GeneralCosine::new(
-            self.m,
-            [self.alpha, F::from(1).unwrap() - self.alpha].into(),
-            self.sym,
-        )
-        .get_window()
+        GeneralCosine::new(self.m, [self.alpha, F::one() - self.alpha].into(), self.sym)
+            .get_window()
     }
 }
 

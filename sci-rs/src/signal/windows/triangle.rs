@@ -76,14 +76,14 @@ where
         let w: Vec<W> = match m % 2 {
             0 => {
                 let mut w: Vec<W> = n
-                    .map(|n| (W::from(2).unwrap() * n - W::from(1).unwrap()) / m_f)
+                    .map(|n| (W::from(2).unwrap() * n - W::one()) / m_f)
                     .collect();
                 w.extend(w.clone().iter().rev());
                 w
             }
             1 => {
                 let mut w: Vec<W> = n
-                    .map(|n| W::from(2).unwrap() * n / (m_f + W::from(1).unwrap()))
+                    .map(|n| W::from(2).unwrap() * n / (m_f + W::one()))
                     .collect();
                 w.extend(w.clone().iter().rev().skip(1));
                 w
