@@ -103,8 +103,7 @@ where
             if rp.is_none() {
                 panic!("passband ripple (rp) must be provided to design a Chebyshev I filter");
             }
-            // cheb1ap::<N>(rp)
-            todo!()
+            cheb1ap_dyn(order, rp.unwrap())
         }
         FilterType::ChebyshevII => {
             if rp.is_none() {
@@ -238,6 +237,53 @@ where
     ZpkFormatFilter::new(Vec::new(), p, F::one())
 }
 
+/// Return (z,p,k) for Nth-order Chebyshev type I analog lowpass filter.
+///
+/// The returned filter prototype has `rp` decibels of ripple in the passband.
+///
+/// The filter's angular (e.g. rad/s) cutoff frequency is normalized to 1,
+/// defined as the point at which the gain first drops below ``-rp``.
+///
+/// See Also
+/// --------
+/// cheby1 : Filter design function using this prototype
+#[cfg(feature = "alloc")]
+pub fn cheb1ap_dyn<F>(n: usize, rp: F) -> ZpkFormatFilter<F>
+where
+    F: Float + RealField,
+{
+    let ten = F::from(10).unwrap();
+    if n == 0 {
+        return ZpkFormatFilter {
+            z: Vec::new(),
+            p: Vec::new(),
+            k: Float::powf(ten, (-rp / F::from(20).unwrap())),
+        };
+    }
+    let eps = Float::sqrt(Float::powf(ten, rp / ten) - F::one());
+    let p: Vec<Complex<F>> = {
+        let mu = Float::asinh(F::one() / eps) / F::from(n).unwrap();
+        let n = n as isize;
+        let ms = ((-n + 1)..n).step_by(2);
+        let thetas = ms.map(|m| F::pi() * (F::from(m).unwrap() / F::from(2 * n).unwrap()));
+
+        thetas
+            .map(|theta| -Complex::sinh(Complex::new(mu, theta)))
+            .collect()
+    };
+    let mut k = p
+        .iter()
+        .map(|z| -(*z))
+        .fold(Complex::new(F::one(), F::zero()), |acc, z| acc * z)
+        .real();
+    if n % 2 == 0 {
+        k /= Float::sqrt(F::one() + eps * eps);
+    }
+
+    let z = Vec::new();
+    ZpkFormatFilter { z, p, k }
+}
+
 #[cfg(test)]
 mod tests {
     use approx::assert_relative_eq;
@@ -257,6 +303,59 @@ mod tests {
         for (expected, actual) in p.into_iter().zip(zpk.p) {
             assert_relative_eq!(expected.re, actual.re, max_relative = 1e-7);
             assert_relative_eq!(expected.im, actual.im, max_relative = 1e-7);
+        }
+    }
+
+    #[cfg(feature = "alloc")]
+    #[test]
+    fn matches_scipy_cheb1ap() {
+        {
+            // from scipy.signal import cheb1ap
+            // cheb1ap(N=4, rp=2) = (array([], dtype=float64), array(
+            //    [-0.10488725+0.95795296j,
+            //     -0.25322023+0.39679711j,
+            //     -0.25322023-0.39679711j,
+            //     -0.10488725-0.95795296j]),
+            //   np.float64(0.1634450339473848))
+            let p: [Complex<f64>; 4] = [
+                Complex::new(-0.10488725, 0.95795296),
+                Complex::new(-0.25322023, 0.39679711),
+                Complex::new(-0.25322023, -0.39679711),
+                Complex::new(-0.10488725, -0.95795296),
+            ];
+            let k = 0.1634450339473848;
+
+            let zpk = cheb1ap_dyn::<f64>(4, 2.);
+            for (expected, actual) in p.into_iter().zip(zpk.p) {
+                assert_relative_eq!(expected.re, actual.re, max_relative = 1e-7);
+                assert_relative_eq!(expected.im, actual.im, max_relative = 1e-7);
+            }
+            assert_relative_eq!(zpk.k, k);
+        }
+        {
+            // from scipy.signal import cheb1ap
+            // cheb1ap(N=5, rp=2) = (array([], dtype=float64), array(
+            //    [-0.06746098+0.97345572j,
+            //     -0.17661514+0.60162872j,
+            //     -0.21830832-0.j        ,
+            //     -0.17661514-0.60162872j,
+            //     -0.06746098-0.97345572j]),
+            //   np.float64(0.08172251697369243))
+            let p: [Complex<f64>; 5] = [
+                Complex::new(-0.06746098, 0.97345572),
+                Complex::new(-0.17661514, 0.60162872),
+                Complex::new(-0.21830832, -0.),
+                Complex::new(-0.17661514, -0.60162872),
+                Complex::new(-0.06746098, -0.97345572),
+            ];
+            let k = 0.08172251697369243;
+
+            let zpk = cheb1ap_dyn::<f64>(5, 2.);
+            for (expected, actual) in p.into_iter().zip(zpk.p) {
+                assert_relative_eq!(expected.re, actual.re, max_relative = 1e-7);
+                assert_relative_eq!(expected.im, actual.im, max_relative = 1e-7);
+            }
+            assert_relative_eq!(zpk.k, k);
         }
     }
 
