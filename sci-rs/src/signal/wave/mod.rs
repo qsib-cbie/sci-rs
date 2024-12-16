@@ -6,7 +6,7 @@ use ndarray::{Array, ArrayBase, Data, Dimension, RawData};
 ///
 /// The square wave has a period ``2*pi``, has value +1 from 0 to
 /// ``2*pi*duty`` and -1 from ``2*pi*duty`` to ``2*pi``. `duty` must be in
-/// the interval [0,1].
+/// the interval \[0,1\].
 ///
 /// Note that this is not band-limited.  It produces an infinite number
 /// of harmonics, which are aliased back and forth across the frequency
