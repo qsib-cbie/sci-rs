@@ -50,7 +50,6 @@ use super::{
 /// --------
 /// _cplxpair
 /// """
-
 #[cfg(feature = "alloc")]
 pub fn cplxreal_dyn<F>(z: Vec<Complex<F>>, tol: Option<F>) -> (Vec<Complex<F>>, Vec<Complex<F>>)
 where

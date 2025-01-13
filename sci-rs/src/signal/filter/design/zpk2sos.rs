@@ -45,7 +45,6 @@ enum WhichNearestComplex {
 ///     specification.
 ///
 ///
-
 #[cfg(feature = "alloc")]
 pub fn zpk2sos_dyn<F>(
     order: usize,

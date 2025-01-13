@@ -43,7 +43,6 @@ use alloc::vec::Vec;
 /// This is derived from the s-plane substitution
 /// .. math:: s \rightarrow \frac{s}{\omega_0}
 /// .. versionadded:: 1.1.0
-
 #[cfg(feature = "alloc")]
 pub fn lp2lp_zpk_dyn<F>(zpk: ZpkFormatFilter<F>, wo: Option<F>) -> ZpkFormatFilter<F>
 where
