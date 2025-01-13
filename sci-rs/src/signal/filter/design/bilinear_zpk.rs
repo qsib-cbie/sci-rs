@@ -39,8 +39,8 @@ use super::{
 ///
 /// See Also
 /// --------
-/// lp2lp_zpk, lp2hp_zpk, lp2bp_zpk, lp2bs_zpk
-/// bilinear
+/// [lp2lp_zpk](super::lp2lp_zpk_dyn), [lp2hp_zpk](super::lp2hp_zpk_dyn),
+/// [lp2bp_zpk](super::lp2bp_zpk_dyn), [lp2bs_zpk](super::lp2bs_zpk_dyn), bilinear
 ///
 /// Notes
 /// -----
@@ -48,7 +48,7 @@ use super::{
 ///
 /// Examples
 /// --------
-/// ```ignore
+/// ```custom,{class=language-python}
 /// >>> from scipy import signal
 /// >>> import matplotlib.pyplot as plt
 ///

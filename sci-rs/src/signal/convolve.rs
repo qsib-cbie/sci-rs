@@ -171,6 +171,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "plot")]
     fn test_scipy_example() {
         use rand::distributions::{Distribution, Standard};
         use rand::thread_rng;
