@@ -83,7 +83,7 @@ where
     let mut zp: Vec<Complex<F>> = zc.iter().filter(|zi| zi.im > F::zero()).cloned().collect();
     let mut zn: Vec<Complex<F>> = zc.iter().filter(|zi| zi.im < F::zero()).cloned().collect();
     if zp.len() != zn.len() {
-        panic!("Array contains complex value with no matchin conjugate");
+        panic!("Array contains complex value with no matching conjugate");
     }
 
     // Find runs of (approximately) the same real part

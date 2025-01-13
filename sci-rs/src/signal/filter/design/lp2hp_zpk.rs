@@ -66,7 +66,7 @@ use alloc::vec::Vec;
 ///>>> plt.semilogx()
 ///>>> plt.grid(True)
 ///>>> plt.xlabel('Frequency [rad/s]')
-///>>> plt.ylabel('Magnitude [dB]')
+///>>> plt.ylabel('Magnitude \[dB\]')
 ///>>> plt.legend()
 pub fn lp2hp_zpk_dyn<F>(zpk: ZpkFormatFilter<F>, wo: Option<F>) -> ZpkFormatFilter<F>
 where

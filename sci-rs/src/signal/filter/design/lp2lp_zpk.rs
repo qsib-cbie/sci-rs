@@ -15,33 +15,37 @@ use alloc::vec::Vec;
 /// Return an analog low-pass filter with cutoff frequency `wo`
 /// from an analog low-pass filter prototype with unity cutoff frequency,
 /// using zeros, poles, and gain ('zpk') representation.
+///
 /// Parameters
 /// ----------
-/// z : array_like
+/// * z : array_like  
 ///     Zeros of the analog filter transfer function.
-/// p : array_like
+/// * p : array_like  
 ///     Poles of the analog filter transfer function.
-/// k : float
+/// * k : float  
 ///     System gain of the analog filter transfer function.
-/// wo : float
+/// * wo : float  
 ///     Desired cutoff, as angular frequency (e.g., rad/s).
 ///     Defaults to no change.
+///
 /// Returns
 /// -------
-/// z : ndarray
+/// * z : ndarray  
 ///     Zeros of the transformed low-pass filter transfer function.
-/// p : ndarray
+/// * p : ndarray  
 ///     Poles of the transformed low-pass filter transfer function.
-/// k : float
+/// * k : float  
 ///     System gain of the transformed low-pass filter.
+///
 /// See Also
 /// --------
-/// lp2hp_zpk, lp2bp_zpk, lp2bs_zpk, bilinear
-/// lp2lp
+/// [lp2lp_zpk](super::lp2lp_zpk_dyn), [lp2hp_zpk](super::lp2hp_zpk_dyn),
+/// [lp2bp_zpk](super::lp2bp_zpk_dyn), [lp2bs_zpk](super::lp2bs_zpk_dyn), bilinear
+///
 /// Notes
 /// -----
-/// This is derived from the s-plane substitution
-/// .. math:: s \rightarrow \frac{s}{\omega_0}
+/// This is derived from the s-plane substitution  
+/// .. math:: s \rightarrow \frac{s}{\omega_0}  
 /// .. versionadded:: 1.1.0
 #[cfg(feature = "alloc")]
 pub fn lp2lp_zpk_dyn<F>(zpk: ZpkFormatFilter<F>, wo: Option<F>) -> ZpkFormatFilter<F>
