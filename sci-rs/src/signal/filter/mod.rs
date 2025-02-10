@@ -13,7 +13,9 @@ pub use kalmanfilt::kalman::kalman_filter;
 ///
 pub use gaussfilt as gaussian_filter;
 
-/// Digital IIR/FIR filter design
+/// Digital IIR/FIR filter design  
+/// Functions located in the [`Filter design` section of
+/// `scipy.signal`](https://docs.scipy.org/doc/scipy/reference/signal.html#filter-design).
 pub mod design;
 
 mod ext;
