@@ -43,6 +43,24 @@ pub trait Combinatoric {
     ///
     /// [wiki]: https://en.wikipedia.org/wiki/Combination#Number_of_combinations_with_repetition
     fn comb_rep(self, k: Self) -> Self;
+
+    /// Number of permutations of `n` things taken `k` at a time.
+    ///
+    /// Also known as the `k`-permutation of `n`.
+    /// $$
+    /// \text{Perm}(n, k) = \frac{n!}{(n-k)!}
+    /// $$
+    /// # Examples
+    /// ```
+    /// use sci_rs::special::Combinatoric;
+    /// assert_eq!(5.perm(5), 120); // should be 5!
+    /// assert_eq!(5.perm(0), 1);
+    /// assert_eq!(6.perm(3), 6*5*4);
+    /// ```
+    ///
+    /// # Notes
+    /// When `n<0` or `k<0`, the `0` is returned. 
+    fn perm(self, k: Self) -> Self;
 }
 
 macro_rules! combinatoric_primint_impl {
@@ -56,6 +74,11 @@ macro_rules! combinatoric_primint_impl {
             #[inline(always)]
             fn comb_rep(self, k: Self) -> Self {
                 primint_comb_rep(self, k)
+            }
+
+            #[inline(always)]
+            fn perm(self, k:Self) -> Self {
+                primint_perm(self, k)         
             }
 
         }
@@ -83,6 +106,16 @@ where
     Int: PrimInt + FromPrimitive,
 {
     primint_comb(n + k - Int::one(), k)
+}
+
+fn primint_perm<Int>(n: Int, k: Int) -> Int where Int: PrimInt + FromPrimitive {
+    if k > n ||n < Int::zero() || k < Int::zero() {
+        return Int::zero();
+    }
+
+    let start = (n - k + Int::one()).to_usize().unwrap();
+    let end = (n + Int::one()).to_usize().unwrap();
+    (start..end).fold(Int::one(), |result, val| result * Int::from_usize(val).unwrap())
 }
 
 #[cfg(test)]
@@ -169,6 +202,44 @@ mod tests {
             for j in 0..1 {
                 assert_eq!(i.comb_rep(j), i);
             }
+        }
+    }
+    
+    #[test]
+    fn perm() {
+        let ref_values_4 = [1, 4, 12, 24, 24, 0];
+        let ref_values_7 = [1, 7, 42, 210, 840, 2520, 5040, 5040, 0];
+        let ref_values_13 = [
+            1, 13, 156, 1716, 17160, 154440, 1235520, 8648640, 51891840, 259459200, 1037836800,
+        ];
+        check_values(4, &ref_values_4, i32::perm);
+        check_values(7, &ref_values_7, i32::perm);
+        check_values(13, &ref_values_13, i32::perm);
+    }
+
+    #[test]
+    fn perm_edge() {
+        assert_eq!(0.perm(0), 1);
+        assert_eq!(1.perm(0), 1);
+        assert_eq!(0.perm(1), 0);
+    }
+    
+    #[test]
+    fn perm_negative() {
+        for i in 0..4 {
+            assert_eq!((-4).perm(i), 0);
+            assert_eq!((-3).perm(i), 0);
+            assert_eq!((-3241).perm(i), 0);
+        }
+
+        for i in -4..0 {
+            assert_eq!(4.perm(i), 0);
+            assert_eq!(2.perm(i), 0);
+            assert_eq!(2341.perm(i), 0);
+            assert_eq!((-2).perm(i), 0);
+            assert_eq!((-4).perm(i), 0);
+            assert_eq!((-5).perm(i), 0);
+            assert_eq!((-3241).perm(i), 0);
         }
     }
 }
