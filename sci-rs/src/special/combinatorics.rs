@@ -187,17 +187,17 @@ mod tests {
     use super::*;
     use core::fmt;
 
-    fn check_values<K, T>(ref_values: &[[K; 10]], func: fn(T, T) -> T)
+    fn check_values<K, T>(ref_values: &[[K; 10]], func: fn(T, T) -> T, func_name: &str)
     where
         K: PrimInt + FromPrimitive,
-        T: PrimInt + FromPrimitive + fmt::Debug,
+        T: PrimInt + FromPrimitive + fmt::Display + fmt::Debug,
     {
         for (n, &elements) in ref_values.iter().enumerate() {
             for (k, &val) in elements.iter().enumerate() {
                 let n = T::from_usize(n).unwrap();
                 let k = T::from_usize(k).unwrap();
                 let val = T::from(val).unwrap();
-                assert_eq!(func(n, k), val);
+                assert_eq!(func(n, k), val, "{}({}, {}) != {}", func_name, n, k, val);
             }
         }
     }
@@ -217,8 +217,8 @@ mod tests {
             [1, 8, 28, 56, 70, 56, 28, 8, 1, 0],
             [1, 9, 36, 84, 126, 126, 84, 36, 9, 1],
         ];
-        check_values(&ref_values, u32::comb);
-        check_values(&ref_values, i32::comb);
+        check_values(&ref_values, u32::comb, "u32::comb");
+        check_values(&ref_values, i32::comb, "i32::comb");
     }
 
     #[test]
@@ -246,8 +246,8 @@ mod tests {
             [1, 8, 36, 120, 330, 792, 1716, 3432, 6435, 11440],
             [1, 9, 45, 165, 495, 1287, 3003, 6435, 12870, 24310],
         ];
-        check_values(&ref_values, u32::comb_rep);
-        check_values(&ref_values, i32::comb_rep);
+        check_values(&ref_values, u32::comb_rep, "u32::comb_rep");
+        check_values(&ref_values, i32::comb_rep, "i32::comb_rep");
     }
 
     #[test]
@@ -275,8 +275,8 @@ mod tests {
             [1, 8, 56, 336, 1680, 6720, 20160, 40320, 40320, 0],
             [1, 9, 72, 504, 3024, 15120, 60480, 181440, 362880, 362880],
         ];
-        check_values(&ref_values, u32::perm);
-        check_values(&ref_values, i32::perm);
+        check_values(&ref_values, u32::perm, "u32::perm");
+        check_values(&ref_values, i32::perm, "i32::perm");
     }
 
     #[test]
@@ -304,8 +304,8 @@ mod tests {
             [0, 1, 127, 966, 1701, 1050, 266, 28, 1, 0],
             [0, 1, 255, 3025, 7770, 6951, 2646, 462, 36, 1],
         ];
-        check_values(&ref_values, u32::stirling2);
-        check_values(&ref_values, i32::stirling2);
+        check_values(&ref_values, u32::stirling2, "u32::stirling2");
+        check_values(&ref_values, i32::stirling2, "i32::stirling2");
     }
 
     #[test]
