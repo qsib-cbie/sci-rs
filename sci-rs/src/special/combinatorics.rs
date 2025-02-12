@@ -2,7 +2,7 @@ use nalgebra::min;
 use num_traits::{FromPrimitive, PrimInt};
 
 /// Various combinatorics functions for integer types.
-pub trait Comb {
+pub trait Combinatoric {
     /// The number of combinations of `n` taken `k` at a time.
     ///
     /// This is also known as $n$ choose $k$ and is generally given by the formula
@@ -14,7 +14,7 @@ pub trait Comb {
     ///
     /// # Examples
     /// ```
-    /// use sci_rs::special::Comb;
+    /// use sci_rs::special::Combinatoric;
     /// assert_eq!(5_i32.comb(2), 10);
     /// ```
     ///
@@ -30,7 +30,7 @@ pub trait Comb {
     ///
     /// # Examples
     /// ```
-    /// use sci_rs::special::Comb;
+    /// use sci_rs::special::Combinatoric;
     /// assert_eq!(5_i32.comb_rep(2), 15);
     /// assert_eq!(10_i32.comb_rep(3), 220);
     /// ```
@@ -45,9 +45,9 @@ pub trait Comb {
     fn comb_rep(self, k: Self) -> Self;
 }
 
-macro_rules! comb_primint_impl {
+macro_rules! combinatoric_primint_impl {
     ($($T: ty)*) => ($(
-        impl Comb for $T {
+        impl Combinatoric for $T {
             #[inline(always)]
             fn comb(self, k: Self) -> Self {
                 primint_comb(self, k)
@@ -62,7 +62,7 @@ macro_rules! comb_primint_impl {
     )*)
 }
 
-comb_primint_impl! {u8 u16 u32 u64 u128 usize i8 i16 i32 i64 i128 isize}
+combinatoric_primint_impl! {u8 u16 u32 u64 u128 usize i8 i16 i32 i64 i128 isize}
 
 fn primint_comb<Int>(n: Int, k: Int) -> Int
 where
