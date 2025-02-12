@@ -59,8 +59,37 @@ pub trait Combinatoric {
     /// ```
     ///
     /// # Notes
-    /// When `n<0` or `k<0`, the `0` is returned. 
+    /// When `n<0` or `k<0`, the `0` is returned.
     fn perm(self, k: Self) -> Self;
+
+    /// Stirling number of the second kind.
+    ///
+    /// These count the number of ways to partition a set of `n` elements into `k` non-empty
+    /// subsets. These are often called `n` subset `k` and denoted as either
+    /// $$
+    /// S(n,k)
+    /// $$
+    /// or
+    /// $$
+    /// \begin{Bmatrix}
+    ///     n \\ k
+    /// \end{Bmatrix}
+    /// $$
+    /// See the [wiki] page for more details.
+    ///
+    /// # Examples
+    /// ```
+    /// use sci_rs::special::Combinatoric;
+    /// assert_eq!(3.stirling2(2), 3);
+    /// assert_eq!(0.stirling2(0), 1);
+    /// assert_eq!(4.stirling2(3), 6);
+    /// ```
+    ///
+    /// # References
+    /// - [Wikipedia][wiki]
+    ///
+    /// [wiki]: https://en.wikipedia.org/wiki/Stirling_numbers_of_the_second_kind
+    fn stirling2(self, k: Self) -> Self;
 }
 
 macro_rules! combinatoric_primint_impl {
@@ -77,8 +106,13 @@ macro_rules! combinatoric_primint_impl {
             }
 
             #[inline(always)]
-            fn perm(self, k:Self) -> Self {
-                primint_perm(self, k)         
+            fn perm(self, k: Self) -> Self {
+                primint_perm(self, k)
+            }
+
+            #[inline(always)]
+            fn stirling2(self, k: Self) -> Self {
+                primint_stirling2(self, k)
             }
 
         }
@@ -108,14 +142,41 @@ where
     primint_comb(n + k - Int::one(), k)
 }
 
-fn primint_perm<Int>(n: Int, k: Int) -> Int where Int: PrimInt + FromPrimitive {
-    if k > n ||n < Int::zero() || k < Int::zero() {
+fn primint_perm<Int>(n: Int, k: Int) -> Int
+where
+    Int: PrimInt + FromPrimitive,
+{
+    if k > n || n < Int::zero() || k < Int::zero() {
         return Int::zero();
     }
 
     let start = (n - k + Int::one()).to_usize().unwrap();
     let end = (n + Int::one()).to_usize().unwrap();
-    (start..end).fold(Int::one(), |result, val| result * Int::from_usize(val).unwrap())
+    (start..end).fold(Int::one(), |result, val| {
+        result * Int::from_usize(val).unwrap()
+    })
+}
+
+fn primint_stirling2<Int>(n: Int, k: Int) -> Int
+where
+    Int: PrimInt + FromPrimitive,
+{
+    if n < Int::zero() || k < Int::zero() {
+        return Int::zero();
+    }
+    if k > n {
+        return Int::zero();
+    }
+
+    if n == k {
+        return Int::one();
+    }
+
+    if k == Int::zero() || n == Int::zero() {
+        return Int::zero();
+    }
+
+    k * primint_stirling2(n - Int::one(), k) + primint_stirling2(n - Int::one(), k - Int::one())
 }
 
 #[cfg(test)]
@@ -123,35 +184,40 @@ mod tests {
     use super::*;
     use core::fmt;
 
-    fn check_values<T>(x: T, ref_values: &[T], func: fn(T, T) -> T)
+    fn check_values<T>(ref_values: &[[T; 10]], func: fn(T, T) -> T)
     where
         T: PrimInt + FromPrimitive + fmt::Debug,
     {
-        for (i, &val) in ref_values.iter().enumerate() {
-            let i = T::from_usize(i).unwrap();
-            assert_eq!(func(x, i), val);
+        for (n, &elements) in ref_values.iter().enumerate() {
+            for (k, &val) in elements.iter().enumerate() {
+                let n = T::from_usize(n).unwrap();
+                let k = T::from_usize(k).unwrap();
+                assert_eq!(func(n, k), val);
+            }
         }
     }
 
     #[test]
-    fn choose() {
-        assert_eq!(3_u8.comb(1), 3);
-        assert_eq!(3_u8.comb(2), 3);
-        assert_eq!(3_u8.comb(3), 1);
-
-        const REF_VALUES_5: [i32; 7] = [1, 5, 10, 10, 5, 1, 0];
-        const REF_VALUES_10: [i32; 12] = [1, 10, 45, 120, 210, 252, 210, 120, 45, 10, 1, 0];
-        const REF_VALUES_15: [i32; 16] = [
-            1, 15, 105, 455, 1365, 3003, 5005, 6435, 6435, 5005, 3003, 1365, 455, 105, 15, 1,
+    fn comb() {
+        // Generated from scipy
+        let ref_values = [
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+            [1, 2, 1, 0, 0, 0, 0, 0, 0, 0],
+            [1, 3, 3, 1, 0, 0, 0, 0, 0, 0],
+            [1, 4, 6, 4, 1, 0, 0, 0, 0, 0],
+            [1, 5, 10, 10, 5, 1, 0, 0, 0, 0],
+            [1, 6, 15, 20, 15, 6, 1, 0, 0, 0],
+            [1, 7, 21, 35, 35, 21, 7, 1, 0, 0],
+            [1, 8, 28, 56, 70, 56, 28, 8, 1, 0],
+            [1, 9, 36, 84, 126, 126, 84, 36, 9, 1],
         ];
-        check_values(5, &REF_VALUES_5, i32::comb);
-        check_values(10, &REF_VALUES_10, i32::comb);
-        check_values(15, &REF_VALUES_15, i32::comb);
+        check_values(&ref_values, i32::comb);
     }
 
     #[test]
-    fn choose_negatives() {
-        for n in -10..-1 {
+    fn comb_negatives() {
+        for n in -10..0 {
             for m in -5..5 {
                 assert_eq!(n.comb(m), 0);
                 assert_eq!(m.comb(n), 0);
@@ -160,35 +226,26 @@ mod tests {
     }
 
     #[test]
-    fn choose_greater_than() {
-        for i in 0..10 {
-            for j in 0..i {
-                assert_eq!(j.comb(i), 0);
-            }
-        }
-    }
-
-    #[test]
-    fn zero_choose_zero() {
-        assert_eq!(0.comb(0), 1);
-    }
-
-    #[test]
-    fn choose_replacement() {
-        const REF_VALUES_5: [i32; 10] = [1, 5, 15, 35, 70, 126, 210, 330, 495, 715];
-        const REF_VALUES_7: [i32; 10] = [1, 7, 28, 84, 210, 462, 924, 1716, 3003, 5005];
-        const REF_VALUES_10: [i32; 15] = [
-            1, 10, 55, 220, 715, 2002, 5005, 11440, 24310, 48620, 92378, 167960, 293930, 497420,
-            817190,
+    fn comb_rep() {
+        let ref_values = [
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+            [1, 3, 6, 10, 15, 21, 28, 36, 45, 55],
+            [1, 4, 10, 20, 35, 56, 84, 120, 165, 220],
+            [1, 5, 15, 35, 70, 126, 210, 330, 495, 715],
+            [1, 6, 21, 56, 126, 252, 462, 792, 1287, 2002],
+            [1, 7, 28, 84, 210, 462, 924, 1716, 3003, 5005],
+            [1, 8, 36, 120, 330, 792, 1716, 3432, 6435, 11440],
+            [1, 9, 45, 165, 495, 1287, 3003, 6435, 12870, 24310],
         ];
-        check_values(5, &REF_VALUES_5, i32::comb_rep);
-        check_values(7, &REF_VALUES_7, i32::comb_rep);
-        check_values(10, &REF_VALUES_10, i32::comb_rep);
+
+        check_values(&ref_values, i32::comb_rep);
     }
 
     #[test]
-    fn choose_replacement_negatives() {
-        for n in -10..-1 {
+    fn comb_rep_negatives() {
+        for n in -4..0 {
             for m in -5..5 {
                 assert_eq!(n.comb_rep(m), 0);
                 assert_eq!(m.comb_rep(n), 0);
@@ -197,49 +254,58 @@ mod tests {
     }
 
     #[test]
-    fn choose_zero_replacement() {
-        for i in 0..1 {
-            for j in 0..1 {
-                assert_eq!(i.comb_rep(j), i);
+    fn perm() {
+        // Generated from scipy
+        let ref_values = [
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+            [1, 2, 2, 0, 0, 0, 0, 0, 0, 0],
+            [1, 3, 6, 6, 0, 0, 0, 0, 0, 0],
+            [1, 4, 12, 24, 24, 0, 0, 0, 0, 0],
+            [1, 5, 20, 60, 120, 120, 0, 0, 0, 0],
+            [1, 6, 30, 120, 360, 720, 720, 0, 0, 0],
+            [1, 7, 42, 210, 840, 2520, 5040, 5040, 0, 0],
+            [1, 8, 56, 336, 1680, 6720, 20160, 40320, 40320, 0],
+            [1, 9, 72, 504, 3024, 15120, 60480, 181440, 362880, 362880],
+        ];
+        check_values(&ref_values, i32::perm);
+    }
+
+    #[test]
+    fn perm_negative() {
+        for i in -4..0 {
+            for j in -5..5 {
+                assert_eq!(i.perm(j), 0);
+                assert_eq!(j.perm(i), 0);
             }
         }
     }
-    
+
     #[test]
-    fn perm() {
-        let ref_values_4 = [1, 4, 12, 24, 24, 0];
-        let ref_values_7 = [1, 7, 42, 210, 840, 2520, 5040, 5040, 0];
-        let ref_values_13 = [
-            1, 13, 156, 1716, 17160, 154440, 1235520, 8648640, 51891840, 259459200, 1037836800,
+    fn stirling2() {
+        // Generated from scipy
+        let ref_values = [
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 1, 1, 0, 0, 0, 0, 0, 0, 0],
+            [0, 1, 3, 1, 0, 0, 0, 0, 0, 0],
+            [0, 1, 7, 6, 1, 0, 0, 0, 0, 0],
+            [0, 1, 15, 25, 10, 1, 0, 0, 0, 0],
+            [0, 1, 31, 90, 65, 15, 1, 0, 0, 0],
+            [0, 1, 63, 301, 350, 140, 21, 1, 0, 0],
+            [0, 1, 127, 966, 1701, 1050, 266, 28, 1, 0],
+            [0, 1, 255, 3025, 7770, 6951, 2646, 462, 36, 1],
         ];
-        check_values(4, &ref_values_4, i32::perm);
-        check_values(7, &ref_values_7, i32::perm);
-        check_values(13, &ref_values_13, i32::perm);
+        check_values(&ref_values, i32::stirling2);
     }
 
     #[test]
-    fn perm_edge() {
-        assert_eq!(0.perm(0), 1);
-        assert_eq!(1.perm(0), 1);
-        assert_eq!(0.perm(1), 0);
-    }
-    
-    #[test]
-    fn perm_negative() {
-        for i in 0..4 {
-            assert_eq!((-4).perm(i), 0);
-            assert_eq!((-3).perm(i), 0);
-            assert_eq!((-3241).perm(i), 0);
-        }
-
+    fn stirling2_negative() {
         for i in -4..0 {
-            assert_eq!(4.perm(i), 0);
-            assert_eq!(2.perm(i), 0);
-            assert_eq!(2341.perm(i), 0);
-            assert_eq!((-2).perm(i), 0);
-            assert_eq!((-4).perm(i), 0);
-            assert_eq!((-5).perm(i), 0);
-            assert_eq!((-3241).perm(i), 0);
+            for j in -5..5 {
+                assert_eq!(i.stirling2(j), 0);
+                assert_eq!(j.stirling2(i), 0);
+            }
         }
     }
 }
