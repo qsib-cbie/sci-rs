@@ -1,7 +1,6 @@
 use nalgebra::RealField;
 use ndarray::{Array, ArrayBase, Data, Dimension, RawData};
 
-/// """
 /// Return a periodic square-wave waveform.
 ///
 /// The square wave has a period ``2*pi``, has value +1 from 0 to
@@ -14,31 +13,34 @@ use ndarray::{Array, ArrayBase, Data, Dimension, RawData};
 ///
 /// Parameters
 /// ----------
-/// t : array_like
+/// * `t` : array_like  
 ///     The input time array.
-/// duty : array_like, optional
-///     Duty cycle.  Default is 0.5 (50% duty cycle).
-///     If an array, causes wave shape to change over time, and must be the
-///     same length as t.
+/// * `duty` : array_like  
+///     Duty cycle.  
+///     not implemented: If an array, causes wave shape to change over time, and must be the same
+///     length as t.
 ///
 /// Returns
 /// -------
-/// y : ndarray
+/// `y` : ndarray  
 ///     Output array containing the square waveform.
 ///
 /// Examples
 /// --------
 /// A 5 Hz waveform sampled at 500 Hz for 1 second:
 ///
+/// ```custom,{class=language-python}
 /// >>> import numpy as np
 /// >>> from scipy import signal
 /// >>> import matplotlib.pyplot as plt
 /// >>> t = np.linspace(0, 1, 500, endpoint=False)
 /// >>> plt.plot(t, signal.square(2 * np.pi * 5 * t))
 /// >>> plt.ylim(-2, 2)
+/// ```
 ///
 /// A pulse-width modulated sine wave:
 ///
+/// ```custom,{class=language-python}
 /// >>> plt.figure()
 /// >>> sig = np.sin(2 * np.pi * t)
 /// >>> pwm = signal.square(2 * np.pi * 30 * t, duty=(sig + 1)/2)
@@ -47,8 +49,7 @@ use ndarray::{Array, ArrayBase, Data, Dimension, RawData};
 /// >>> plt.subplot(2, 1, 2)
 /// >>> plt.plot(t, pwm)
 /// >>> plt.ylim(-1.5, 1.5)
-///
-/// """
+/// ```
 pub fn square<F, S, D>(t: &ArrayBase<S, D>, duty: F) -> Array<F, D>
 where
     F: RealField,
