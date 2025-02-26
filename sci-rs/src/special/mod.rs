@@ -6,9 +6,13 @@
 
 mod combinatorics;
 mod factorial;
+#[cfg(feature = "std")]
+mod softmax;
 
 pub use combinatorics::*;
 pub use factorial::*;
+#[cfg(feature = "std")]
+pub use softmax::*;
 
 /// Adds the [Bessel] trait.
 mod bessel;
