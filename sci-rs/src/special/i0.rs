@@ -1,3 +1,10 @@
+//! This file provides the modified Bessel function of order zero of the argument.
+//! It has been written with reference to Numerical Recipes in C++ by William H. Press,
+//! Saul A. Teukolsky, William T. Vetterling, and Brian P. Flannery.
+//! The function as provisioned here are not *yet* intended to be exposed out of the crate.
+//! See: https://github.com/scipy/scipy/pull/21297, scipy/special/xsf/cephes/i0.h for a different
+//! implementation.
+
 fn poly(cof: &[f64], x: f64) -> f64 {
     cof[..cof.len() - 1]
         .iter()
@@ -49,7 +56,7 @@ const I0QQ: [f64; 6] = [
     1.529835782400450e-6,
 ];
 
-pub fn i0(x: f64) -> f64 {
+pub(crate) fn i0(x: f64) -> f64 {
     let ax = f64::abs(x);
     match ax < 15.0 {
         true => poly(&I0P, x * x) / poly(&I0Q, 225. - (x * x)),
@@ -57,5 +64,24 @@ pub fn i0(x: f64) -> f64 {
             f64::exp(ax) * poly(&I0PP, 1.0 - 15.0 / ax)
                 / (poly(&I0QQ, 1.0 - 15.0 / ax) * f64::sqrt(ax))
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use approx::assert_relative_eq;
+
+    #[test]
+    fn i0_f64() {
+        let result: f64 = i0(1.);
+        let exp = 1.2660658777520082;
+        assert_relative_eq!(result, exp, epsilon = 1e-6);
+        let result: f64 = i0(0.213);
+        let exp = 1.0113744522192416;
+        assert_relative_eq!(result, exp, epsilon = 1e-6);
+        let result: f64 = i0(30.546);
+        let exp = 1337209608661.4026;
+        assert_relative_eq!(result, exp, epsilon = 1e-6);
     }
 }
