@@ -5,11 +5,13 @@
 //! See: https://github.com/scipy/scipy/pull/21297, scipy/special/xsf/cephes/i0.h for a different
 //! implementation.
 
-fn poly(cof: &[f64], x: f64) -> f64 {
-    cof[..cof.len() - 1]
-        .iter()
+/// Evaluates a polynomial with coeffecients evaluated at `x`.
+unsafe fn poly(cof: &[f64], x: f64) -> f64 {
+    cof.iter()
+        .take(cof.len() - 1)
         .rev()
-        .fold(*cof.last().expect("Coefficients are empty!"), |acc, e| {
+        // SAFETY: poly is called only by const arrays
+        .fold(unsafe { *cof.last().unwrap_unchecked() }, |acc, e| {
             acc * x + e
         })
 }
@@ -57,13 +59,12 @@ const I0QQ: [f64; 6] = [
 ];
 
 pub(crate) fn i0(x: f64) -> f64 {
-    let ax = f64::abs(x);
+    let ax = x.abs();
     match ax < 15.0 {
-        true => poly(&I0P, x * x) / poly(&I0Q, 225. - (x * x)),
-        false => {
-            f64::exp(ax) * poly(&I0PP, 1.0 - 15.0 / ax)
-                / (poly(&I0QQ, 1.0 - 15.0 / ax) * f64::sqrt(ax))
-        }
+        true => unsafe { poly(&I0P, x * x) / poly(&I0Q, 225. - (x * x)) },
+        false => unsafe {
+            ax.exp() * poly(&I0PP, 1.0 - 15.0 / ax) / (poly(&I0QQ, 1.0 - 15.0 / ax) * ax.sqrt())
+        },
     }
 }
 
