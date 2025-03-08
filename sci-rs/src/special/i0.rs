@@ -53,7 +53,7 @@ impl Bessel for f32 {
 /// Evaluates a polynomial with coeffecients evaluated at `x`.
 unsafe fn poly<T>(cof: &[T], x: T) -> T
 where
-    T: Real + std::ops::Mul,
+    T: Real + core::ops::Mul,
 {
     cof.iter()
         .take(cof.len() - 1)
