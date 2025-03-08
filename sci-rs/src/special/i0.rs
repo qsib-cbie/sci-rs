@@ -5,6 +5,33 @@
 //! See: https://github.com/scipy/scipy/pull/21297, scipy/special/xsf/cephes/i0.h for a different
 //! implementation.
 
+/// All [functions located in the `Faster versions of common Bessel
+/// functions.`](<https://docs.scipy.org/doc/scipy/reference/special.html#faster-versions-of-common-bessel-functions>)
+pub(crate) trait Bessel {
+    /// Modified Bessel function of order 0.
+    ///
+    /// ## Notes
+    /// * The range is partitioned into the two intervals [0, 8] and (8, infinity).
+    /// * [Scipy has this as a
+    ///   ufunc](<https://docs.scipy.org/doc/scipy/reference/special.html#special-functions-scipy-special>),
+    ///   as a supposed wrapper over the Cephes routine. We try to define it over reasonable types in
+    ///   the impl.
+    fn i0(&self) -> Self;
+}
+
+impl Bessel for f64 {
+    fn i0(&self) -> Self {
+        let x = *self;
+        let ax = x.abs();
+        match ax < 15.0 {
+            true => unsafe { poly(&I0P, x * x) / poly(&I0Q, 225. - (x * x)) },
+            false => unsafe {
+                ax.exp() * poly(&I0PP, 1.0 - 15.0 / ax) / (poly(&I0QQ, 1.0 - 15.0 / ax) * ax.sqrt())
+            },
+        }
+    }
+}
+
 /// Evaluates a polynomial with coeffecients evaluated at `x`.
 unsafe fn poly(cof: &[f64], x: f64) -> f64 {
     cof.iter()
@@ -58,15 +85,6 @@ const I0QQ: [f64; 6] = [
     1.529835782400450e-6,
 ];
 
-pub(crate) fn i0(x: f64) -> f64 {
-    let ax = x.abs();
-    match ax < 15.0 {
-        true => unsafe { poly(&I0P, x * x) / poly(&I0Q, 225. - (x * x)) },
-        false => unsafe {
-            ax.exp() * poly(&I0PP, 1.0 - 15.0 / ax) / (poly(&I0QQ, 1.0 - 15.0 / ax) * ax.sqrt())
-        },
-    }
-}
 
 #[cfg(test)]
 mod tests {
@@ -75,13 +93,13 @@ mod tests {
 
     #[test]
     fn i0_f64() {
-        let result: f64 = i0(1.);
+        let result: f64 = (1.).i0();
         let exp = 1.2660658777520082;
         assert_relative_eq!(result, exp, epsilon = 1e-6);
-        let result: f64 = i0(0.213);
+        let result: f64 = 0.213.i0();
         let exp = 1.0113744522192416;
         assert_relative_eq!(result, exp, epsilon = 1e-6);
-        let result: f64 = i0(30.546);
+        let result: f64 = 30.546.i0();
         let exp = 1337209608661.4026;
         assert_relative_eq!(result, exp, epsilon = 1e-6);
     }
