@@ -80,6 +80,15 @@ impl Bessel for f64 {
         }
         x.exp() * xsf::chbevl(32. / x - 2., &I0_B_F64) / x.sqrt()
     }
+
+    fn i0e(&self) -> Self {
+        let x = self.abs();
+        if x <= 8. {
+            let y = (x / 2.) - 2.;
+            return xsf::chbevl(y, &I0_A_F64);
+        }
+        xsf::chbevl(32. / x - 2., &I0_B_F64) / x.sqrt()
+    }
 }
 
 // Chebyshev coefficients for exp(-x) I0(x)
@@ -160,6 +169,15 @@ impl Bessel for f32 {
         }
         x.exp() * xsf::chbevl(32. / x - 2., &I0_B_F32) / x.sqrt()
     }
+
+    fn i0e(&self) -> Self {
+        let x = self.abs();
+        if x <= 8. {
+            let y = (x / 2.) - 2.;
+            return xsf::chbevl(y, &I0_A_F32);
+        }
+        xsf::chbevl(32. / x - 2., &I0_B_F32) / x.sqrt()
+    }
 }
 
 #[cfg(test)]
@@ -196,6 +214,44 @@ mod tests {
         assert_relative_eq!(result, exp, epsilon = 1e-6);
         let result: f32 = 0.213.i0();
         let exp = 1.0113744522192416;
+        assert_relative_eq!(result, exp, epsilon = 1e-6);
+    }
+
+    #[test]
+    fn i0e_f64() {
+        let result: f64 = (0.).i0e();
+        let exp = 1.;
+        assert_relative_eq!(result, exp, epsilon = 1e-6);
+        let result: f64 = (1.).i0e();
+        let exp = 0.46575960759364043;
+        assert_relative_eq!(result, exp, epsilon = 1e-6);
+        let result: f64 = 0.213.i0e();
+        let exp = 0.8173484705849442;
+        assert_relative_eq!(result, exp, epsilon = 1e-6);
+        let result: f64 = 5.0.i0e();
+        let exp = 0.18354081260932834;
+        assert_relative_eq!(result, exp, epsilon = 1e-6);
+        let result: f64 = 30.546.i0e();
+        let exp = 0.0724836816695565;
+        assert_relative_eq!(result, exp, epsilon = 1e-6);
+    }
+
+    #[test]
+    fn i0e_f32() {
+        let result: f32 = (0.).i0e();
+        let exp = 1.;
+        assert_relative_eq!(result, exp, epsilon = 1e-6);
+        let result: f32 = (1.).i0e();
+        let exp = 0.46575960759364043;
+        assert_relative_eq!(result, exp, epsilon = 1e-6);
+        let result: f32 = 0.213.i0e();
+        let exp = 0.8173484705849442;
+        assert_relative_eq!(result, exp, epsilon = 1e-6);
+        let result: f32 = 5.0.i0e();
+        let exp = 0.18354081260932834;
+        assert_relative_eq!(result, exp, epsilon = 1e-6);
+        let result: f32 = 30.546.i0e();
+        let exp = 0.0724836816695565;
         assert_relative_eq!(result, exp, epsilon = 1e-6);
     }
 }
