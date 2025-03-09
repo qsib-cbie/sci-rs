@@ -6,6 +6,7 @@ use num_traits::{real::Real, Pow};
 // in the interval [0,8].
 //
 // lim(x->0){ exp(-x) I0(x) } = 1.
+#[allow(clippy::excessive_precision)]
 const I0_A_F64: [f64; 30] = [
     -4.41534164647933937950E-18,
     3.33079451882223809783E-17,
@@ -43,6 +44,7 @@ const I0_A_F64: [f64; 30] = [
 // in the inverted interval [8,infinity].
 //
 // lim(x->inf){ exp(-x) sqrt(x) I0(x) } = 1/sqrt(2pi).
+#[allow(clippy::excessive_precision)]
 const I0_B_F64: [f64; 25] = [
     -7.23318048787475395456E-18,
     -4.83050448594418207126E-18,
@@ -95,6 +97,7 @@ impl Bessel for f64 {
 // in the interval [0,8].
 //
 // lim(x->0){ exp(-x) I0(x) } = 1.
+#[allow(clippy::excessive_precision)]
 const I0_A_F32: [f32; 30] = [
     -4.41534164647933937950E-18,
     3.33079451882223809783E-17,
@@ -132,6 +135,7 @@ const I0_A_F32: [f32; 30] = [
 // in the inverted interval [8,infinity].
 //
 // lim(x->inf){ exp(-x) sqrt(x) I0(x) } = 1/sqrt(2pi).
+#[allow(clippy::excessive_precision)]
 const I0_B_F32: [f32; 25] = [
     -7.23318048787475395456E-18,
     -4.83050448594418207126E-18,
