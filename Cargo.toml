@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["sci-rs", "sci-rs-test"]
+members = ["sci-rs", "sci-rs-core", "sci-rs-test"]
 
 [profile.bench]
 debug = true
