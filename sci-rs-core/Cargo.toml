@@ -1,0 +1,25 @@
+[package]
+name = "sci-rs-core"
+version = "0.0.0"
+edition = "2021"
+authors = ["Jacob Trueb <jtrueb@northwestern.edu>"]
+description = "Core library for sci-rs internals."
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/qsib-cbie/sci-rs.git"
+homepage = "https://github.com/qsib-cbie/sci-rs.git"
+readme = "../README.md"
+keywords = ["scipy", "dsp", "signal", "filter", "design"]
+categories = ["science", "mathematics", "no-std", "embedded"]
+
+
+[package.metadata.docs.rs]
+all-features = true
+
+[features]
+default = ['alloc']
+
+# Allow allocating vecs, matrices, etc.
+alloc = []
+
+# Enable FFT and standard library features
+std = ['alloc']
