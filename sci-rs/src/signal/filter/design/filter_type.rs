@@ -1,4 +1,5 @@
 /// Type of IIR filter
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum FilterType {
     /// Butterworth
     /// <https://en.wikipedia.org/wiki/Butterworth_filter>
@@ -18,6 +19,7 @@ pub enum FilterType {
 }
 
 /// Bessel-Thomson filter normalization
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum BesselThomsonNorm {
     /// Phase
     Phase,
