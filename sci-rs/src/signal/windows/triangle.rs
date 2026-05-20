@@ -62,6 +62,15 @@ where
     /// assert_eq!(vec![0.1, 0.3, 0.5, 0.7, 0.9, 0.9, 0.7, 0.5, 0.3], tri.get_window());
     /// ```
     ///
+    /// Alternatively, this can be run with the convenience macro from [crate::signal] namespace.
+    /// (`std` feature is required for macros.)
+    /// #[cfg(feature = "std")]
+    /// ```
+    /// use sci_rs::signal::get_window;
+    /// let actual = get_window!("triangle", 8);
+    /// assert_eq!(vec![0.125, 0.375, 0.625, 0.875, 0.875, 0.625, 0.375, 0.125], actual);
+    /// ```
+    ///
     /// # References
     /// <https://en.wikipedia.org/wiki/Window_function#Triangular_window>
     #[cfg(feature = "alloc")]
@@ -194,5 +203,17 @@ mod tests {
             //     assert_relative_eq!(e, t);
             // }
         }
+    }
+
+    #[test]
+    #[cfg(feature = "std")]
+    fn from_macro() {
+        use crate::signal::get_window;
+
+        let actual = get_window!("triangle", 8);
+        assert_eq!(
+            vec![0.125, 0.375, 0.625, 0.875, 0.875, 0.625, 0.375, 0.125],
+            actual
+        );
     }
 }

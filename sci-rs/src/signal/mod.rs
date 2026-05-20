@@ -24,6 +24,18 @@ pub mod convolve;
 /// namespace is located here.
 pub mod windows;
 
+// Convenience macro for down-stream users
+/// This provides the same convenience function as in the scipy.signal namespace. Returns a window
+/// of given length and type.
+///
+/// # Parameters:
+/// - `window`: The type of window to create.  
+/// - `m`: Number of samples in the window.  
+/// - `fftbins`: If true (default), creates a "periodic" window, ready to use with ifftshift and be
+///   multiplied by the result of an FFT. If False, create a "symmetric" window, for use in filter design.
+#[doc(inline)]
+pub use crate::_signal_windows_getWindow as get_window;
+
 /// Signal Resampling  
 /// This contains only the
 /// [`resample`](https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.resample.html#scipy.signal.resample)
