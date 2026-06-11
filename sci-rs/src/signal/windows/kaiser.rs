@@ -179,7 +179,7 @@ where
         }
         let (m, needs_trunc) = extend(self.m, self.sym);
         let n = (0..m);
-        let alpha = W::from(self.m - 1).unwrap() / W::from(2).unwrap();
+        let alpha = W::from(m - 1).unwrap() / W::from(2).unwrap();
         let beta = W::from(self.beta).unwrap();
         // let w: Vec<W> = n
         //     .map(|ni| W::from(ni).unwrap() - alpha)
@@ -216,6 +216,20 @@ mod tests {
             0.88970403, 0.85725436,
         ];
         let k = Kaiser::new(17, 0.8, true);
+
+        assert_vec_eq(expected, k.get_window());
+    }
+
+    #[test]
+    fn kaiser_17_8_false() {
+        // from scipy.signal.windows import kaiser
+        // kaiser(17, beta = 0.8, sym=False)
+        let expected = vec![
+            0.85725436, 0.88789917, 0.91515983, 0.9388612, 0.95885069, 0.97499946, 0.98720325,
+            0.99538322, 0.99948647, 0.99948647, 0.99538322, 0.98720325, 0.97499946, 0.95885069,
+            0.9388612, 0.91515983, 0.88789917,
+        ];
+        let k = Kaiser::new(17, 0.8, false);
 
         assert_vec_eq(expected, k.get_window());
     }
