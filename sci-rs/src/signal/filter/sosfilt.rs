@@ -230,7 +230,9 @@ fn _sosfilt32(y: &[f32], sos: &mut [Sos32], z: &mut [f32]) {
     match (sos.len(), y.len().is_multiple_of(TILE)) {
         (2, true) => {
             let rem = y.len() % TILE;
-            y.chunks_exact(TILE)
+            y.as_chunks::<TILE>()
+                .0
+                .iter()
                 .zip(z.chunks_exact_mut(TILE))
                 .for_each(|c| {
                     for (yi, zi) in c.0.iter().zip(c.1.iter_mut()) {
@@ -245,7 +247,9 @@ fn _sosfilt32(y: &[f32], sos: &mut [Sos32], z: &mut [f32]) {
         }
         (4, true) => {
             let rem = y.len() % TILE;
-            y.chunks_exact(TILE)
+            y.as_chunks::<TILE>()
+                .0
+                .iter()
                 .zip(z.chunks_exact_mut(TILE))
                 .for_each(|c| {
                     for (yi, zi) in c.0.iter().zip(c.1.iter_mut()) {
@@ -325,7 +329,9 @@ fn _sosfilt_isize_32<I: Copy + Into<isize>>(y: &[I], sos: &mut [Sos32], z: &mut 
     match (sos.len(), y.len().is_multiple_of(TILE)) {
         (2, true) => {
             let rem = y.len() % TILE;
-            y.chunks_exact(TILE)
+            y.as_chunks::<TILE>()
+                .0
+                .iter()
                 .zip(z.chunks_exact_mut(TILE))
                 .for_each(|c| {
                     for (yi, zi) in c.0.iter().zip(c.1.iter_mut()) {
@@ -340,7 +346,9 @@ fn _sosfilt_isize_32<I: Copy + Into<isize>>(y: &[I], sos: &mut [Sos32], z: &mut 
         }
         (4, true) => {
             let rem = y.len() % TILE;
-            y.chunks_exact(TILE)
+            y.as_chunks::<TILE>()
+                .0
+                .iter()
                 .zip(z.chunks_exact_mut(TILE))
                 .for_each(|c| {
                     for (yi, zi) in c.0.iter().zip(c.1.iter_mut()) {
@@ -355,7 +363,9 @@ fn _sosfilt_isize_32<I: Copy + Into<isize>>(y: &[I], sos: &mut [Sos32], z: &mut 
         }
         (6, true) => {
             let rem = y.len() % TILE;
-            y.chunks_exact(TILE)
+            y.as_chunks::<TILE>()
+                .0
+                .iter()
                 .zip(z.chunks_exact_mut(TILE))
                 .for_each(|c| {
                     for (yi, zi) in c.0.iter().zip(c.1.iter_mut()) {
@@ -370,7 +380,9 @@ fn _sosfilt_isize_32<I: Copy + Into<isize>>(y: &[I], sos: &mut [Sos32], z: &mut 
         }
         (8, true) => {
             let rem = y.len() % TILE;
-            y.chunks_exact(TILE)
+            y.as_chunks::<TILE>()
+                .0
+                .iter()
                 .zip(z.chunks_exact_mut(TILE))
                 .for_each(|c| {
                     for (yi, zi) in c.0.iter().zip(c.1.iter_mut()) {
@@ -385,7 +397,9 @@ fn _sosfilt_isize_32<I: Copy + Into<isize>>(y: &[I], sos: &mut [Sos32], z: &mut 
         }
         (10, true) => {
             let rem = y.len() % TILE;
-            y.chunks_exact(TILE)
+            y.as_chunks::<TILE>()
+                .0
+                .iter()
                 .zip(z.chunks_exact_mut(TILE))
                 .for_each(|c| {
                     for (yi, zi) in c.0.iter().zip(c.1.iter_mut()) {
