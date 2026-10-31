@@ -29,16 +29,15 @@ where
     // axis value specified is within -N <= axis < N.
     match axis {
         None => (),
-        Some(axis) if axis.is_negative() => {
-            if axis.unsigned_abs() > N {
-                return Err(());
-            }
+        Some(axis) if axis.is_negative() && axis.unsigned_abs() > N => {
+            return Err(());
         }
-        Some(axis) => {
-            if axis.unsigned_abs() >= N {
-                return Err(());
-            }
+        Some(axis) if axis.is_negative() && axis.unsigned_abs() <= N => (),
+        Some(axis) if axis.unsigned_abs() >= N => {
+            return Err(());
         }
+        Some(axis) if axis.unsigned_abs() < N => (),
+        Some(axis) => panic!("This should not be reached!"),
     }
 
     // We make a best effort to convert into appropriate axis object.
