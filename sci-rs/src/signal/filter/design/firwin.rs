@@ -495,7 +495,7 @@ where
         //     reason: "Parity of cutoff given for type of Filter is incorrect.".into(),
         // });
     }
-    let bands: Vec<_> = cutoff.chunks_exact(2).collect();
+    let bands: Vec<_> = cutoff.as_chunks::<2>().0.iter().collect();
     let scale_frequency = {
         // for use in scale branch later
         let left = bands[0][0];
