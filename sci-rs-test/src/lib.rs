@@ -1,6 +1,6 @@
 #![no_std]
 
-use sci_rs::na::U1;
+use nalgebra::U1;
 use sci_rs::signal::filter::kalman_filter::KalmanFilter;
 
 pub fn foo() {

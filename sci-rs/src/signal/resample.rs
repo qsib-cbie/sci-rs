@@ -62,7 +62,7 @@ pub fn resample<F: Float + FftNum>(x: &[F], n: usize) -> Vec<F> {
 #[cfg(test)]
 mod tests {
     use approx::assert_relative_eq;
-    use rand::Rng;
+    use rand::RngExt;
 
     use super::*;
 

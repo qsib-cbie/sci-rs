@@ -6,3 +6,5 @@ authors = ["Jacob Trueb <jtrueb@northwestern.edu>"]
 
 [dependencies]
 sci-rs = { path = "../sci-rs" }
+# kalmanfilt is still on nalgebra 0.33, so its dimension types must come from 0.33 rather than sci_rs::na
+nalgebra = { version = "0.33.2", default-features = false }
