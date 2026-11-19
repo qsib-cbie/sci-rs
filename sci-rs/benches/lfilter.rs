@@ -13,7 +13,7 @@ fn randomized_signal(
     num_data_points: NonZeroUsize,
     time_seconds: f64,
 ) -> (Array1<f64>, Array1<f64>) {
-    use rand::Rng;
+    use rand::RngExt;
 
     let nf: usize = num_freqs.into(); // Num freqs
     let n: usize = num_data_points.into(); // Num data points

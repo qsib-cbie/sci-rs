@@ -42,7 +42,7 @@ sci-rs-core = { path = "../sci-rs-core", default-features = false }
 approx = "0.5.1"
 dasp_signal = { version = "0.11.0" }
 criterion = { version = "0.4", features = ["html_reports"] }
-rand = "0.9.2"
+rand = "0.10.0"
 
 [[bench]]
 name = "sosfilt"
